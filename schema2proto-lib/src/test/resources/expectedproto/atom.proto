@@ -1,0 +1,174 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+// The Atom entry construct is defined in section 4.1.2 of the format spec.
+message entryType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  repeated personType author = 3;
+  repeated categoryType category = 4;
+  contentType content = 5;
+  repeated personType contributor = 6;
+  idType id = 7;
+  repeated linkType link = 8;
+  dateTimeType published = 9;
+  textType rights = 10;
+  textType source = 11;
+  textType summary = 12;
+  textType title = 13;
+  dateTimeType updated = 14;
+}
+// The Atom id construct is defined in section 4.2.6 of the format spec.
+message idType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  // SimpleContent value of element
+  string value = 3;
+}
+// The Atom text construct is defined in section 3.1 of the format spec.
+message textType {
+  typeType type = 1;
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 2;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 3;
+
+  enum typeType {
+    // Default
+    TYPE_TYPE_UNSPECIFIED = 0;
+    TYPE_TYPE_TEXT = 1;
+    TYPE_TYPE_HTML = 2;
+    TYPE_TYPE_XHTML = 3;
+  }
+}
+message dateTimeType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  // SimpleContent value of element
+  uint64 value = 3;
+}
+// The Atom generator element is defined in section 4.2.4 of the format spec.
+message generatorType {
+  string uri = 1;
+  string version = 2;
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 3;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 4;
+  // SimpleContent value of element
+  string value = 5;
+}
+// The Atom cagegory construct is defined in section 4.2.2 of the format spec.
+message categoryType {
+  string term = 1;
+  string scheme = 2;
+  string label = 3;
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 4;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 5;
+}
+// The Atom source construct is defined in section 4.2.11 of the format spec.
+message sourceType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  repeated personType author = 3;
+  repeated categoryType category = 4;
+  repeated personType contributor = 5;
+  generatorType generator = 6;
+  iconType icon = 7;
+  idType id = 8;
+  repeated linkType link = 9;
+  logoType logo = 10;
+  textType rights = 11;
+  textType subtitle = 12;
+  textType title = 13;
+  dateTimeType updated = 14;
+}
+// The Atom feed construct is defined in section 4.1.1 of the format spec.
+message feedType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  repeated personType author = 3;
+  repeated categoryType category = 4;
+  repeated personType contributor = 5;
+  generatorType generator = 6;
+  iconType icon = 7;
+  idType id = 8;
+  repeated linkType link = 9;
+  logoType logo = 10;
+  textType rights = 11;
+  textType subtitle = 12;
+  textType title = 13;
+  dateTimeType updated = 14;
+  repeated entryType entry = 15;
+}
+// The Atom icon construct is defined in section 4.2.5 of the format spec.
+message iconType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  // SimpleContent value of element
+  string value = 3;
+}
+message uriType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  // SimpleContent value of element
+  string value = 3;
+}
+// The Atom link construct is defined in section 3.4 of the format spec.
+message linkType {
+  string href = 1;
+  string rel = 2;
+  string type = 3;
+  string hreflang = 4;
+  string title = 5;
+  uint32 length = 6;
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 7;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 8;
+}
+// The Atom person construct is defined in section 3.2 of the format spec.
+message personType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  string name = 3;
+  uriType uri = 4;
+  string email = 5;
+}
+// The Atom logo construct is defined in section 4.2.8 of the format spec.
+message logoType {
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 1;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 2;
+  // SimpleContent value of element
+  string value = 3;
+}
+// The Atom content construct is defined in section 4.1.3 of the format spec.
+message contentType {
+  string type = 1;
+  string src = 2;
+  // See http://www.w3.org/TR/xmlbase/ for information about this attribute.
+  string base = 3;
+  // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
+  string lang = 4;
+}

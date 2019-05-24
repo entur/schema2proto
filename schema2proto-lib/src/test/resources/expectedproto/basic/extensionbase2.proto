@@ -1,0 +1,12 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message CustomerPurchasePackage_VersionStructure {
+    string name = 1;
+    string description = 2;
+    string private_code = 401;
+    string validity_parameter_assignments = 402;
+    string distribution_assignments = 403;
+    string customer_purchase_package_elements = 404;
+}

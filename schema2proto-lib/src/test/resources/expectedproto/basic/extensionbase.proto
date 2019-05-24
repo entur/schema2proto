@@ -1,0 +1,11 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+// concreteTopLevelComplexType doc
+message concreteTopLevelComplexType {
+    string abstract_top_level_complex_type_attribute = 1;
+    string element_in_abstract_complex_type = 2;
+    string concrete_top_level_complex_type_attribute = 101;
+    string element_in_concrete_complex_type = 201;
+}

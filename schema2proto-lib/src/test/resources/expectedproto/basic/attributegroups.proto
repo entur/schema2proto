@@ -1,0 +1,20 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message Optional {
+    string no_default_attribute = 1;
+    string has_default_attribute = 2;
+    string required_attribute = 3;
+    string optional_attribute = 4;
+    string default_minoccurs_element = 5;
+    string optional_element = 6;
+    string required_element = 7;
+    repeated string repeat_element = 8;
+}
+message OptionalAttributeGroup {
+    string no_default_attribute = 1;
+    string has_default_attribute = 2;
+    string required_attribute = 3;
+    string optional_attribute = 4;
+}

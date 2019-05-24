@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:simpleType name="topLevelSimpleType">
+        <xs:annotation>
+            <xs:documentation>Simple restricted base type</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="REGEX"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="topLevelComplexType">
+        <xs:sequence>
+            <xs:element name="elementInComplexType" type="topLevelSimpleType">
+                <xs:annotation>
+                    <xs:documentation>elementInComplexType doc</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

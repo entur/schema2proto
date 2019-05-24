@@ -1,0 +1,10 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message TestRangeInt {
+  int32 value = 1;
+}
+message TestRangeDecimal {
+  double value = 1;
+}

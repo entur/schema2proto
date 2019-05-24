@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+
+    <xsd:element name="PrivateCode" type="xsd:string"/>
+
+    <xsd:complexType name="PriceableObject_VersionStructure" abstract="true">
+        <xsd:sequence>
+            <xsd:group ref="PriceableObjectGroup"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:group name="PriceableObjectGroup">
+        <xsd:sequence>
+            <xsd:element name="Name" type="xsd:string" minOccurs="0"></xsd:element>
+            <xsd:element name="Description" type="xsd:string" minOccurs="0"></xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:complexType name="CustomerPurchasePackage_VersionStructure">
+        <xsd:complexContent>
+            <xsd:extension base="PriceableObject_VersionStructure">
+                <xsd:sequence>
+                    <xsd:group ref="CustomerPurchasePackageGroup"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:group name="CustomerPurchasePackageGroup">
+        <xsd:sequence>
+            <xsd:element ref="PrivateCode" minOccurs="0"/>
+            <xsd:group ref="CustomerPurchasePackageSelectionGroup"/>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:group name="CustomerPurchasePackageSelectionGroup">
+        <xsd:sequence>
+            <xsd:element name="validityParameterAssignments" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="distributionAssignments" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="customerPurchasePackageElements" type="xsd:string" minOccurs="0"/>
+
+        </xsd:sequence>
+    </xsd:group>
+
+</xsd:schema>

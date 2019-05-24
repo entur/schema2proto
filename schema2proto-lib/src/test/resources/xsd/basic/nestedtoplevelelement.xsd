@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="topLevelElement">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>topLevelElement type doc</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+                <xs:element name="simpleString" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>simpleString field doc</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element name="nestedElement">
+                    <xs:annotation>
+                        <xs:documentation>nestedElement field doc</xs:documentation>
+                    </xs:annotation>
+                    <xs:complexType>
+                        <xs:annotation>
+                            <xs:documentation>nestedElement type doc</xs:documentation>
+                        </xs:annotation>
+                        <xs:sequence>
+                            <xs:element name="name" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="nestedRepeatedElement" maxOccurs="unbounded">
+
+                    <xs:complexType>
+                        <xs:annotation>
+                            <xs:documentation>nestedRepeatedElement type doc</xs:documentation>
+                        </xs:annotation>
+                        <xs:sequence>
+                            <xs:element name="mandatoryString" type="xs:string"/>
+                            <xs:element name="optionalString" type="xs:string" minOccurs="0"/>
+                            <xs:element name="quantity" type="xs:positiveInteger"/>
+                            <xs:element name="val" type="xs:decimal"/>
+                            <xs:element name="embeddedEnum" maxOccurs="2">
+                                <xs:annotation>
+                                    <xs:documentation>embeddedEnum field doc</xs:documentation>
+                                </xs:annotation>
+                                <xs:simpleType>
+                                    <xs:annotation>
+                                        <xs:documentation>embeddedEnum type doc</xs:documentation>
+                                    </xs:annotation>
+
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="embeddedEnumValue1">
+                                            <xs:annotation>
+                                                <xs:documentation>embeddedEnumValue1 doc</xs:documentation>
+                                            </xs:annotation>
+
+                                        </xs:enumeration>
+                                        <xs:enumeration value="embeddedEnumValue2"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="topLevelElementAttribute" type="xs:string" use="required">
+                <xs:annotation>
+                    <xs:documentation>topLevelElementAttribute field doc</xs:documentation>
+                </xs:annotation>
+
+            </xs:attribute>
+            <xs:attributeGroup ref="topLevelAttributeGroup"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:attributeGroup name="topLevelAttributeGroup">
+        <xs:attribute type="xs:string" name="topLevelAttributeFromGroup"/>
+    </xs:attributeGroup>
+
+</xs:schema>

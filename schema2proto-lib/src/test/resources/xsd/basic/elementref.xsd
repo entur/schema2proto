@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:complexType name="TerminationResponseStatusStructure">
+        <xsd:annotation>
+            <xsd:documentation>Type for Status of termination response.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="ResponseTimestamp" minOccurs="0"/>
+
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:element name="ResponseTimestamp" type="xsd:dateTime">
+        <xsd:annotation>
+            <xsd:documentation>Time individual response element was created.</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>

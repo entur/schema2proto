@@ -1,0 +1,16 @@
+// com_schemas_domain_address.proto at 0:0
+syntax = "proto3";
+package com.schemas.domain.address;
+
+import "com_schemas_domain_common.proto";
+
+message addressType {
+  // Any lines of the address that are not city, postal code or country. For example region, street name and building name/number.
+  addressLinesType address_lines = 1;
+  string city = 2;
+  string post_code = 3;
+  com.schemas.domain.common.country country = 4;
+}
+message addressLinesType {
+  repeated string line = 1;
+}

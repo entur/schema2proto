@@ -1,0 +1,12 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+// topLevelEnum doc
+enum topLevelEnum {
+    // Default
+    TOP_LEVEL_ENUM_UNSPECIFIED = 0;
+    // enumVal1 doc
+    TOP_LEVEL_ENUM_ENUM_VAL1 = 1;
+    TOP_LEVEL_ENUM_ENUM_VAL2 = 2;
+}

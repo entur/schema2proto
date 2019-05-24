@@ -1,0 +1,20 @@
+outputFilename: generated-file.proto
+outputDirectory: src/main/proto
+#namespace:
+#splitBySchema: false
+#nestEnums: false
+#typeInEnums: true
+includeMessageDocs: true
+includeFieldDocs: true
+includeSourceLocationInDoc: false
+options:
+  java_package: org.entur.protobuf
+  java_multiple_files: true
+customImports: google/protobuf/timestamp.proto,google/protobuf/duration.proto
+customTypeMappings:
+  a: b
+  x: y
+customNameMappings:
+  a: b
+  x: y
+  

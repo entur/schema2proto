@@ -1,0 +1,15 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message StringObject {
+  string name = 1;
+  string description = 2;
+  string value2_required_attr = 101;
+  string value3_optional_attr = 102;
+  string value = 201;
+}
+message BaseObject {
+  string name = 1;
+  string description = 2;
+}
