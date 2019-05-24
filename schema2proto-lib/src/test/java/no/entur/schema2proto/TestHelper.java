@@ -95,7 +95,7 @@ public class TestHelper {
 		}
 		args.add("src/test/resources/xsd/" + name + ".xsd");
 
-		Main.main(args.toArray(new String[0]));
+		Schema2Proto.main(args.toArray(new String[0]));
 
 		return filename;
 	}

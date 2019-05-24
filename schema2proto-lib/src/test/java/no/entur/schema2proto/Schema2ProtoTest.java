@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-public class MainTest {
+public class Schema2ProtoTest {
 
 	@Test
 	public void compareAtomProtobuf() throws IOException {

@@ -18,9 +18,9 @@ import org.yaml.snakeyaml.error.YAMLException;
 
 import no.entur.schema2proto.marshal.ProtobufMarshaller;
 
-public class Main {
+public class Schema2Proto {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
 	private static boolean correct;
 	private static String usage = "" + "Usage: java xsd2proto-<VERSION>.jar [--output=FILENAME]\n"

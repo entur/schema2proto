@@ -15,7 +15,7 @@ public class MultipleNamespaceTest {
 	public static void generateProtobufForTests() {
 		try {
 			new File("target/generated-proto").mkdirs();
-			Main.main(new String[] { "--splitBySchema=true", "--directory=target/generated-proto/", "--package=schemas.com.domain.common",
+			Schema2Proto.main(new String[] { "--splitBySchema=true", "--directory=target/generated-proto/", "--package=schemas.com.domain.common",
 					"src/test/resources/xsd/ns-person.xsd" });
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -8,7 +8,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import no.entur.schema2proto.Main;
+import no.entur.schema2proto.Schema2Proto;
 
 /**
  * Generate proto file from set of xsd files
@@ -40,7 +40,7 @@ public class GenerateProtoMojo extends AbstractMojo {
 
 		getLog().info(String.format("Generating proto files from %s using config file %s. Output is defined in config file", xsdFile, configFile));
 
-		Main.main(new String[] { "--configFile=" + configFile, "" + xsdFile });
+		Schema2Proto.main(new String[] { "--configFile=" + configFile, "" + xsdFile });
 
 	}
 }
