@@ -43,13 +43,14 @@ import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
 import no.entur.schema2proto.marshal.ProtobufMarshaller;
+import no.entur.schema2proto.proto.ProtobufMessage;
 
 public class XSDParser implements ErrorHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XSDParser.class);
 
 	private File f;
-	private TreeMap<String, Message> map;
+	private TreeMap<String, ProtobufMessage> messages;
 	private Map<String, Enumeration> enums;
 	private Map<String, String> simpleTypes;
 	private Map<String, String> documentation;
@@ -71,10 +72,11 @@ public class XSDParser implements ErrorHandler {
 	private void init(String stFile) {
 
 		this.f = new File(stFile);
-		map = new TreeMap<String, Message>();
+		messages = new TreeMap<String, ProtobufMessage>();
 		enums = new HashMap<String, Enumeration>();
 		simpleTypes = new HashMap<String, String>();
 		documentation = new HashMap<String, String>();
+
 		keywords = new TreeSet<String>();
 		keywords.add("interface");
 		keywords.add("is");
@@ -159,9 +161,9 @@ public class XSDParser implements ErrorHandler {
 	}
 
 	private void writeMap() throws Exception {
-		Iterator<Message> messageIterator;
-		Message message;
-		Set<Message> messageSet;
+		Iterator<ProtobufMessage> messageIterator;
+		ProtobufMessage message;
+		Set<ProtobufMessage> messageSet;
 		Set<String> declared;
 
 		boolean bModified;
@@ -173,7 +175,7 @@ public class XSDParser implements ErrorHandler {
 			}
 		}
 
-		messageSet = new TreeSet<Message>(map.values());
+		messageSet = new TreeSet<ProtobufMessage>(messages.values());
 		declared = new TreeSet<String>(basicTypes);
 		declared.addAll(enums.keySet());
 		declared.addAll(simpleTypes.keySet());
@@ -181,7 +183,7 @@ public class XSDParser implements ErrorHandler {
 		bModified = true;
 		while (bModified && !messageSet.isEmpty()) {
 			bModified = false;
-			messageIterator = map.values().iterator();
+			messageIterator = messages.values().iterator();
 			while (messageIterator.hasNext()) {
 				message = messageIterator.next();
 				writeMessage(message, declared);
@@ -194,7 +196,7 @@ public class XSDParser implements ErrorHandler {
 			// Check if we are missing a type or it's a circular dependency
 			Set<String> requiredTypes = new TreeSet<String>();
 			Set<String> notYetDeclaredTypes = new TreeSet<String>();
-			for (Message s : messageSet) {
+			for (ProtobufMessage s : messageSet) {
 				requiredTypes.addAll(s.getTypes());
 				notYetDeclaredTypes.add(s.getName());
 			}
@@ -204,14 +206,14 @@ public class XSDParser implements ErrorHandler {
 				// Circular dependencies have been detected
 				if (marshaller.isCircularDependencySupported()) {
 					// Just dump the rest
-					for (Message s : messageSet) {
+					for (ProtobufMessage s : messageSet) {
 						writeMessage(s, declared);
 					}
 				} else {
 					// Report circular dependency
 					LOGGER.error(
 							"Source schema contains circular dependencies and the target marshaller does not support them. Refer to the reduced dependency graph below.");
-					for (Message s : messageSet) {
+					for (ProtobufMessage s : messageSet) {
 						s.getTypes().removeAll(declared);
 						LOGGER.error(s.getName() + ": " + s.getTypes());
 					}
@@ -220,7 +222,7 @@ public class XSDParser implements ErrorHandler {
 			} else {
 				// Missing types have been detected
 				LOGGER.error("Source schema contains references missing types");
-				for (Message s : messageSet) {
+				for (ProtobufMessage s : messageSet) {
 					s.getTypes().retainAll(requiredTypes);
 					if (!s.getTypes().isEmpty()) {
 						LOGGER.error(s.getName() + ": " + s.getTypes());
@@ -231,7 +233,7 @@ public class XSDParser implements ErrorHandler {
 		}
 	}
 
-	private void writeMessage(Message message, Set<String> declared) throws IOException {
+	private void writeMessage(ProtobufMessage message, Set<String> declared) throws IOException {
 		Iterator<Field> itf;
 		Field field;
 		String fieldName, fieldType;
@@ -271,7 +273,7 @@ public class XSDParser implements ErrorHandler {
 				fieldType = simpleTypes.get(fieldType);
 			}
 
-			if (!map.keySet().contains(fieldType) && !basicTypes.contains(fieldType) && !enums.containsKey(fieldType)) {
+			if (!messages.keySet().contains(fieldType) && !basicTypes.contains(fieldType) && !enums.containsKey(fieldType)) {
 				fieldType = "binary";
 			}
 			if (fieldType.equals(fieldName)) {
@@ -299,15 +301,15 @@ public class XSDParser implements ErrorHandler {
 			}
 
 			if (marshaller.getTypeMapping(fieldType) != null) {
-				// Message-type has been overridden, need to override all usage
+				// ProtobufMessage-type has been overridden, need to override all usage
 				fieldType = marshaller.getTypeMapping(fieldType);
 			}
 
 			fieldType = typeNameSpace + escapeType(fieldType);
 
 			String doc = null;
-			if (map.get(fieldType) != null) {
-				doc = map.get(fieldType).getDoc();
+			if (messages.get(fieldType) != null) {
+				doc = messages.get(fieldType).getDoc();
 			}
 
 			os(message.getNamespace()).write(
@@ -532,7 +534,7 @@ public class XSDParser implements ErrorHandler {
 		if (xs.isRestriction() && xs.getFacet("enumeration") != null) {
 			createEnum(typeName, namespace, xs.asRestriction());
 		} else {
-			// This is just a restriction on a basic type, find parent and map
+			// This is just a restriction on a basic type, find parent and messages
 			// it to the type
 			String baseTypeName = typeName;
 			while (xs != null && !basicTypes.contains(baseTypeName)) {
@@ -560,7 +562,7 @@ public class XSDParser implements ErrorHandler {
 	 * @param sset
 	 */
 	private String processComplexType(XSComplexType cType, String elementName, XSSchemaSet sset) {
-		Message st = null;
+		ProtobufMessage st = null;
 		XSType parent;
 		String typeName = cType.getName();
 		String nameSpace = cType.getTargetNamespace();
@@ -576,13 +578,13 @@ public class XSDParser implements ErrorHandler {
 		}
 		String doc = resolveDocumentationAnnotation(cType);
 
-		st = map.get(typeName);
+		st = messages.get(typeName);
 		if (st == null && !basicTypes.contains(typeName)) {
 
-			st = new Message(typeName, NamespaceConverter.convertFromSchema(nameSpace));
+			st = new ProtobufMessage(typeName, NamespaceConverter.convertFromSchema(nameSpace));
 			st.setDoc(doc);
 
-			map.put(typeName, st);
+			messages.put(typeName, st);
 			if (cType.asComplexType() != null) {
 				processComplexType(cType, elementName, sset);
 			} else if (cType.getContentType() != null) {
@@ -632,12 +634,12 @@ public class XSDParser implements ErrorHandler {
 			parent = cType;
 			while (parent != sset.getAnyType()) {
 				if (parent.isComplexType()) {
-					Message parentMessage = null;
+					ProtobufMessage parentMessage = null;
 					if (parent.getName() != null) {
-						parentMessage = map.get(parent.getName());
+						parentMessage = messages.get(parent.getName());
 					}
 					if (parentMessage == null && ((ComplexTypeImpl) parent).getScope() != null) {
-						parentMessage = map.get(((ComplexTypeImpl) parent).getScope().getName());
+						parentMessage = messages.get(((ComplexTypeImpl) parent).getScope().getName());
 					}
 
 					if (parentMessage != null) {

@@ -21,13 +21,16 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
  */
-package no.entur.schema2proto;
+package no.entur.schema2proto.proto;
 
 import java.util.*;
 
 import com.sun.xml.xsom.XmlString;
 
-public class Message implements Comparable<Message> {
+import no.entur.schema2proto.Field;
+import no.entur.schema2proto.NamespaceConverter;
+
+public class ProtobufMessage implements Comparable<ProtobufMessage> {
 	private Map<String, Field> map;
 	private Set<String> types;
 	private List<Field> orderedFields;
@@ -36,7 +39,7 @@ public class Message implements Comparable<Message> {
 	private String parent;
 	private String doc;
 
-	public Message(String name, String namespace) {
+	public ProtobufMessage(String name, String namespace) {
 		this.name = name;
 		this.namespace = namespace;
 		map = new TreeMap<String, Field>();
@@ -44,7 +47,7 @@ public class Message implements Comparable<Message> {
 		orderedFields = new LinkedList<Field>();
 	}
 
-	void addFields(List<Field> fields, HashMap<String, String> xsdMapping) {
+	public void addFields(List<Field> fields, HashMap<String, String> xsdMapping) {
 		for (Field field : fields) {
 			addField(field.getName(), field.getTypeNamespace(), field.getType(), field.isRequired(), field.isRepeat(), field.getDef(), field.getDoc(),
 					xsdMapping);
@@ -130,7 +133,7 @@ public class Message implements Comparable<Message> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Message other = (Message) obj;
+		ProtobufMessage other = (ProtobufMessage) obj;
 		if (name == null) {
 			if (other.name != null)
 				return false;
@@ -144,7 +147,7 @@ public class Message implements Comparable<Message> {
 	}
 
 	@Override
-	public int compareTo(Message s) {
+	public int compareTo(ProtobufMessage s) {
 		return name.compareTo(s.name);
 	}
 
