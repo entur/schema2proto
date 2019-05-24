@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package default;
+
+message TestRangeDecimal
+{
+	double value = 1;
+}
+
+message TestRangeInt
+{
+	int64 value = 1;
+}
+

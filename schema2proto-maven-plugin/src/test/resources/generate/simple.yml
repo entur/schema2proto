@@ -1,0 +1,18 @@
+filename: simple.proto
+directory: target/generated-proto
+namespace:
+splitBySchema: false
+nestEnums: false
+typeInEnums: true
+includeMessageDocs: true
+includeFieldDocs: true
+options:
+  java_package : no.entur.protobuf
+  java_multiple_files : true
+customTypeMappings:
+  a : b
+  x : y
+customNameMappings:
+  a : b
+  x : y
+  

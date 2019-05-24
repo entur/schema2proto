@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package schemas.com.domain.common;
+
+/*
+ * A country.  ISO3 code is the unique identifier.
+ */
+message country
+{
+	string description = 1;
+	string iso3 = 2;
+}
+

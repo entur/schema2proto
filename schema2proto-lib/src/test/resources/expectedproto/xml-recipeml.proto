@@ -1,0 +1,915 @@
+syntax = "proto3";
+
+package default;
+
+message tempunitType
+{
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	enum unitType
+	{
+		unitType_C = 0;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 6;
+}
+
+message productType
+{
+	repeated string inline_class = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	string uccIcn = 6;
+}
+
+message prodcodeType
+{
+	string id = 1;
+	string type = 2;
+	string content = 3;
+	string domain = 4;
+}
+
+message noteType
+{
+	string measure_class = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+	string type = 7;
+}
+
+message mfrType
+{
+	repeated string inline_class = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	string uccMin = 6;
+}
+
+message ing_noteType
+{
+	string measure_class = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+}
+
+message unitType
+{
+	enum systemType
+	{
+		systemType_Imperial = 0;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	string unit = 6;
+	enum typeType
+	{
+		typeType_area = 0;
+		typeType_length = 2;
+		typeType_mass = 3;
+		typeType_other = 4;
+		typeType_volume = 5;
+		typeType_weight = 6;
+	}
+	typeType type = 7;
+}
+
+message descriptionType
+{
+	string measure_class = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+}
+
+message actionType
+{
+	string measure_class = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+	string code = 7;
+}
+
+message srcitemType
+{
+	repeated string inline_class = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	string type = 6;
+}
+
+message spanType
+{
+	repeated string inline_class = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+}
+
+message sepType
+{
+	string id = 1;
+	string _class = 2;
+	string title = 3;
+	string lang = 4;
+}
+
+message substepType
+{
+	repeated string step_class = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	string duration = 6;
+	string type = 7;
+	enum optionalType
+	{
+		optionalType_no = 0;
+		optionalType_yes = 2;
+	}
+	optionalType _optional = 8;
+}
+
+message versionType
+{
+	string id = 1;
+	string _class = 2;
+	string title = 3;
+	string lang = 4;
+}
+
+message stepType
+{
+	string step_class = 1;
+	substepType substep = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+	string duration = 7;
+	string type = 8;
+	enum optionalType
+	{
+		optionalType_no = 0;
+		optionalType_yes = 2;
+	}
+	optionalType _optional = 9;
+}
+
+message conditionType
+{
+	string measure_class = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+	string code = 7;
+}
+
+message brandnameType
+{
+	mfrType mfr = 1;
+	productType product = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+}
+
+message n_nameType
+{
+	string id = 1;
+	string _class = 2;
+	string title = 3;
+	string lang = 4;
+	enum alternateType
+	{
+		alternateType_no = 0;
+		alternateType_yes = 2;
+	}
+	alternateType alternate = 5;
+}
+
+message fracType
+{
+	string n = 1;
+	sepType sep = 2;
+	string d = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+}
+
+message timeunitType
+{
+	string id = 1;
+	string _class = 2;
+	string title = 3;
+	string lang = 4;
+	enum systemType
+	{
+		systemType_Imperial = 0;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 5;
+	string unit = 6;
+}
+
+message titleType
+{
+	brandnameType brandname = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+}
+
+message settingType
+{
+	string measure_class = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+	string value = 7;
+}
+
+message sourceType
+{
+	repeated srcitemType srcitem = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+}
+
+message qtyType
+{
+	repeated fracType frac = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+}
+
+message itemType
+{
+	brandnameType brandname = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+}
+
+message subtitleType
+{
+	brandnameType brandname = 1;
+	string inline_class = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+}
+
+message metaType
+{
+	enum nameType
+	{
+		nameType_DC_Contributor = 1;
+		nameType_DC_Coverage = 2;
+		nameType_DC_Creator = 3;
+		nameType_DC_Date = 4;
+		nameType_DC_Description = 5;
+		nameType_DC_Format = 6;
+		nameType_DC_Identifier = 7;
+		nameType_DC_Language = 8;
+		nameType_DC_Publisher = 9;
+		nameType_DC_Relation = 10;
+		nameType_DC_Rights = 11;
+		nameType_DC_Source = 12;
+		nameType_DC_Subject = 13;
+		nameType_DC_Title = 14;
+		nameType_DC_Type = 15;
+	}
+	nameType name = 1;
+	string content = 2;
+	string scheme = 3;
+	string lang = 4;
+}
+
+message catType
+{
+	string id = 1;
+	string _class = 2;
+	string title = 3;
+	string lang = 4;
+	string type = 5;
+}
+
+message percentType
+{
+	repeated fracType frac = 1;
+	string standard = 2;
+}
+
+message q2Type
+{
+	repeated fracType frac = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+}
+
+message nutrientType
+{
+	repeated n_nameType n_name = 1;
+	qtyType qty = 2;
+	enum unitType
+	{
+		unitType_C = 1;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 3;
+	percentType percent = 4;
+	string id = 5;
+	string _class = 6;
+	string title = 7;
+	string lang = 8;
+}
+
+message q1Type
+{
+	repeated fracType frac = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+}
+
+message categoriesType
+{
+	repeated catType cat = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	string content = 6;
+}
+
+message nutrient_groupType
+{
+	titleType title = 1;
+	repeated nutrientType nutrient = 2;
+	string id = 3;
+	string _class = 4;
+	string lang = 5;
+	string standard = 6;
+}
+
+message rangeType
+{
+	q1Type q1 = 1;
+	sepType sep = 2;
+	q2Type q2 = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+}
+
+message exchangeType
+{
+	qtyType qty = 1;
+	rangeType range = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+}
+
+message nutritionType
+{
+	nutrient_groupType nutrient_group = 1;
+	nutrientType nutrient = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+	string standard = 7;
+}
+
+message timeType
+{
+	qtyType qty = 1;
+	rangeType range = 2;
+	timeunitType timeunit = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+}
+
+message sizeType
+{
+	qtyType qty = 1;
+	rangeType range = 2;
+	enum unitType
+	{
+		unitType_C = 1;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+	string code = 8;
+}
+
+message yieldType
+{
+	qtyType qty = 1;
+	rangeType range = 2;
+	enum unitType
+	{
+		unitType_C = 1;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+}
+
+message amtType
+{
+	qtyType qty = 1;
+	rangeType range = 2;
+	sizeType size = 3;
+	enum unitType
+	{
+		unitType_C = 1;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 4;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 5;
+	string id = 6;
+	string _class = 7;
+	string title = 8;
+	string lang = 9;
+	string variation = 10;
+}
+
+message tempType
+{
+	qtyType qty = 1;
+	rangeType range = 2;
+	tempunitType tempunit = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+}
+
+message time_cont
+{
+	timeType time = 1;
+	sepType sep = 2;
+}
+
+message toolrefType
+{
+	brandnameType brandname = 1;
+	qtyType qty = 2;
+	rangeType range = 3;
+	sizeType size = 4;
+	enum unitType
+	{
+		unitType_C = 1;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 5;
+	string inline_class = 6;
+	string id = 7;
+	string _class = 8;
+	string title = 9;
+	string lang = 10;
+	string toolid = 11;
+}
+
+message ingrefType
+{
+	brandnameType brandname = 1;
+	qtyType qty = 2;
+	rangeType range = 3;
+	sizeType size = 4;
+	enum unitType
+	{
+		unitType_C = 1;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 5;
+	string inline_class = 6;
+	string id = 7;
+	string _class = 8;
+	string title = 9;
+	string lang = 10;
+	string ingid = 11;
+}
+
+message modifierType
+{
+	sizeType size = 1;
+	string measure_class = 2;
+	string inline_class = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+}
+
+message toolType
+{
+	brandnameType brandname = 1;
+	qtyType qty = 2;
+	rangeType range = 3;
+	sizeType size = 4;
+	enum unitType
+	{
+		unitType_C = 1;
+		unitType_F = 2;
+		unitType_K = 3;
+	}
+	unitType unit = 5;
+	string inline_class = 6;
+	string id = 7;
+	string _class = 8;
+	string title = 9;
+	string lang = 10;
+	enum optionalType
+	{
+		optionalType_no = 1;
+		optionalType_yes = 2;
+	}
+	optionalType _optional = 11;
+}
+
+message diet_exchangesType
+{
+	repeated exchangeType exchange = 1;
+	string id = 2;
+	string _class = 3;
+	string title = 4;
+	string lang = 5;
+	string authority = 6;
+}
+
+message preptimeType
+{
+	timeType time = 1;
+	sepType sep = 2;
+	string id = 3;
+	string _class = 4;
+	string title = 5;
+	string lang = 6;
+	string type = 7;
+}
+
+message prepType
+{
+	sizeType size = 1;
+	string measure_class = 2;
+	string inline_class = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+}
+
+message headType
+{
+	titleType title = 1;
+	subtitleType subtitle = 2;
+	enum versionType
+	{
+		versionType_0_5 = 1;
+	}
+	versionType version = 3;
+	sourceType source = 4;
+	categoriesType categories = 5;
+	repeated preptimeType preptime = 6;
+	yieldType _yield = 7;
+}
+
+message equip_divType
+{
+	titleType title = 1;
+	descriptionType description = 2;
+	repeated noteType note = 3;
+	toolType tool = 4;
+	string id = 5;
+	string _class = 6;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 7;
+	string lang = 8;
+	enum typeType
+	{
+		typeType_area = 1;
+		typeType_length = 2;
+		typeType_mass = 3;
+		typeType_other = 4;
+		typeType_volume = 5;
+		typeType_weight = 6;
+	}
+	typeType type = 9;
+}
+
+message ing_cont
+{
+	modifierType modifier = 1;
+	itemType item = 2;
+	prepType prep = 3;
+	repeated ing_noteType ing_note = 4;
+	repeated prodcodeType prodcode = 5;
+}
+
+message alt_ingType
+{
+	modifierType modifier = 1;
+	itemType item = 2;
+	prepType prep = 3;
+	repeated ing_noteType ing_note = 4;
+	repeated prodcodeType prodcode = 5;
+	string id = 6;
+	string _class = 7;
+	string title = 8;
+	string lang = 9;
+}
+
+message ingType
+{
+	modifierType modifier = 1;
+	itemType item = 2;
+	prepType prep = 3;
+	repeated ing_noteType ing_note = 4;
+	repeated prodcodeType prodcode = 5;
+	repeated alt_ingType alt_ing = 6;
+	string id = 7;
+	string _class = 8;
+	string title = 9;
+	string lang = 10;
+	enum optionalType
+	{
+		optionalType_no = 1;
+		optionalType_yes = 2;
+	}
+	optionalType _optional = 11;
+}
+
+message ing_divType
+{
+	titleType title = 1;
+	descriptionType description = 2;
+	repeated noteType note = 3;
+	ingType ing = 4;
+	string id = 5;
+	string _class = 6;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 7;
+	string lang = 8;
+	enum typeType
+	{
+		typeType_area = 1;
+		typeType_length = 2;
+		typeType_mass = 3;
+		typeType_other = 4;
+		typeType_volume = 5;
+		typeType_weight = 6;
+	}
+	typeType type = 9;
+}
+
+message equipmentType
+{
+	repeated equip_divType equip_div = 1;
+	repeated noteType note = 2;
+	toolType tool = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 8;
+}
+
+message ingredientsType
+{
+	repeated ing_divType ing_div = 1;
+	repeated noteType note = 2;
+	ingType ing = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 8;
+}
+
+message dir_divType
+{
+	titleType title = 1;
+	descriptionType description = 2;
+	noteType note = 3;
+	ingType ing = 4;
+	stepType step = 5;
+	string id = 6;
+	string _class = 7;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 8;
+	string lang = 9;
+	enum typeType
+	{
+		typeType_area = 1;
+		typeType_length = 2;
+		typeType_mass = 3;
+		typeType_other = 4;
+		typeType_volume = 5;
+		typeType_weight = 6;
+	}
+	typeType type = 10;
+	string duration = 11;
+}
+
+message directionsType
+{
+	repeated dir_divType dir_div = 1;
+	noteType note = 2;
+	ingType ing = 3;
+	stepType step = 4;
+	string id = 5;
+	string _class = 6;
+	string title = 7;
+	string lang = 8;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 9;
+}
+
+message recipeType
+{
+	headType head = 1;
+	repeated descriptionType description = 2;
+	equipmentType equipment = 3;
+	ingredientsType ingredients = 4;
+	directionsType directions = 5;
+	nutritionType nutrition = 6;
+	diet_exchangesType diet_exchanges = 7;
+	string id = 8;
+	string _class = 9;
+	string title = 10;
+	string lang = 11;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 12;
+}
+
+message menuType
+{
+	headType head = 1;
+	repeated descriptionType description = 2;
+	repeated recipeType recipe = 3;
+	enum systemType
+	{
+		systemType_Imperial = 1;
+		systemType_SI = 2;
+		systemType_US = 3;
+		systemType_metric = 4;
+		systemType_other = 5;
+	}
+	systemType system = 4;
+	string id = 5;
+	string _class = 6;
+	string title = 7;
+	string lang = 8;
+}
+
+message recipemlType
+{
+	repeated metaType meta = 1;
+	menuType menu = 2;
+	recipeType recipe = 3;
+	string id = 4;
+	string _class = 5;
+	string title = 6;
+	string lang = 7;
+	enum versionType
+	{
+		versionType_0_5 = 1;
+	}
+	versionType version = 8;
+	string generator = 9;
+}
+

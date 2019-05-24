@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package org.myrecipies;
+
+message ElementListNewNameType
+{
+	repeated ComplexTypeNewName element_in_list_of_complex_type_new_name = 1;
+}
+
+message ComplexTypeNewName
+{
+	repeated string element_in_list_new_name = 1;
+}

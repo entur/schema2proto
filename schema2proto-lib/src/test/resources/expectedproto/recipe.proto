@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package default;
+
+message ingredientsType
+{
+	repeated string item = 1;
+}
+
+message bulletType
+{
+	repeated string strong = 1;
+}
+
+message paraType
+{
+	repeated string strong = 1;
+}
+
+message metaType
+{
+	string author = 1;
+	string _date = 2;
+	string version = 3;
+}
+
+message directionsType
+{
+	paraType para = 1;
+	bulletType bullet = 2;
+}
+
+message recipeType
+{
+	metaType meta = 1;
+	string recipe_author = 2;
+	string recipe_name = 3;
+	string meal = 4;
+	ingredientsType ingredients = 5;
+	directionsType directions = 6;
+}
+
+message listType
+{
+	repeated recipeType recipe = 1;
+}
+

@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package default;
+
+message Datatypes
+{
+	string a__n_m_t_o_k_e_n = 1;
+	string a__n_m_t_o_k_e_n_s = 2;
+	bytes a_base64_binary = 3;
+	bool a_boolean = 4;
+	bytes a_byte = 5;
+	int32 a_date = 6;
+	int64 a_date_time = 7;
+	double a_decimal = 8;
+	double a_double = 9;
+	float a_float = 10;
+	bytes a_hex_binary = 11;
+	int64 a_long = 12;
+	sint64 a_negative_integer = 13;
+	int64 a_non_negative_integer = 14;
+	sint64 a_non_positive_integer = 15;
+	int64 a_positive_integer = 16;
+	int32 a_short = 17;
+	string an__i_d = 18;
+	string an__i_d_r_e_f = 19;
+	string an_any_simple_type = 20;
+	string an_any_type = 21;
+	string an_any_u_r_i = 22;
+	int32 an_int = 23;
+	int64 an_integer = 24;
+	uint32 an_unsigned_byte = 25;
+	uint32 an_unsigned_int = 26;
+	uint64 an_unsigned_long = 27;
+	uint32 an_unsigned_short = 28;
+}
+

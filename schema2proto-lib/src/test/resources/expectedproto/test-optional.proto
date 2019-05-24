@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package default;
+
+message Optional
+{
+	string default_minoccurs_element = 1;
+	string has_default_attribute = 2;
+	string no_default_attribute = 3;
+	string optional_attribute = 4;
+	string optional_element = 5;
+	repeated string repeat_element = 6;
+	string required_attribute = 7;
+	string required_element = 8;
+}
+
+message OptionalAttributeGroup
+{
+	string has_default_attribute = 1;
+	string no_default_attribute = 2;
+	string optional_attribute = 3;
+	string required_attribute = 4;
+}
+

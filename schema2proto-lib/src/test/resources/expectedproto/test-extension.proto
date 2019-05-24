@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package default;
+
+message BaseObject
+{
+	string description = 1;
+	string name = 2;
+	string value = 3;
+}
+
+message StringObject
+{
+	string description = 1;
+	string name = 2;
+	string value = 3;
+}
+

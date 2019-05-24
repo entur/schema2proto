@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package default;
+
+message itemType
+{
+	string note = 1;
+	double price = 2;
+	int64 quantity = 3;
+	string title = 4;
+}
+
+message shiptoType
+{
+	string address = 1;
+	string city = 2;
+	string country = 3;
+	string name = 4;
+}
+
+message shiporderType
+{
+	repeated itemType item = 1;
+	string orderid = 2;
+	string orderperson = 3;
+	shiptoType shipto = 4;
+}
+
