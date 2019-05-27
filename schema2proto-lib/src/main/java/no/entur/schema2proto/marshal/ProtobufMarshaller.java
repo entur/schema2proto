@@ -30,9 +30,9 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.CaseFormat;
 
-import no.entur.schema2proto.Field;
 import no.entur.schema2proto.NamespaceConverter;
 import no.entur.schema2proto.Schema2ProtoConfiguration;
+import no.entur.schema2proto.proto.ProtobufField;
 
 public class ProtobufMarshaller {
 	private HashMap<Pattern, String> typeMapping = new HashMap<>();
@@ -145,16 +145,15 @@ public class ProtobufMarshaller {
 		return result;
 	}
 
-	public String writeStructParameter(int order, boolean required, boolean repeated, String name, String type, String fieldDocumentation,
-			boolean splitByNamespace) {
-		String sRequired = "";
+	public String writeStructParameter(int order, boolean repeated, String name, String type, String fieldDocumentation, boolean splitByNamespace) {
+		String modifier = "";
 
 		if (fieldDocumentation != null) {
 			fieldDocumentation = fieldDocumentation.replaceAll("\n", " ").replaceAll("\t", " ");
 		}
 
 		if (repeated) {
-			sRequired = "repeated ";
+			modifier = "repeated ";
 		}
 		String fieldName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name);
 
@@ -166,7 +165,7 @@ public class ProtobufMarshaller {
 			convertedType = convertedType.substring(convertedType.lastIndexOf(".") + 1);
 		}
 
-		return writeIndent() + sRequired + convertedType + " " + fieldName + " = " + order + ";"
+		return writeIndent() + modifier + convertedType + " " + fieldName + " = " + order + ";"
 				+ (fieldDocumentation != null ? " // " + fieldDocumentation : "") + "\n";
 	}
 
@@ -232,11 +231,11 @@ public class ProtobufMarshaller {
 		return null;
 	}
 
-	public String getImport(Field field) {
+	public String getImport(ProtobufField field) {
 		if (imports != null) {
 			String nsPrefix = "";
-			if (field.getTypeNamespace() != null) {
-				nsPrefix = field.getTypeNamespace() + ".";
+			if (field.getTypePackage() != null) {
+				nsPrefix = field.getTypePackage() + ".";
 			}
 			return imports.get(nsPrefix + field.getType());
 		}

@@ -1,5 +1,5 @@
 
-package no.entur.schema2proto;
+package no.entur.schema2proto.proto;
 
 /*-
  * #%L
@@ -28,13 +28,13 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class Enumeration {
+public class ProtobufEnumeration {
 	private String name;
 	private Set<String> strings;
 	private String namespace;
 	private String doc;
 
-	public Enumeration(String name, String namespace) {
+	public ProtobufEnumeration(String name, String namespace) {
 		this.setName(name);
 		this.namespace = namespace;
 		this.strings = new TreeSet<String>();
