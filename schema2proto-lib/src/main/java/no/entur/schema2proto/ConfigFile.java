@@ -32,10 +32,9 @@ public class ConfigFile {
 	public boolean splitBySchema = false;
 	public Map<String, String> customTypeMappings;
 	public Map<String, String> customNameMappings;
-	public Map<String, Object> options;
-	public boolean nestEnums;
+	public Map<String, String> options;
+	public boolean nestEnums = false;
 	public boolean typeInEnums = true;
 	public boolean includeMessageDocs = true;
 	public boolean includeFieldDocs = true;
-	public String xsd;
 }

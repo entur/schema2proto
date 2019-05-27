@@ -1,32 +1,18 @@
 package no.entur.schema2proto;
 
-/*-
- * #%L
- * schema2proto-lib
- * %%
- * Copyright (C) 2019 Entur
- * %%
- * Licensed under the EUPL, Version 1.1 or – as soon they will be
- * approved by the European Commission - subsequent versions of the
- * EUPL (the "Licence");
- * 
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- * 
- * http://ec.europa.eu/idabc/eupl5
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the Licence is distributed on an "AS IS" basis,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Licence for the specific language governing permissions and
- * limitations under the Licence.
- * #L%
- */
-
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.xml.parsers.SAXParserFactory;
 
@@ -35,9 +21,24 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
-import org.xml.sax.*;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
-import com.sun.xml.xsom.*;
+import com.sun.xml.xsom.XSAttributeDecl;
+import com.sun.xml.xsom.XSAttributeUse;
+import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSComponent;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSFacet;
+import com.sun.xml.xsom.XSModelGroup;
+import com.sun.xml.xsom.XSModelGroupDecl;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSRestrictionSimpleType;
+import com.sun.xml.xsom.XSSchema;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSSimpleType;
+import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.impl.ComplexTypeImpl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
@@ -49,7 +50,6 @@ public class XSDParser implements ErrorHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XSDParser.class);
 
-	private File f;
 	private TreeMap<String, ProtobufMessage> messages;
 	private Map<String, Enumeration> enums;
 	private Map<String, String> simpleTypes;
@@ -58,20 +58,13 @@ public class XSDParser implements ErrorHandler {
 	private HashMap<String, String> xsdMapping;
 	private ProtobufMarshaller marshaller;
 	private OutputWriter writer;
-	private boolean nestEnums = true;
+
 	private int enumOrderStart = 0;
-	private boolean typeInEnums = true;
-	private boolean includeMessageDocs = true;
-	private boolean includeFieldDocs = true;
 
-	public XSDParser(String stFile) {
-		this.xsdMapping = new HashMap<String, String>();
-		init(stFile);
-	}
+	private Schema2ProtoConfiguration configuration;
 
-	private void init(String stFile) {
+	private void init() {
 
-		this.f = new File(stFile);
 		messages = new TreeMap<String, ProtobufMessage>();
 		enums = new HashMap<String, Enumeration>();
 		simpleTypes = new HashMap<String, String>();
@@ -134,9 +127,11 @@ public class XSDParser implements ErrorHandler {
 		// basicTypes.add("BaseObject");
 	}
 
-	public XSDParser(String stFile, HashMap<String, String> xsdMapping) {
-		this.xsdMapping = xsdMapping;
-		init(stFile);
+	public XSDParser(Schema2ProtoConfiguration configuration) {
+		this.xsdMapping = new HashMap<>();
+		this.configuration = configuration;
+
+		init();
 	}
 
 	public void parse() throws Exception {
@@ -148,8 +143,7 @@ public class XSDParser implements ErrorHandler {
 		parser.setErrorHandler(this);
 
 		parser.setAnnotationParser(new DomAnnotationParserFactory());
-
-		parser.parse(f);
+		parser.parse(configuration.xsdFile);
 
 		interpretResult(parser.getResult());
 
@@ -168,7 +162,7 @@ public class XSDParser implements ErrorHandler {
 
 		boolean bModified;
 
-		if (!marshaller.isNestedEnums() || !isNestEnums()) {
+		if (!configuration.nestEnums) {
 			Iterator<String> ite = enums.keySet().iterator();
 			while (ite.hasNext()) {
 				writeEnum(ite.next());
@@ -264,7 +258,7 @@ public class XSDParser implements ErrorHandler {
 			if (fieldType == null) {
 				fieldType = field.getName();
 			}
-			if (isNestEnums() && marshaller.isNestedEnums() && enums.containsKey(fieldType) && !usedInEnums.contains(fieldType)) {
+			if (configuration.nestEnums && enums.containsKey(fieldType) && !usedInEnums.contains(fieldType)) {
 				usedInEnums.add(fieldType);
 				writeEnum(fieldType);
 			}
@@ -313,7 +307,7 @@ public class XSDParser implements ErrorHandler {
 			}
 
 			os(message.getNamespace()).write(
-					marshaller.writeStructParameter(order, field.isRequired(), field.isRepeat(), escape(fieldName), fieldType, doc, writer.isSplitBySchema())
+					marshaller.writeStructParameter(order, field.isRequired(), field.isRepeat(), escape(fieldName), fieldType, doc, configuration.splitBySchema)
 							.getBytes());
 			order = order + 1;
 		}
@@ -322,7 +316,7 @@ public class XSDParser implements ErrorHandler {
 	}
 
 	private void writeMessageDocumentation(String doc, String namespace) throws IOException {
-		if (includeMessageDocs && doc != null) {
+		if (configuration.includeMessageDocs && doc != null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("\n/*\n");
 			// Handling possible multiline-comments
@@ -362,7 +356,7 @@ public class XSDParser implements ErrorHandler {
 		itg = en.iterator();
 		int enumOrder = this.enumOrderStart;
 		String typePrefix;
-		if (typeInEnums) {
+		if (configuration.typeInEnums) {
 			typePrefix = en.getName() + "_";
 		} else {
 			typePrefix = "";
@@ -738,14 +732,6 @@ public class XSDParser implements ErrorHandler {
 		this.marshaller = marshaller;
 	}
 
-	public void setNestEnums(boolean nestEnums) {
-		this.nestEnums = nestEnums;
-	}
-
-	public boolean isNestEnums() {
-		return nestEnums;
-	}
-
 	private OutputStream os(String namespace) throws IOException {
 		return writer.getStream(namespace);
 	}
@@ -758,15 +744,4 @@ public class XSDParser implements ErrorHandler {
 		this.enumOrderStart = enumOrderStart;
 	}
 
-	public void setTypeInEnums(boolean typeInEnums) {
-		this.typeInEnums = typeInEnums;
-	}
-
-	public void setIncludeMessageDocs(boolean includeMessageDocs) {
-		this.includeMessageDocs = includeMessageDocs;
-	}
-
-	public void setIncludeFieldDocs(boolean includeFieldDocs) {
-		this.includeFieldDocs = includeFieldDocs;
-	}
 }

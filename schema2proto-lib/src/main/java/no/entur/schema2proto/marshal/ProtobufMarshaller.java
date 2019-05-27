@@ -25,7 +25,6 @@ package no.entur.schema2proto.marshal;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,28 +32,26 @@ import com.google.common.base.CaseFormat;
 
 import no.entur.schema2proto.Field;
 import no.entur.schema2proto.NamespaceConverter;
+import no.entur.schema2proto.Schema2ProtoConfiguration;
 
 public class ProtobufMarshaller {
-	private HashMap<Pattern, String> typeMapping;
-	private HashMap<Pattern, String> nameMapping;
+	private HashMap<Pattern, String> typeMapping = new HashMap<>();
+	private HashMap<Pattern, String> nameMapping = new HashMap<>();
+	private HashMap<String, String> imports = new HashMap<>();
+	private Map<String, String> options = new HashMap<>();
 	private String indent = "";
-	public HashMap<String, String> imports;
-	private Map<String, Object> options;
 
-	public ProtobufMarshaller() {
-		typeMapping = new HashMap<>();
+	public ProtobufMarshaller(Schema2ProtoConfiguration configuration) {
 		typeMapping.put(Pattern.compile("^positiveInteger$"), "int64");
 		typeMapping.put(Pattern.compile("^nonPositiveInteger$"), "sint64");
 		typeMapping.put(Pattern.compile("^negativeInteger$"), "sint64");
 		typeMapping.put(Pattern.compile("^nonNegativeInteger$"), "int64");
 		typeMapping.put(Pattern.compile("^int$"), "int32");
 		typeMapping.put(Pattern.compile("^integer$"), "int64");
-
 		typeMapping.put(Pattern.compile("^unsignedLong$"), "uint64");
 		typeMapping.put(Pattern.compile("^unsignedInt$"), "uint32");
 		typeMapping.put(Pattern.compile("^unsignedShort$"), "uint32"); // No 16-bit int in protobuf
 		typeMapping.put(Pattern.compile("^unsignedByte$"), "uint32"); // No 8-bit int in protobuf
-
 		typeMapping.put(Pattern.compile("^short$"), "int32"); // No 16-bit int in protobuf
 		typeMapping.put(Pattern.compile("^long$"), "int64");
 		typeMapping.put(Pattern.compile("^decimal$"), "double");
@@ -69,23 +66,22 @@ public class ProtobufMarshaller {
 		typeMapping.put(Pattern.compile("^normalizedString$"), "string");
 		typeMapping.put(Pattern.compile("^boolean$"), "bool");
 		typeMapping.put(Pattern.compile("^binary$"), "bytes"); // UnspecifiedType.object is
-		// declared binary
 		typeMapping.put(Pattern.compile("^hexBinary$"), "bytes");
 		typeMapping.put(Pattern.compile("^base64Binary$"), "bytes");
 		typeMapping.put(Pattern.compile("^byte$"), "bytes");
-		typeMapping.put(Pattern.compile("^date$"), "int32"); // Number of days since January 1st),
-		// 1970
-		typeMapping.put(Pattern.compile("^dateTime$"), "int64"); // Number of milliseconds since
-		// January 1st), 1970
+		typeMapping.put(Pattern.compile("^date$"), "int32"); // Number of days since January 1st 1970
+		typeMapping.put(Pattern.compile("^dateTime$"), "int64"); // Number of milliseconds since January 1st), 1970
 
 		typeMapping.put(Pattern.compile("^time$"), "google.protobuf.Timestamp");
 		typeMapping.put(Pattern.compile("^duration$"), "google.protobuf.Duration");
 
-		nameMapping = new HashMap<>();
-
-		imports = new HashMap<String, String>();
 		imports.put("google.protobuf.Timestamp", "google/protobuf/timestamp");
 		imports.put("google.protobuf.Duration", "google/protobuf/duration");
+
+		// From external configuration
+		typeMapping.putAll(configuration.customTypeMappings);
+		nameMapping.putAll(configuration.customNameMappings);
+		options.putAll(configuration.options);
 	}
 
 	public String writeHeader(String namespace) {
@@ -201,10 +197,6 @@ public class ProtobufMarshaller {
 		return null;
 	}
 
-	public boolean isNestedEnums() {
-		return true;
-	}
-
 	public boolean isCircularDependencySupported() {
 		return true;
 	}
@@ -233,22 +225,6 @@ public class ProtobufMarshaller {
 		return res;
 	}
 
-	public void setCustomTypeMappings(Map<Pattern, String> customTypeMappings) {
-		if (customTypeMappings != null) {
-			for (Entry<Pattern, String> entry : customTypeMappings.entrySet()) {
-				typeMapping.put(entry.getKey(), entry.getValue());
-			}
-		}
-	}
-
-	public void setCustomNameMappings(Map<Pattern, String> customNameMappings) {
-		if (customNameMappings != null) {
-			for (Entry<Pattern, String> entry : customNameMappings.entrySet()) {
-				nameMapping.put(entry.getKey(), entry.getValue());
-			}
-		}
-	}
-
 	public String getImport(String fullTypeName) {
 		if (imports != null) {
 			return imports.get(fullTypeName);
@@ -267,7 +243,8 @@ public class ProtobufMarshaller {
 		return null;
 	}
 
-	public void setOptions(Map<String, Object> options) {
-		this.options = options;
+	public Map<String, String> getImports() {
+		return imports;
 	}
+
 }

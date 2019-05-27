@@ -1,29 +1,7 @@
 
 package no.entur.schema2proto;
 
-/*-
- * #%L
- * schema2proto-lib
- * %%
- * Copyright (C) 2019 Entur
- * %%
- * Licensed under the EUPL, Version 1.1 or – as soon they will be
- * approved by the European Commission - subsequent versions of the
- * EUPL (the "Licence");
- * 
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- * 
- * http://ec.europa.eu/idabc/eupl5
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the Licence is distributed on an "AS IS" basis,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Licence for the specific language governing permissions and
- * limitations under the Licence.
- * #L%
- */
-
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -34,6 +12,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -42,188 +27,307 @@ import org.yaml.snakeyaml.error.YAMLException;
 import no.entur.schema2proto.marshal.ProtobufMarshaller;
 
 public class Schema2Proto {
+	private static final String OPTION_OUTPUT_DIRECTORY = "outputDirectory";
+	private static final String OPTION_OUTPUT_FILENAME = "outputFilename";
+	private static final String OPTION_PACKAGE = "package";
+	private static final String OPTION_INCLUDE_FIELD_DOCS = "includeFieldDocs";
+	private static final String OPTION_INCLUDE_MESSAGE_DOCS = "includeMessageDocs";
+	private static final String OPTION_TYPE_IN_ENUMS = "typeInEnums";
+	private static final String OPTION_OPTIONS = "options";
+	private static final String OPTION_CUSTOM_NAME_MAPPINGS = "customNameMappings";
+	private static final String OPTION_CUSTOM_TYPE_MAPPINGS = "customTypeMappings";
+	private static final String OPTION_SPLIT_BY_SCHEMA = "splitBySchema";
+	private static final String OPTION_NEST_ENUMS = "nestEnums";
+	private static final String OPTION_CONFIG_FILE = "configFile";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
-	private static boolean correct;
-	private static String usage = "" + "Usage: java xsd2proto-<VERSION>.jar [--output=FILENAME]\n"
-			+ "                           [--package=NAME] filename.xsd\n" + "\n" + "  --configFile=FILENAME           : path to configuration file\n"
-			+ "\nOR\n" + "\n" + "  --filename=FILENAME             : store the result in FILENAME instead of standard output\n"
-			+ "  --package=NAME                  : set namespace/package of the output file\n"
-			+ "  --nestEnums=true|false          : nest enum declaration within messages that reference them, only supported by protobuf, defaults to true\n"
-			+ "  --splitBySchema=true|false      : split output into namespace-specific files, defaults to false\n"
-			+ "  --customTypeMappings=a:b,x:y    : represent schema types as specific output types\n"
-			+ "  --customNameMappings=cake:kake,...: translate message and field names\n"
-			+ "  --typeInEnums=true|false        : include type as a prefix in enums, defaults to true\n"
-			+ "  --includeMessageDocs=true|false : include documentation of messages in output, defaults to true\n"
-			+ "  --includeFieldDocs=true|false   : include documentation for fields in output, defaults to true\n" + "";
+	public Schema2Proto(String[] args) {
+		Options commandLineOptions = createCommandLineOptions();
 
-	private static void usage(String error) {
-		LOGGER.error(error);
-		usage();
-	}
+		if (args.length < 2) {
+			printUsage(commandLineOptions);
+		} else {
+			try {
 
-	private static void usage() {
-		LOGGER.info(usage);
-		correct = false;
+				CommandLineParser parser = new DefaultParser();
+				CommandLine cmd = parser.parse(commandLineOptions, args);
+
+				Schema2ProtoConfiguration configuration = getConfiguration(cmd);
+
+				XSDParser xp = new XSDParser(configuration);
+				OutputWriter writer = new OutputWriter(configuration);
+				xp.setWriter(writer);
+
+				ProtobufMarshaller pbm = new ProtobufMarshaller(configuration);
+				xp.addMarshaller(pbm);
+				writer.setMarshaller(pbm);
+
+				LOGGER.info("Starting to parse {}", configuration.xsdFile);
+				xp.parse();
+				LOGGER.info("Done");
+			} catch (InvalidConfigrationException | ParseException e) {
+				LOGGER.error("Error parsing command line options: {}", e.getMessage());
+				printUsage(commandLineOptions);
+			} catch (InvalidXSDException e) {
+				LOGGER.error("Error converting xsdFile to proto: {}", e.getMessage());
+			} catch (Exception e) {
+				LOGGER.error("Error parsing xsdFile", e);
+			}
+		}
 	}
 
 	public static void main(String[] args) {
-		XSDParser xp;
-		HashMap<String, String> map;
-		String xsd, param;
-		int i;
-		ProtobufMarshaller pbm = null;
+		new Schema2Proto(args);
+	}
 
-		OutputWriter writer;
-		correct = true;
+	private static Options createCommandLineOptions() {
+		Options commandLineOptions = new Options();
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_CONFIG_FILE)
+				.desc("name of configfile specifying these parameters (instead of supplying them on the command line)")
+				.required(false)
+				.hasArg()
+				.argName("<filename>")
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_PACKAGE)
+				.hasArg()
+				.argName("NAME")
+				.desc("defaultProtoPackage/package of the output file")
+				.required(false)
+				.build());
+		commandLineOptions
+				.addOption(Option.builder().longOpt(OPTION_OUTPUT_FILENAME).hasArg().argName("FILENAME").desc("name of output file").required(false).build());
+		commandLineOptions.addOption(
+				Option.builder().longOpt(OPTION_OUTPUT_DIRECTORY).hasArg().argName("DIRECTORYNAME").desc("path to output folder").required(false).build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_NEST_ENUMS)
+				.hasArg()
+				.argName("true|false")
+				.desc("nest enum declaration within messages that reference them, only supported by protobuf, defaults to true")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_SPLIT_BY_SCHEMA)
+				.hasArg()
+				.argName("true|false")
+				.desc("split output into defaultProtoPackage-specific files, defaults to false")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_CUSTOM_TYPE_MAPPINGS)
+				.hasArg()
+				.argName("a:b,x:y")
+				.desc("represent schema types as specific output types")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_CUSTOM_NAME_MAPPINGS)
+				.hasArg()
+				.argName("cake:kake,...")
+				.desc("translate message and field names")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_OPTIONS)
+				.hasArg()
+				.argName("option1name:option1value,...")
+				.desc("translate message and field names")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_TYPE_IN_ENUMS)
+				.hasArg()
+				.argName("true|false")
+				.desc("include type as a prefix in enums, defaults to true")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_INCLUDE_MESSAGE_DOCS)
+				.hasArg()
+				.argName("true|false")
+				.desc("include documentation of messages in output, defaults to true")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_INCLUDE_FIELD_DOCS)
+				.hasArg()
+				.argName("true|false")
+				.desc("include documentation for fields in output, defaults to true")
+				.required(false)
+				.build());
+		return commandLineOptions;
+	}
 
-		map = new HashMap<>();
-		map.put("schema_._type", "binary");
-		map.put("EString", "string");
-		map.put("EBoolean", "boolean");
-		map.put("EInt", "integer");
-		map.put("EDate", "long");
-		map.put("EChar", "byte");
-		map.put("EFloat", "decimal");
-		map.put("EObject", "binary");
-		map.put("Extension", "binary");
+	private static void printUsage(Options commandLineOptions) {
+		HelpFormatter formatter = new HelpFormatter();
 
-		if (args.length == 0 || args[args.length - 1].startsWith("--")) {
-			usage();
+		formatter.setWidth(140);
+		formatter.setSyntaxPrefix("java ");
+
+		formatter.printHelp("Schema2Proto [OPTIONS] XSDFILE",
+				"Generate proto files from xsd file. Either --configFile or (--outputDirectory and --outputFile) must be specified.", commandLineOptions, null);
+	}
+
+	private static Schema2ProtoConfiguration getConfiguration(CommandLine cmd) throws InvalidConfigrationException {
+
+		if (cmd.hasOption(OPTION_CONFIG_FILE)) {
+			return parseConfigFile(cmd);
 		} else {
-			xsd = args[args.length - 1];
-			xp = new XSDParser(xsd, map);
-			writer = new OutputWriter();
-			xp.setWriter(writer);
+			return parseCommandLineOptions(cmd);
+		}
 
-			pbm = new ProtobufMarshaller();
+	}
 
-			xp.addMarshaller(pbm);
-			writer.setMarshaller(pbm);
-			writer.setDefaultExtension("proto");
+	private static Schema2ProtoConfiguration parseConfigFile(CommandLine cmd) throws InvalidConfigrationException {
 
-			Map<Pattern, String> customTypeMappings = null;
-			Map<Pattern, String> customNameMappings = null;
-			Map<String, Object> options = null;
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
 
-			if (args.length == 2 && args[0].startsWith("--configFile=")) {
-				Yaml yaml = new Yaml();
-				String configFile = args[0].split("=")[1];
-				try (InputStream in = Files.newInputStream(Paths.get(configFile))) {
-					LOGGER.info("Using configFile {}", configFile);
-					ConfigFile config = yaml.loadAs(in, ConfigFile.class);
+		String[] args = cmd.getArgs();
+		if (args.length != 1) {
+			throw new InvalidConfigrationException("Missing xsd file argument");
+		} else {
+			File xsdFile = new File(args[0]);
+			if (!xsdFile.exists()) {
+				throw new InvalidConfigrationException(String.format("XSD file %s not found", xsdFile.getAbsolutePath()));
+			}
+			configuration.xsdFile = new File(args[0]);
+		}
 
-					writer.setFilename(config.filename);
-					writer.setDirectory(config.directory);
+		String configFile = cmd.getOptionValue(OPTION_CONFIG_FILE);
+		try (InputStream in = Files.newInputStream(Paths.get(configFile))) {
+			LOGGER.info("Using configFile {}", configFile);
+			Yaml yaml = new Yaml();
+			ConfigFile config = yaml.loadAs(in, ConfigFile.class);
 
-					writer.setDefaultNamespace(config.namespace);
-					writer.setSplitBySchema(config.splitBySchema);
-
-					customTypeMappings = new LinkedHashMap<>();
-					if (config.customTypeMappings != null) {
-						for (Entry<String, String> kv : config.customTypeMappings.entrySet()) {
-							Pattern p = Pattern.compile(kv.getKey());
-							customTypeMappings.put(p, kv.getValue());
-						}
-					}
-
-					customNameMappings = new LinkedHashMap<>();
-					if (config.customNameMappings != null) {
-						for (Entry<String, String> kv : config.customNameMappings.entrySet()) {
-							Pattern p = Pattern.compile(kv.getKey());
-							customNameMappings.put(p, kv.getValue());
-						}
-					}
-					options = config.options;
-					xp.setNestEnums(config.nestEnums);
-					xp.setEnumOrderStart(0);
-					xp.setTypeInEnums(config.typeInEnums);
-					xp.setIncludeMessageDocs(config.includeMessageDocs);
-					xp.setIncludeFieldDocs(config.includeFieldDocs);
-
-				} catch (IOException e) {
-					LOGGER.error("Unable to find config file " + configFile, e);
-				} catch (YAMLException e) {
-					LOGGER.error("Error parsing config file", e);
-
-				}
+			if (config.directory == null) {
+				throw new InvalidConfigrationException(OPTION_OUTPUT_DIRECTORY);
 			} else {
-				i = 0;
-				while (correct && i < args.length - 1) {
-					if (args[i].startsWith("--filename=")) {
-						param = args[i].split("=")[1];
-						writer.setFilename(param);
-					} else if (args[i].startsWith("--directory=")) {
-						param = args[i].split("=")[1];
-						writer.setDirectory(param);
-					} else if (args[i].startsWith("--package=")) {
-						param = args[i].split("=")[1];
-						writer.setDefaultNamespace(param);
-					} else if (args[i].startsWith("--splitBySchema=")) {
-						param = args[i].split("=")[1];
-						writer.setSplitBySchema("true".equals(param));
-					} else if (args[i].startsWith("--customTypeMappings=")) {
-						param = args[i].split("=")[1];
-						customTypeMappings = new HashMap<Pattern, String>();
-						for (String mapping : param.split(",")) {
-							int colon = mapping.indexOf(':');
-							if (colon > -1) {
-								customTypeMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
-							} else {
-								usage(mapping + " is not a valid custom tyope mapping - use schematype:outputtype");
-							}
-						}
-					} else if (args[i].startsWith("--customNameMappings=")) {
-						param = args[i].split("=")[1];
-						customNameMappings = new HashMap<Pattern, String>();
-						for (String mapping : param.split(",")) {
-							int colon = mapping.indexOf(':');
-							if (colon > -1) {
-								customNameMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
-							} else {
-								usage(mapping + " is not a valid custom name mapping - use originalname:newname");
-							}
-						}
-					} else if (args[i].startsWith("--nestEnums=")) {
-						param = args[i].split("=")[1];
-						boolean nestEnums = Boolean.valueOf(param);
-						xp.setNestEnums(nestEnums);
-					} else if (args[i].startsWith("--typeInEnums=")) {
-						xp.setTypeInEnums(Boolean.parseBoolean(args[i].split("=")[1]));
-					} else if (args[i].startsWith("--includeMessageDocs=")) {
-						xp.setIncludeMessageDocs(Boolean.parseBoolean(args[i].split("=")[1]));
-					} else if (args[i].startsWith("--includeFieldDocs=")) {
-						xp.setIncludeFieldDocs(Boolean.parseBoolean(args[i].split("=")[1]));
-					} else {
-						usage();
-					}
+				configuration.outputDirectory = new File(config.directory);
+			}
 
-					i = i + 1;
+			if (config.filename == null) {
+				throw new InvalidConfigrationException(OPTION_OUTPUT_FILENAME);
+			} else {
+				configuration.outputFilename = config.filename;
+			}
+
+			HashMap<Pattern, String> customTypeMappings = new LinkedHashMap<>();
+			if (config.customTypeMappings != null) {
+				for (Entry<String, String> kv : config.customTypeMappings.entrySet()) {
+					Pattern p = Pattern.compile(kv.getKey());
+					customTypeMappings.put(p, kv.getValue());
 				}
 			}
 
-			if (customTypeMappings != null) {
-				pbm.setCustomTypeMappings(customTypeMappings);
+			HashMap<Pattern, String> customNameMappings = new LinkedHashMap<>();
+			if (config.customNameMappings != null) {
+				for (Entry<String, String> kv : config.customNameMappings.entrySet()) {
+					Pattern p = Pattern.compile(kv.getKey());
+					customNameMappings.put(p, kv.getValue());
+				}
 			}
-			if (customNameMappings != null) {
-				pbm.setCustomNameMappings(customNameMappings);
-			}
-			if (options != null) {
-				pbm.setOptions(options);
-			}
+			Map<String, String> options = config.options;
 
-			if (correct) {
-				try {
+			configuration.customTypeMappings.putAll(customTypeMappings);
+			configuration.customNameMappings.putAll(customNameMappings);
+			configuration.options.putAll(options);
 
-					xp.parse();
-					LOGGER.info("Done");
-				} catch (InvalidXSDException e) {
-					LOGGER.error("Error converting xsd to proto: {}", e.getMessage());
-				} catch (Exception e) {
-					LOGGER.error("Error parsing xsd", e);
+			configuration.defaultProtoPackage = config.namespace;
+			configuration.splitBySchema = config.splitBySchema;
+			configuration.nestEnums = config.nestEnums;
+			configuration.typeInEnums = config.typeInEnums;
+			configuration.includeMessageDocs = config.includeMessageDocs;
+			configuration.includeFieldDocs = config.includeFieldDocs;
+
+			return configuration;
+
+		} catch (IOException e) {
+			throw new InvalidConfigrationException("Error reading config file", e);
+		} catch (YAMLException e) {
+			throw new InvalidConfigrationException("Error parsing config file", e);
+		}
+	}
+
+	private static Schema2ProtoConfiguration parseCommandLineOptions(CommandLine cmd) throws InvalidConfigrationException {
+
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+
+		String[] args = cmd.getArgs();
+		if (args.length != 1) {
+			throw new InvalidConfigrationException("Missing xsd file argument");
+		} else {
+			configuration.xsdFile = new File(args[0]);
+		}
+
+		if (!cmd.hasOption(OPTION_OUTPUT_DIRECTORY)) {
+			throw new InvalidConfigrationException(OPTION_OUTPUT_DIRECTORY);
+		} else {
+			configuration.outputDirectory = new File(cmd.getOptionValue(OPTION_OUTPUT_DIRECTORY));
+		}
+
+		configuration.outputFilename = cmd.getOptionValue(OPTION_OUTPUT_FILENAME);
+
+		if (cmd.hasOption(OPTION_PACKAGE)) {
+			configuration.defaultProtoPackage = cmd.getOptionValue(OPTION_PACKAGE);
+		}
+		if (cmd.hasOption(OPTION_SPLIT_BY_SCHEMA)) {
+			configuration.splitBySchema = Boolean.parseBoolean(cmd.getOptionValue(OPTION_SPLIT_BY_SCHEMA));
+		}
+
+		HashMap<Pattern, String> customTypeMappings = new LinkedHashMap<>();
+		if (cmd.hasOption(OPTION_CUSTOM_TYPE_MAPPINGS)) {
+			for (String mapping : cmd.getOptionValue(OPTION_CUSTOM_TYPE_MAPPINGS).split(",")) {
+				int colon = mapping.indexOf(':');
+				if (colon > -1) {
+					customTypeMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
+				} else {
+					LOGGER.error(mapping + " is not a valid custom type mapping - use schematype:outputtype");
 				}
 			}
 		}
+		configuration.customTypeMappings = customTypeMappings;
+
+		HashMap<Pattern, String> customNameMappings = new LinkedHashMap<>();
+		if (cmd.hasOption(OPTION_CUSTOM_NAME_MAPPINGS)) {
+			for (String mapping : cmd.getOptionValue(OPTION_CUSTOM_NAME_MAPPINGS).split(",")) {
+				int colon = mapping.indexOf(':');
+				if (colon > -1) {
+					customNameMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
+				} else {
+					LOGGER.error(mapping + " is not a valid custom name mapping - use xsdelementname:protomessagename/protofieldname");
+				}
+			}
+		}
+		configuration.customNameMappings = customNameMappings;
+
+		HashMap<String, String> options = new LinkedHashMap<>();
+		if (cmd.hasOption(OPTION_OPTIONS)) {
+			for (String mapping : cmd.getOptionValue(OPTION_OPTIONS).split(",")) {
+				int colon = mapping.indexOf(':');
+				if (colon > -1) {
+					options.put(mapping.substring(0, colon), mapping.substring(colon + 1));
+				} else {
+					LOGGER.error(mapping + " is not a option, use optionName:optionValue");
+				}
+			}
+		}
+		configuration.options = options;
+
+		if (cmd.hasOption(OPTION_NEST_ENUMS)) {
+			configuration.nestEnums = Boolean.parseBoolean(cmd.getOptionValue(OPTION_NEST_ENUMS));
+		}
+		if (cmd.hasOption(OPTION_TYPE_IN_ENUMS)) {
+			configuration.typeInEnums = Boolean.parseBoolean(cmd.getOptionValue(OPTION_TYPE_IN_ENUMS));
+		}
+		if (cmd.hasOption(OPTION_INCLUDE_MESSAGE_DOCS)) {
+			configuration.includeMessageDocs = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_MESSAGE_DOCS));
+		}
+		if (cmd.hasOption(OPTION_INCLUDE_FIELD_DOCS)) {
+			configuration.includeFieldDocs = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_FIELD_DOCS));
+		}
+
+		return configuration;
 	}
 }

@@ -104,11 +104,12 @@ public class TestHelper {
 	private static String generate(String name, String type, String extension, String typeMappings, String nameMappings, String packageName) {
 		File dir = new File("target/generated-proto/");
 		if (!dir.exists())
-			dir.mkdir();
-		String filename = "target/generated-proto/" + name + "." + extension;
+			dir.mkdirs();
+		String filename = name + "." + extension;
 
 		List<String> args = new ArrayList<>();
-		args.add("--filename=" + filename);
+		args.add("--outputDirectory=" + dir.getPath());
+		args.add("--outputFilename=" + filename);
 		args.add("--package=" + packageName);
 		if (typeMappings != null) {
 			args.add("--customTypeMappings=" + typeMappings);
@@ -118,9 +119,9 @@ public class TestHelper {
 		}
 		args.add("src/test/resources/xsd/" + name + ".xsd");
 
-		Schema2Proto.main(args.toArray(new String[0]));
+		new Schema2Proto(args.toArray(new String[0]));
 
-		return filename;
+		return new File(dir, filename).getPath();
 	}
 
 	private static List<String> linesFromFile(String file) throws IOException {

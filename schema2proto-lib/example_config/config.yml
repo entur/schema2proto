@@ -1,5 +1,5 @@
-filename: generated-file.proto
-directory:
+outputFilename: generated-file.proto
+outputDirectory: src/main/proto
 namespace:
 splitBySchema: false
 nestEnums: false

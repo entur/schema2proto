@@ -31,23 +31,27 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import no.entur.schema2proto.marshal.ProtobufMarshaller;
 
 public class OutputWriter {
 
-	private String filename, directory;
-	private boolean splitBySchema;
 	private OutputStream os;
 	private Map<String, OutputStream> streams;
 	private ProtobufMarshaller marshaller;
-	private String defaultNamespace;
-	private String defaultExtension;
-	Map<String, Set<String>> inclusions = null;
+	private Schema2ProtoConfiguration configuration;
+	private Map<String, Set<String>> inclusions = null;
 
-	public void setDefaultExtension(String defaultExtension) {
-		this.defaultExtension = defaultExtension;
+	public OutputWriter(Schema2ProtoConfiguration configuration) {
+		this.configuration = configuration;
+		configuration.outputDirectory.mkdirs();
 	}
 
 	public OutputStream getStream(String ns) throws IOException {
@@ -57,7 +61,7 @@ public class OutputWriter {
 		if (os != null)
 			return os;
 		if (ns == null)
-			ns = defaultNamespace;
+			ns = configuration.defaultProtoPackage;
 
 		if (ns == null)
 			ns = "default";
@@ -67,7 +71,7 @@ public class OutputWriter {
 
 	private OutputStream getNamespaceSpecificStream(String cleanedNamespace) throws IOException {
 		if (!streams.containsKey(cleanedNamespace)) {
-			OutputStream os = new FileOutputStream(directory() + cleanedNamespace.replace(".", "_") + "." + defaultExtension);
+			OutputStream os = new FileOutputStream(new File(configuration.outputDirectory, cleanedNamespace.replace(".", "_") + ".proto"));
 			streams.put(cleanedNamespace, os);
 			os.write(marshaller.writeHeader(cleanedNamespace).getBytes());
 		}
@@ -75,46 +79,12 @@ public class OutputWriter {
 	}
 
 	private void initializeOutputStream() throws IOException {
-		if (splitBySchema) {
+		if (configuration.splitBySchema) {
 			streams = new HashMap<String, OutputStream>();
 		} else {
-			if (filename == null) {
-				os = System.out;
-				os.write(marshaller.writeHeader(defaultNamespace).getBytes());
-			} else {
-				os = new FileOutputStream(directory() + filename);
-				os.write(marshaller.writeHeader(defaultNamespace).getBytes());
-			}
+			os = new FileOutputStream(new File(configuration.outputDirectory, configuration.outputFilename));
+			os.write(marshaller.writeHeader(configuration.defaultProtoPackage).getBytes());
 		}
-	}
-
-	public void setDefaultNamespace(String defaultNamespace) {
-		this.defaultNamespace = defaultNamespace;
-	}
-
-	private String directory() {
-		return directory == null ? "" : directory + "/";
-	}
-
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-
-	public void setDirectory(String directory) {
-		File f = new File(directory);
-		if (!f.exists()) {
-			f.mkdirs();
-		}
-
-		this.directory = directory;
-	}
-
-	public void setSplitBySchema(boolean splitBySchema) {
-		this.splitBySchema = splitBySchema;
-	}
-
-	public boolean isSplitBySchema() {
-		return splitBySchema;
 	}
 
 	public void setMarshaller(ProtobufMarshaller marshaller) {
@@ -144,25 +114,25 @@ public class OutputWriter {
 				Iterator<String> namespaces = inclusions.keySet().iterator();
 				while (namespaces.hasNext()) {
 					String namespace = namespaces.next();
-					File f = new File(directory() + namespace.replace(".", "_") + "." + defaultExtension);
+					File f = new File(configuration.outputDirectory, namespace.replace(".", "_") + ".proto");
 					if (f.exists()) {
 						writeIncludes(f, inclusions.get(namespace));
 					}
 				}
 			}
 		} else {
-			if (inclusions != null && !marshaller.imports.isEmpty()) {
+			if (inclusions != null) {
 				Iterator<String> namespaces = inclusions.keySet().iterator();
 				Set<String> requiredImports = new HashSet<>();
 				while (namespaces.hasNext()) {
 					requiredImports.addAll(inclusions.get(namespaces.next()));
 
 				}
-				requiredImports.retainAll(marshaller.imports.values());
+				requiredImports.retainAll(marshaller.getImports().values());
 
-				File f = new File(filename);
+				File f = new File(configuration.outputFilename);
 				if (f.exists()) {
-					writeIncludes(f, marshaller.imports.values());
+					writeIncludes(f, marshaller.getImports().values());
 				}
 			}
 		}
