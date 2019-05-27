@@ -43,7 +43,7 @@ import no.entur.schema2proto.marshal.ProtobufMarshaller;
 
 public class OutputWriter {
 
-	private OutputStream os;
+	private OutputStream outputStream;
 	private Map<String, OutputStream> streams;
 	private ProtobufMarshaller marshaller;
 	private Schema2ProtoConfiguration configuration;
@@ -54,19 +54,19 @@ public class OutputWriter {
 		configuration.outputDirectory.mkdirs();
 	}
 
-	public OutputStream getStream(String ns) throws IOException {
-		if (os == null && streams == null) {
+	public OutputStream getStream(String protoPackage) throws IOException {
+		if (outputStream == null && streams == null) {
 			initializeOutputStream();
 		}
-		if (os != null)
-			return os;
-		if (ns == null)
-			ns = configuration.defaultProtoPackage;
+		if (outputStream != null)
+			return outputStream;
+		if (protoPackage == null)
+			protoPackage = configuration.defaultProtoPackage;
 
-		if (ns == null)
-			ns = "default";
+		if (protoPackage == null)
+			protoPackage = "default";
 
-		return getNamespaceSpecificStream(ns);
+		return getNamespaceSpecificStream(protoPackage);
 	}
 
 	private OutputStream getNamespaceSpecificStream(String cleanedNamespace) throws IOException {
@@ -82,8 +82,8 @@ public class OutputWriter {
 		if (configuration.splitBySchema) {
 			streams = new HashMap<String, OutputStream>();
 		} else {
-			os = new FileOutputStream(new File(configuration.outputDirectory, configuration.outputFilename));
-			os.write(marshaller.writeHeader(configuration.defaultProtoPackage).getBytes());
+			outputStream = new FileOutputStream(new File(configuration.outputDirectory, configuration.outputFilename));
+			outputStream.write(marshaller.writeHeader(configuration.defaultProtoPackage).getBytes());
 		}
 	}
 
