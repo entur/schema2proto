@@ -10,10 +10,13 @@ See [standalone tool](schema2proto-lib/README.md)
 
 ### Maven
 
-
+See [maven plugin](schema2proto-maven-plugin/README.md)
 
 
 ## Contribution
 
 See code style [CODESTYLE.md](CODESTYLE.md)
 
+## Licensing
+
+EUPL, see [LICENSE](LICENSE.txt) and https://en.wikipedia.org/wiki/European_Union_Public_Licence

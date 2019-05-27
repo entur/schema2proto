@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>no.entur</groupId>
@@ -26,15 +28,28 @@
 		</snapshotRepository>
 	</distributionManagement>
 
+
+
 	<modules>
 		<module>schema2proto-lib</module>
 		<module>schema2proto-maven-plugin</module>
-    <module>example-maven-plugin</module>
-  </modules>
+		<module>example-maven-plugin</module>
+	</modules>
 
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>1.20</version>
+					<configuration>
+						<organizationName>Entur</organizationName>
+						<inceptionYear>2019</inceptionYear>
+						<licenseFile>LICENSE.txt</licenseFile>
+						<licenseName>eupl_v1_1</licenseName>
+					</configuration>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
@@ -44,7 +59,7 @@
 						<target>${maven.compiler.target}</target>
 					</configuration>
 				</plugin>
-			
+
 				<plugin>
 					<groupId>com.diffplug.spotless</groupId>
 					<artifactId>spotless-maven-plugin</artifactId>
@@ -55,7 +70,7 @@
 								<file>${project.parent.basedir}/codestyle/jdt_codestyle.xml</file>
 								<version>4.9.0</version>
 							</eclipse>
-							<removeUnusedImports/>
+							<removeUnusedImports />
 							<importOrder>
 								<file>${project.parent.basedir}/codestyle/jdt.importorder</file>
 							</importOrder>
@@ -81,7 +96,7 @@
 					<artifactId>maven-resources-plugin</artifactId>
 					<version>3.0.2</version>
 				</plugin>
-			
+
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
 					<version>3.6.0</version>
@@ -111,6 +126,21 @@
 
 		</pluginManagement>
 
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>check-license-header</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>check-file-header</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
 
 </project>
