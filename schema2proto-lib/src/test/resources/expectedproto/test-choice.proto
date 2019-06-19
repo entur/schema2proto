@@ -7,8 +7,8 @@ message Choice {
   string a_optional_element = 2;
   string a_required_element = 3;
   repeated string a_repeat_element = 4;
-  string b_default_minoccurs_element = 101;
-  string b_optional_element = 102;
-  string b_required_element = 103;
-  repeated string b_repeat_element = 104;
+  string b_default_minoccurs_element = 11;
+  string b_optional_element = 12;
+  string b_required_element = 13;
+  repeated string b_repeat_element = 14;
 }

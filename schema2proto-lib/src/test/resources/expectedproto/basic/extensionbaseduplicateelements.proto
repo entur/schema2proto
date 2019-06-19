@@ -4,6 +4,6 @@ package default;
 
 message concreteTopLevelComplexType {
     string abstract_top_level_complex_type_attribute = 1;
-    string concrete_top_level_complex_type_attribute = 101;
-    repeated string repeated_element = 201;
+    string concrete_top_level_complex_type_attribute = 11;
+    repeated string repeated_element = 21;
 }
