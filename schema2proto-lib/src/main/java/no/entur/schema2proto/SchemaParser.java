@@ -548,7 +548,7 @@ public class SchemaParser implements ErrorHandler {
 				List<Extensions> extendsions = new ArrayList<>();
 				List<Reserved> reserved = new ArrayList<>();
 				// Add message type to file
-				messageType = new MessageType(ProtoType.BOOL, location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved, options);
+				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved, options);
 
 				addType(nameSpace, messageType);
 
@@ -854,7 +854,7 @@ public class SchemaParser implements ErrorHandler {
 		return String.format("Anonymous%03d", anonymousCounter);
 	}
 
-	private String createEnum(String typeName, XSRestrictionSimpleType type, MessageType enclosingType) {
+	private String createEnum(String elementName, XSRestrictionSimpleType type, MessageType enclosingType) {
 		Iterator<? extends XSFacet> it;
 
 		String typeNameToUse = null;
@@ -863,7 +863,7 @@ public class SchemaParser implements ErrorHandler {
 			typeNameToUse = type.getName();
 			enclosingType = null;
 		} else {
-			typeNameToUse = typeName;
+			typeNameToUse = elementName + "Type";
 		}
 
 		Type protoType = getType(type.getTargetNamespace(), typeNameToUse);
@@ -893,10 +893,18 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 			List<OptionElement> enumOptionElements = new ArrayList<>();
-			Options enumPptions = new Options(Options.ENUM_OPTIONS, enumOptionElements);
+			Options enumOptions = new Options(Options.ENUM_OPTIONS, enumOptionElements);
 
 			String doc = resolveDocumentationAnnotation(type);
-			EnumType enumType = new EnumType(ProtoType.BOOL, location, doc, typeName, constants, enumPptions);
+
+			ProtoType definedProtoType;
+			if (enclosingType == null) {
+				definedProtoType = ProtoType.get(typeNameToUse);
+			} else {
+				definedProtoType = ProtoType.get(enclosingType.getName(), typeNameToUse);
+			}
+
+			EnumType enumType = new EnumType(definedProtoType, location, doc, typeNameToUse, constants, enumOptions);
 
 			if (enclosingType != null) {
 				// if not already present
