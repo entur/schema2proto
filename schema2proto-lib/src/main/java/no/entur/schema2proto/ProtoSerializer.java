@@ -136,6 +136,9 @@ public class ProtoSerializer {
 		String enumValuePrefix = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, e.name()) + UNDERSCORE;
 		for (EnumConstant ec : e.constants()) {
 			String enumValue = escapeEnumValue(ec.getName());
+			if (enumValue.equalsIgnoreCase("UNSPECIFIED")) {
+				enumValue += "Value";
+			}
 			String escapedValue = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, enumValue);
 			ec.updateName(enumValuePrefix + escapedValue);
 		}
