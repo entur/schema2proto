@@ -379,9 +379,11 @@ public class SchemaParser implements ErrorHandler {
 
 							String typeName = findFieldType(type);
 
-							Field field = new Field(
-									NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage), location,
-									label, currElementDecl.getName(), doc, tag, null, typeName, options, extension, true); // TODO add
+							String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(),
+									configuration.forceProtoPackage);
+
+							Field field = new Field(basicTypes.contains(typeName) ? null : packageName, location, label, currElementDecl.getName(), doc, tag,
+									null, typeName, options, extension, true); // TODO add
 							// restriction
 							// as
 							// validation
@@ -548,7 +550,8 @@ public class SchemaParser implements ErrorHandler {
 				List<Extensions> extendsions = new ArrayList<>();
 				List<Reserved> reserved = new ArrayList<>();
 				// Add message type to file
-				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved, options);
+				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs,
+                        nestedTypes, extendsions, reserved, options);
 
 				addType(nameSpace, messageType);
 
@@ -719,9 +722,11 @@ public class SchemaParser implements ErrorHandler {
 
 					String typeName = findFieldType(decl.getType());
 
-					Field field = new Field(
-							NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(), configuration.forceProtoPackage),
-							fieldLocation, null, fieldName, doc, tag, null, typeName, fieldOptions, extension, false);
+					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(),
+							configuration.forceProtoPackage);
+
+					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, null, fieldName, doc, tag, null, typeName,
+							fieldOptions, extension, false);
 					addField(messageType, field, false);
 
 				}
