@@ -13,6 +13,7 @@ public class Schema2ProtoConfiguration {
 	public File outputDirectory = null;
 	public String defaultProtoPackage = null;
 	public String forceProtoPackage = null;
+	public boolean inheritanceToComposition = false;
 	// public boolean splitBySchema = false;
 	public Map<Pattern, String> customTypeMappings = new HashMap<>();;
 	public Map<Pattern, String> customNameMappings = new HashMap<>();;

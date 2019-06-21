@@ -408,7 +408,7 @@ public class SchemaParser implements ErrorHandler {
 							if (modelGroup != null) {
 								// ProtobufMessage jolieComplexType = new ProtobufMessage(currElementDecl.getName() + "Type", type.getTargetNamespace());
 								// messages.put(jolieComplexType.getMessageName(), jolieComplexType);
-								String complexTypeName = processComplexType(complexType, currElementDecl.getName(), schemaSet, null, null);
+								MessageType referencedMessageType = processComplexType(complexType, currElementDecl.getName(), schemaSet, null, null);
 
 								/*
 								 * String typeDoc = resolveDocumentationAnnotation(term);
@@ -438,7 +438,8 @@ public class SchemaParser implements ErrorHandler {
 
 								Field field = new Field(
 										NamespaceHelper.xmlNamespaceToProtoFieldPackagename(complexType.getTargetNamespace(), configuration.forceProtoPackage),
-										fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, complexTypeName, fieldOptions, extension, true);
+										fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), fieldOptions,
+										extension, true);
 								addField(messageType, field, isExtension);
 
 							}
@@ -502,7 +503,7 @@ public class SchemaParser implements ErrorHandler {
 	 * @param schemaSet
 	 * @throws ConversionException
 	 */
-	private String processComplexType(XSComplexType complexType, String elementName, XSSchemaSet schemaSet, MessageType messageType,
+	private MessageType processComplexType(XSComplexType complexType, String elementName, XSSchemaSet schemaSet, MessageType messageType,
 			Set<Object> processedXmlObjects) throws ConversionException {
 
 		nestlevel++;
@@ -558,12 +559,29 @@ public class SchemaParser implements ErrorHandler {
 			} else {
 				LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Already processed ComplexType " + typeName + ", ignored");
 				nestlevel--;
-				return typeName;
+				return messageType;
 			}
 		}
 		XSType parent = complexType.getBaseType();
 		if (parent != schemaSet.getAnyType() && parent.isComplexType()) {
-			processComplexType(parent.asComplexType(), elementName, schemaSet, messageType, processedXmlObjects);
+
+			if (configuration.inheritanceToComposition) {
+				MessageType parentType = processComplexType(parent.asComplexType(), elementName, schemaSet, messageType, new HashSet<>());
+				String fieldDoc = resolveDocumentationAnnotation(complexType);
+				boolean extension = false;
+				List<OptionElement> optionElements = new ArrayList<OptionElement>();
+				Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
+				int tag = messageType.getNextFieldNum();
+				Label label = null;
+				Location fieldLocation = getLocation(complexType);
+
+				Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(complexType.getTargetNamespace(), configuration.forceProtoPackage),
+						fieldLocation, label, parentType.getName(), fieldDoc, tag, null, parentType.getName(), fieldOptions, extension, true);
+				addField(messageType, field, false);
+
+			} else {
+				processComplexType(parent.asComplexType(), elementName, schemaSet, messageType, processedXmlObjects);
+			}
 		}
 
 		if (complexType.getAttributeUses() != null) {
@@ -657,7 +675,7 @@ public class SchemaParser implements ErrorHandler {
 		}
 
 		nestlevel--;
-		return typeName;
+		return messageType;
 
 	}
 
