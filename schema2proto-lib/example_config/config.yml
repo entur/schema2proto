@@ -7,6 +7,7 @@ outputDirectory: src/main/proto
 includeMessageDocs: true
 includeFieldDocs: true
 includeSourceLocationInDoc: false
+inheritanceToComposition: false
 options:
   java_package: org.entur.protobuf
   java_multiple_files: true
