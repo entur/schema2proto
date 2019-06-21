@@ -344,7 +344,7 @@ public class ProtoSerializer {
 						String fieldName = field.name();
 						boolean existedBefore = fieldNamesUppercase.add(fieldName.toUpperCase());
 						if (!existedBefore) {
-							fieldName += UNDERSCORE;
+							fieldName = fieldName+UNDERSCORE+"v";
 							field.updateName(fieldName);
 						}
 					}
