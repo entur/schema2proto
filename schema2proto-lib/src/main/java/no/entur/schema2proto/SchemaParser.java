@@ -611,8 +611,11 @@ public class SchemaParser implements ErrorHandler {
 
 					String simpleTypeName = findFieldType(xsSimpleType);
 
+					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
+							configuration.forceProtoPackage);
+
 					Field field = new Field(
-							NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(), configuration.forceProtoPackage),
+							basicTypes.contains(simpleTypeName) ? null : packageName,
 							fieldLocation, null, "value", "SimpleContent value of element", tag, null, simpleTypeName, fieldOptions, extension, true);
 					addField(messageType, field, false);
 
@@ -626,8 +629,7 @@ public class SchemaParser implements ErrorHandler {
 					// Label label = attr. ? Label.REPEATED : null;
 					Location fieldLocation = getLocation(xsSimpleType);
 
-					Field field = new Field(
-							NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(), configuration.forceProtoPackage),
+					Field field = new Field(null,
 							fieldLocation, null, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(), fieldOptions, extension, true);
 					addField(messageType, field, false);
 					// protobufMessage.addField(xsSimpleType.getName(), xsSimpleType.getName(), false, null, resolveDocumentationAnnotation(complexType),
@@ -646,7 +648,7 @@ public class SchemaParser implements ErrorHandler {
 						Location fieldLocation = getLocation(xsSimpleType);
 
 						Field field = new Field(
-								NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(), configuration.forceProtoPackage),
+								null,
 								fieldLocation, null, "value", "SimpleContent value of element", tag, null, primitiveType.getName(), fieldOptions, extension,
 								true);
 						addField(messageType, field, false);
