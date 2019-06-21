@@ -61,7 +61,7 @@ public class ProtoComparator {
 					"java package mismatch" + generateLocationInformation(expected.location(), generated.location()));
 			assertEquals(expected.packageName(), generated.packageName(),
 					"package name mismatch" + generateLocationInformation(expected.location(), generated.location()));
-			assertEquals(expected.name(), generated.name(), "name mismatch" + generateLocationInformation(expected.location(), generated.location()));
+			// assertEquals(expected.name(), generated.name(), "name mismatch" + generateLocationInformation(expected.location(), generated.location()));
 
 			compareOptions(expected.options(), generated.options());
 			compareServices(expected, generated);

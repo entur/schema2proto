@@ -32,6 +32,7 @@ public class Schema2Proto {
 	private static final String OPTION_INCLUDE_FIELD_DOCS = "includeFieldDocs";
 	private static final String OPTION_INCLUDE_MESSAGE_DOCS = "includeMessageDocs";
 	private static final String OPTION_INCLUDE_SOURCE_LOCATION_IN_DOC = "includeSourceLocationInDoc";
+	private static final String OPTION_INHERITANCE_TO_COMPOSITION = "inheritanceToComposition";
 	// private static final String OPTION_TYPE_IN_ENUMS = "typeInEnums";
 	private static final String OPTION_OPTIONS = "options";
 	private static final String OPTION_CUSTOM_IMPORTS = "customImports";
@@ -164,6 +165,13 @@ public class Schema2Proto {
 				.desc("include xsd source location in docs, defaults to true")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_INHERITANCE_TO_COMPOSITION)
+				.hasArg()
+				.argName("true|false")
+				.desc("define each xsd extension base level as a message field instead of copying all inherited fields")
+				.required(false)
+				.build());
 		return commandLineOptions;
 	}
 
@@ -241,6 +249,7 @@ public class Schema2Proto {
 			configuration.includeMessageDocs = config.includeMessageDocs;
 			configuration.includeFieldDocs = config.includeFieldDocs;
 			configuration.includeSourceLocationInDoc = config.includeSourceLocationInDoc;
+			configuration.inheritanceToComposition = config.inheritanceToComposition;
 
 			Map<String, String> options = config.options;
 			if (config.options != null) {
@@ -353,6 +362,9 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_INCLUDE_SOURCE_LOCATION_IN_DOC)) {
 			configuration.includeSourceLocationInDoc = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_SOURCE_LOCATION_IN_DOC));
+		}
+		if (cmd.hasOption(OPTION_INHERITANCE_TO_COMPOSITION)) {
+			configuration.inheritanceToComposition = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INHERITANCE_TO_COMPOSITION));
 		}
 
 		return configuration;

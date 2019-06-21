@@ -47,7 +47,7 @@ public class NamespaceHelper {
 			return forceProtoPackage;
 		}
 
-		if (namespace == null) {
+		if (StringUtils.trimToNull(namespace) == null) {
 			return null;
 		}
 

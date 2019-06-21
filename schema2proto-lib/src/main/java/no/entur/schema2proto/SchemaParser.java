@@ -1,13 +1,6 @@
 package no.entur.schema2proto;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.xml.parsers.SAXParserFactory;
 
@@ -52,6 +45,7 @@ public class SchemaParser implements ErrorHandler {
 
 	private Map<String, String> simpleTypes;
 	private Map<String, String> documentation;
+	private Map<MessageType, Set<Object>> elementDeclarationsPerMessageType = new HashMap<>();
 	private Set<String> basicTypes;
 
 	private int nestlevel = 0;
@@ -276,8 +270,8 @@ public class SchemaParser implements ErrorHandler {
 
 	private void navigateSubTypes(XSParticle parentParticle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
 			boolean isExtension) throws ConversionException {
-		XSTerm currTerm = parentParticle.getTerm();
 
+		XSTerm currTerm = parentParticle.getTerm();
 		if (currTerm.isElementDecl()) {
 			XSElementDecl currElementDecl = currTerm.asElementDecl();
 
@@ -497,6 +491,12 @@ public class SchemaParser implements ErrorHandler {
 		return max > 1 || max == -1;
 	}
 
+	private Set<Object> findElementDeclarations(XSComplexType type, Set<Object> elements) {
+
+		return elements;
+
+	}
+
 	/**
 	 * @param complexType
 	 * @param elementName
@@ -556,30 +556,55 @@ public class SchemaParser implements ErrorHandler {
 				addType(nameSpace, messageType);
 
 				processedXmlObjects = new HashSet<>();
+
+				elementDeclarationsPerMessageType.put(messageType, processedXmlObjects);
+
 			} else {
 				LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Already processed ComplexType " + typeName + ", ignored");
 				nestlevel--;
 				return messageType;
 			}
 		}
+
 		XSType parent = complexType.getBaseType();
-		if (parent != schemaSet.getAnyType() && parent.isComplexType()) {
 
-			if (configuration.inheritanceToComposition) {
-				MessageType parentType = processComplexType(parent.asComplexType(), elementName, schemaSet, messageType, new HashSet<>());
-				String fieldDoc = resolveDocumentationAnnotation(complexType);
-				boolean extension = false;
-				List<OptionElement> optionElements = new ArrayList<OptionElement>();
-				Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
-				int tag = messageType.getNextFieldNum();
-				Label label = null;
-				Location fieldLocation = getLocation(complexType);
+		if (configuration.inheritanceToComposition) {
 
-				Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(complexType.getTargetNamespace(), configuration.forceProtoPackage),
-						fieldLocation, label, parentType.getName(), fieldDoc, tag, null, parentType.getName(), fieldOptions, extension, true);
-				addField(messageType, field, false);
+			List<MessageType> parentTypes = new ArrayList<>();
 
-			} else {
+			while (parent != schemaSet.getAnyType() && parent.isComplexType()) {
+
+				// Ensure no duplicate element parsing
+				MessageType parentType = processComplexType(parent.asComplexType(), elementName, schemaSet, null, null);
+				processedXmlObjects.addAll(elementDeclarationsPerMessageType.get(parentType));
+
+				parentTypes.add(parentType);
+				parent = parent.getBaseType();
+			}
+
+			if (!complexType.isAbstract()) {
+				Collections.reverse(parentTypes);
+				for (MessageType parentMessageType : parentTypes) {
+					String fieldDoc = parentMessageType.documentation();
+					boolean extension = false;
+					List<OptionElement> optionElements = new ArrayList<OptionElement>();
+					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
+					int tag = messageType.getNextFieldNum();
+					Label label = null;
+					Location fieldLocation = getLocation(complexType);
+
+					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, label, parentMessageType.getName(), fieldDoc, tag, null,
+							parentMessageType.getName(), fieldOptions, extension, true);
+
+					addField(messageType, field, false);
+				}
+				if (parentTypes.size() > 0) {
+					messageType.advanceFieldNum();
+				}
+			}
+
+		} else {
+			if (parent != schemaSet.getAnyType() && parent.isComplexType()) {
 				processComplexType(parent.asComplexType(), elementName, schemaSet, messageType, processedXmlObjects);
 			}
 		}
@@ -679,6 +704,20 @@ public class SchemaParser implements ErrorHandler {
 
 	}
 
+	private String findPackageNameForType(MessageType parentMessageType) {
+		// Slow and dodgy
+		for (Map.Entry<String, ProtoFile> packageAndProtoFile : packageToProtoFileMap.entrySet()) {
+			ProtoFile file = packageAndProtoFile.getValue();
+			for (Type t : file.types()) {
+				if (t == parentMessageType) {
+					return packageAndProtoFile.getKey();
+				}
+			}
+
+		}
+		return null;
+	}
+
 	private Location getLocation(XSComponent t) {
 		Locator l = t.getLocator();
 		return new Location("", l.getSystemId(), l.getLineNumber(), l.getColumnNumber());
@@ -768,9 +807,9 @@ public class SchemaParser implements ErrorHandler {
 		// if (compositor.equals(XSModelGroup.ALL) || compositor.equals(XSModelGroup.SEQUENCE)) {
 
 		XSParticle[] children = modelGroup.getChildren();
-		XSTerm currTerm;
+
 		for (int i = 0; i < children.length; i++) {
-			currTerm = children[i].getTerm();
+			XSTerm currTerm = children[i].getTerm();
 			if (currTerm.isModelGroup()) {
 				groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, isExtension);
 			} else {

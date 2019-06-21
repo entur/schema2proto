@@ -93,18 +93,18 @@ public class TestHelper {
 		FILECONTENTLOGGER.info("****** END   " + filename + " ******");
 	}
 
-	public static String generateProtobuf(String name, String typeMappings, String nameMappings, String packageName) {
-		return generate(name, "protobuf", "proto", typeMappings, nameMappings, packageName);
+	public static String generateProtobuf(String name, String typeMappings, String nameMappings, String packageName, boolean inheritanceToComposition) {
+		return generate(name, typeMappings, nameMappings, packageName, inheritanceToComposition);
 	}
 
 	public static String generateProtobuf(String name) {
-		return generate(name, "protobuf", "proto", null, null, "default");
+		return generate(name, null, null, "default", false);
 	}
 
-	private static String generate(String name, String type, String extension, String typeMappings, String nameMappings, String packageName) {
+	private static String generate(String name, String typeMappings, String nameMappings, String packageName, boolean inheritanceToComposition) {
 		File dir = new File("target/generated-proto/");
 
-		String filename = name + "." + extension;
+		String filename = name + ".proto";
 
 		List<String> args = new ArrayList<>();
 		args.add("--outputDirectory=" + dir.getPath());
@@ -118,6 +118,9 @@ public class TestHelper {
 		if (nameMappings != null) {
 			args.add("--customNameMappings=" + nameMappings);
 		}
+
+		args.add("--inheritanceToComposition=" + inheritanceToComposition);
+
 		args.add("src/test/resources/xsd/" + name + ".xsd");
 
 		File outputFile = new File(dir, filename);

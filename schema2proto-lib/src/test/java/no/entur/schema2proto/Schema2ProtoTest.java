@@ -60,7 +60,7 @@ public class Schema2ProtoTest {
 	@Test
 	public void compareTestDatatypesStringDatesProtobuf() throws IOException {
 		compareExpectedAndGenerated("src/test/resources/expectedproto/test-datatypes-string-dates.proto",
-				generateProtobuf("test-datatypes-string-dates", "^date$:string,^dateTime$:string", null, "default"));
+				generateProtobuf("test-datatypes-string-dates", "^date$:string,^dateTime$:string", null, "default", false));
 	}
 
 	@Test
@@ -93,7 +93,7 @@ public class Schema2ProtoTest {
 		compareExpectedAndGenerated("src/test/resources/expectedproto/complexTypeRenaming.proto", generateProtobuf("complexTypeRenaming",
 				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName",
 				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName",
-				"org.myrecipies"));
+				"org.myrecipies", false));
 	}
 
 }

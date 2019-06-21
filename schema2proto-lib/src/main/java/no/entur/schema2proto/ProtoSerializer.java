@@ -353,6 +353,11 @@ public class ProtoSerializer {
 					for (Field field : mt.fields()) {
 						String fieldName = field.name();
 						String newFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
+
+						if (newFieldName.endsWith(UNDERSCORE)) {
+							newFieldName += "u";
+						}
+
 						/*
 						 * if(fieldName.startsWith(UNDERSCORE)) { newFieldName = UNDERSCORE+newFieldName; } if(fieldName.endsWith(UNDERSCORE)) { newFieldName +=
 						 * UNDERSCORE; }

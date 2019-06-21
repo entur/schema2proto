@@ -58,6 +58,12 @@ public class SchemaParserTest {
 	}
 
 	@Test
+	public void testBasicExtensionBaseComposition() throws IOException {
+		compareExpectedAndGenerated("src/test/resources/expectedproto/basic/extensionbase_composition.proto",
+				generateProtobuf("basic/extensionbase", null, null, null, true));
+	}
+
+	@Test
 	public void testBasicExtensionBase2() throws IOException {
 		compareExpectedAndGenerated("src/test/resources/expectedproto/basic/extensionbase2.proto", generateProtobuf("basic/extensionbase2"));
 	}

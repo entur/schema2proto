@@ -30,6 +30,7 @@ public class Schema2ProtoConfigFile {
 	public String outputDirectory;
 	public String defaultProtoPackage;
 	public String forceProtoPackage;
+	public boolean inheritanceToComposition = false;
 	// public boolean splitBySchema = false;
 	public Map<String, String> customTypeMappings;
 	public Map<String, String> customNameMappings;
