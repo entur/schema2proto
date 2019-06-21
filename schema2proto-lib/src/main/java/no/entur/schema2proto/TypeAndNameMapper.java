@@ -69,38 +69,64 @@ public class TypeAndNameMapper {
 
 	private Map<Pattern, String> getStandardXsdTypeMappings() {
 		Map<Pattern, String> standardTypeMappings = new HashMap<>();
-		standardTypeMappings.put(Pattern.compile("^positiveInteger$"), "uint32");
+
+		// From https://www.w3.org/TR/xmlschema-2/#d0e11239.
+		// Same order as defined above
+
+		standardTypeMappings.put(Pattern.compile("^string$"), "string");
+		standardTypeMappings.put(Pattern.compile("^boolean$"), "bool");
+		standardTypeMappings.put(Pattern.compile("^float$"), "double");
+		standardTypeMappings.put(Pattern.compile("^double$"), "double");
+		standardTypeMappings.put(Pattern.compile("^decimal$"), "double");
+		standardTypeMappings.put(Pattern.compile("^duration$"), "string"); // XML duration string
+		standardTypeMappings.put(Pattern.compile("^dateTime$"), "uint64"); // Number of milliseconds since January 1st), 1970
+		standardTypeMappings.put(Pattern.compile("^time$"), "uint64"); // Number of milliseconds since January 1st), 1970
+		standardTypeMappings.put(Pattern.compile("^date$"), "uint32"); // Number of days since January 1st 1970
+
+		standardTypeMappings.put(Pattern.compile("^gYearMonth$"), "string");
+		standardTypeMappings.put(Pattern.compile("^gYear$"), "uint32");
+		standardTypeMappings.put(Pattern.compile("^gMonthDay$"), "string");
+		standardTypeMappings.put(Pattern.compile("^gDay$"), "uint32");
+		standardTypeMappings.put(Pattern.compile("^gMonth$"), "uint32");
+
+		standardTypeMappings.put(Pattern.compile("^hexBinary$"), "bytes");
+		standardTypeMappings.put(Pattern.compile("^base64Binary$"), "bytes");
+		standardTypeMappings.put(Pattern.compile("^anyURI$"), "string");
+		standardTypeMappings.put(Pattern.compile("^QName$"), "string");
+		standardTypeMappings.put(Pattern.compile("^NOTATION$"), "string"); // Unsure
+
+		standardTypeMappings.put(Pattern.compile("^normalizedString$"), "string");
+		standardTypeMappings.put(Pattern.compile("^token$"), "string");
+		standardTypeMappings.put(Pattern.compile("^language$"), "string");
+
+		standardTypeMappings.put(Pattern.compile("^IDREFS$"), "string");
+		standardTypeMappings.put(Pattern.compile("^ENTITIES$"), "string");
+		standardTypeMappings.put(Pattern.compile("^NMTOKEN$"), "string");
+		standardTypeMappings.put(Pattern.compile("^NMTOKENS$"), "string"); // TODO: Fix this
+		standardTypeMappings.put(Pattern.compile("^Name$"), "string");
+		standardTypeMappings.put(Pattern.compile("^NCName$"), "string");
+		standardTypeMappings.put(Pattern.compile("^ID$"), "string");
+		standardTypeMappings.put(Pattern.compile("^IDREF$"), "string");
+		standardTypeMappings.put(Pattern.compile("^ENTITY$"), "string");
+
+		standardTypeMappings.put(Pattern.compile("^integer$"), "int32");
 		standardTypeMappings.put(Pattern.compile("^nonPositiveInteger$"), "sint32");
 		standardTypeMappings.put(Pattern.compile("^negativeInteger$"), "sint64");
-		standardTypeMappings.put(Pattern.compile("^nonNegativeInteger$"), "uint32");
+		standardTypeMappings.put(Pattern.compile("^long$"), "int64");
 		standardTypeMappings.put(Pattern.compile("^int$"), "int32");
-		standardTypeMappings.put(Pattern.compile("^integer$"), "int32");
+		standardTypeMappings.put(Pattern.compile("^short$"), "int32"); // No 16-bit int in protobuf
+		standardTypeMappings.put(Pattern.compile("^byte$"), "bytes");
+
+		standardTypeMappings.put(Pattern.compile("^nonNegativeInteger$"), "uint32");
 		standardTypeMappings.put(Pattern.compile("^unsignedLong$"), "uint64");
 		standardTypeMappings.put(Pattern.compile("^unsignedInt$"), "uint32");
 		standardTypeMappings.put(Pattern.compile("^unsignedShort$"), "uint32"); // No 16-bit int in protobuf
 		standardTypeMappings.put(Pattern.compile("^unsignedByte$"), "uint32"); // No 8-bit int in protobuf
-		standardTypeMappings.put(Pattern.compile("^short$"), "int32"); // No 16-bit int in protobuf
-		standardTypeMappings.put(Pattern.compile("^long$"), "int64");
-		standardTypeMappings.put(Pattern.compile("^decimal$"), "double");
-		standardTypeMappings.put(Pattern.compile("^ID$"), "string");
-		standardTypeMappings.put(Pattern.compile("^Name$"), "string");
-		standardTypeMappings.put(Pattern.compile("^IDREF$"), "string");
-		standardTypeMappings.put(Pattern.compile("^NMTOKEN$"), "string");
-		standardTypeMappings.put(Pattern.compile("^NMTOKENS$"), "string"); // TODO: Fix this
-		standardTypeMappings.put(Pattern.compile("^anySimpleType$"), "string");
-		standardTypeMappings.put(Pattern.compile("^anyType$"), "string");
-		standardTypeMappings.put(Pattern.compile("^anyURI$"), "string");
-		standardTypeMappings.put(Pattern.compile("^language$"), "string");
-		standardTypeMappings.put(Pattern.compile("^normalizedString$"), "string");
-		standardTypeMappings.put(Pattern.compile("^boolean$"), "bool");
-		standardTypeMappings.put(Pattern.compile("^binary$"), "bytes"); // UnspecifiedType.object is
-		standardTypeMappings.put(Pattern.compile("^hexBinary$"), "bytes");
-		standardTypeMappings.put(Pattern.compile("^base64Binary$"), "bytes");
-		standardTypeMappings.put(Pattern.compile("^byte$"), "bytes");
-		standardTypeMappings.put(Pattern.compile("^date$"), "uint32"); // Number of days since January 1st 1970
-		standardTypeMappings.put(Pattern.compile("^dateTime$"), "uint64"); // Number of milliseconds since January 1st), 1970
-		standardTypeMappings.put(Pattern.compile("^time$"), "uint64"); // Number of milliseconds since January 1st), 1970
-		standardTypeMappings.put(Pattern.compile("^duration$"), "string"); // XML duration string
+		standardTypeMappings.put(Pattern.compile("^positiveInteger$"), "uint32");
+
+
+		standardTypeMappings.put(Pattern.compile("^anySimpleType$"), "string"); // base type of all primitive types
+		standardTypeMappings.put(Pattern.compile("^anyType$"), "string"); // Wildcard
 
 		return standardTypeMappings;
 	}
