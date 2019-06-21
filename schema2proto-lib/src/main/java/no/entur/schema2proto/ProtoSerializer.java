@@ -207,27 +207,24 @@ public class ProtoSerializer {
 
 	private void addConfigurationSpecifiedOptions(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			for (Entry<String, String> option : configuration.options.entrySet()) {
+			for (Entry<String, Object> option : configuration.options.entrySet()) {
 
+				Kind kind = null;
+				if(option.getValue() instanceof Boolean  ) {
+					kind = Kind.BOOLEAN;
+				} else if(option.getValue() instanceof Number) {
+					kind = Kind.NUMBER;
+				} else {
+					kind = Kind.STRING;
+				}
 
-				String value = option.getValue();
-
-				OptionElement optionElement = new OptionElement(option.getKey(), resolveKind(value), value, false);
+				OptionElement optionElement = new OptionElement(option.getKey(),kind, option.getValue(), false);
 				protoFile.getValue().options().add(optionElement);
 			}
 		}
 	}
 
-	private Kind resolveKind(String value) {
-		switch (value) {
-			case "true":
-				return Kind.BOOLEAN;
-			case "false":
-				return Kind.BOOLEAN;
-			default:
-				return Kind.STRING;
-		}
-	}
+
 
 	private void addConfigurationSpecifiedImports(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {

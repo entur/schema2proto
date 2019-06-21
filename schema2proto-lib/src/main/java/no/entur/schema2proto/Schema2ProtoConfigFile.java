@@ -35,7 +35,7 @@ public class Schema2ProtoConfigFile {
 	public Map<String, String> customTypeMappings;
 	public Map<String, String> customNameMappings;
 	public String customImports;
-	public Map<String, String> options;
+	public Map<String, Object> options;
 	// public boolean nestEnums = false;
 //	public boolean typeInEnums = true;
 	public boolean includeMessageDocs = true;

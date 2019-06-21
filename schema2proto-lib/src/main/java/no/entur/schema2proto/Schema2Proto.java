@@ -251,7 +251,7 @@ public class Schema2Proto {
 			configuration.includeSourceLocationInDoc = config.includeSourceLocationInDoc;
 			configuration.inheritanceToComposition = config.inheritanceToComposition;
 
-			Map<String, String> options = config.options;
+			Map<String, Object> options = config.options;
 			if (config.options != null) {
 				configuration.options.putAll(options);
 			}
@@ -327,7 +327,7 @@ public class Schema2Proto {
 		}
 		configuration.customNameMappings = customNameMappings;
 
-		HashMap<String, String> options = new LinkedHashMap<>();
+		HashMap<String, Object> options = new LinkedHashMap<>();
 		if (cmd.hasOption(OPTION_OPTIONS)) {
 			for (String mapping : cmd.getOptionValue(OPTION_OPTIONS).split(",")) {
 				int colon = mapping.indexOf(':');
