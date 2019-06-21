@@ -4,6 +4,6 @@ package default;
 
 // Type for Status of termination response.
 message TerminationResponseStatusStructure {
-    // Time individual response element was created.
-    uint64 response_timestamp = 1;
+  // Time individual response element was created.
+  uint64 response_timestamp = 1;
 }

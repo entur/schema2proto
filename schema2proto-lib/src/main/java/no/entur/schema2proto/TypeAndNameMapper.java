@@ -9,12 +9,12 @@ package no.entur.schema2proto;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 public class TypeAndNameMapper {
 	private Map<Pattern, String> typeMappings = new HashMap<>();
@@ -75,7 +74,7 @@ public class TypeAndNameMapper {
 
 		standardTypeMappings.put(Pattern.compile("^string$"), "string");
 		standardTypeMappings.put(Pattern.compile("^boolean$"), "bool");
-		standardTypeMappings.put(Pattern.compile("^float$"), "double");
+		standardTypeMappings.put(Pattern.compile("^float$"), "float");
 		standardTypeMappings.put(Pattern.compile("^double$"), "double");
 		standardTypeMappings.put(Pattern.compile("^decimal$"), "double");
 		standardTypeMappings.put(Pattern.compile("^duration$"), "string"); // XML duration string
@@ -123,7 +122,6 @@ public class TypeAndNameMapper {
 		standardTypeMappings.put(Pattern.compile("^unsignedShort$"), "uint32"); // No 16-bit int in protobuf
 		standardTypeMappings.put(Pattern.compile("^unsignedByte$"), "uint32"); // No 8-bit int in protobuf
 		standardTypeMappings.put(Pattern.compile("^positiveInteger$"), "uint32");
-
 
 		standardTypeMappings.put(Pattern.compile("^anySimpleType$"), "string"); // base type of all primitive types
 		standardTypeMappings.put(Pattern.compile("^anyType$"), "string"); // Wildcard

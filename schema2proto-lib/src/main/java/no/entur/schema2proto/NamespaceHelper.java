@@ -34,90 +34,90 @@ import org.slf4j.LoggerFactory;
 
 public class NamespaceHelper {
 
-    public static final String XML_SCHEMA_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
+	public static final String XML_SCHEMA_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
 
-    public static final String XML_NAMESPACE_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
+	public static final String XML_NAMESPACE_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NamespaceHelper.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(NamespaceHelper.class);
 
-    private static Map<String, String> namespaceToPackageNames = new HashMap<>();
+	private static Map<String, String> namespaceToPackageNames = new HashMap<>();
 
-    public static String xmlNamespaceToProtoPackage(String namespace, String forceProtoPackage) {
-        if (forceProtoPackage != null) {
-            return forceProtoPackage;
-        }
+	public static String xmlNamespaceToProtoPackage(String namespace, String forceProtoPackage) {
+		if (forceProtoPackage != null) {
+			return forceProtoPackage;
+		}
 
-        if (namespace == null) {
-            return null;
-        }
+		if (namespace == null) {
+			return null;
+		}
 
-        String packageName = namespaceToPackageNames.get(namespace);
-        if (packageName == null) {
-            try {
-                packageName = convertAsUrl(namespace);
-            } catch (MalformedURLException e) {
-                LOGGER.warn("Unable to create decent package name from XML defaultProtoPackage " + namespace, e);
-                if (namespace.contains("://")) {
-                    namespace = namespace.substring(namespace.indexOf("://") + 3);
-                }
-                namespace = namespace.replaceAll("/", ".").replace("-", ".");
-                if (namespace.startsWith("."))
-                    namespace = namespace.substring(1);
-                if (namespace.endsWith("."))
-                    namespace = namespace.substring(0, namespace.length() - 1);
-                packageName = namespace;
-            }
+		String packageName = namespaceToPackageNames.get(namespace);
+		if (packageName == null) {
+			try {
+				packageName = convertAsUrl(namespace);
+			} catch (MalformedURLException e) {
+				LOGGER.warn("Unable to create decent package name from XML defaultProtoPackage " + namespace, e);
+				if (namespace.contains("://")) {
+					namespace = namespace.substring(namespace.indexOf("://") + 3);
+				}
+				namespace = namespace.replaceAll("/", ".").replace("-", ".");
+				if (namespace.startsWith("."))
+					namespace = namespace.substring(1);
+				if (namespace.endsWith("."))
+					namespace = namespace.substring(0, namespace.length() - 1);
+				packageName = namespace;
+			}
 
-            packageName = StringUtils.trimToNull(packageName);
+			packageName = StringUtils.trimToNull(packageName);
 
-            namespaceToPackageNames.put(namespace, packageName);
-        }
-        return packageName;
-    }
+			namespaceToPackageNames.put(namespace, packageName);
+		}
+		return packageName;
+	}
 
-    private static String convertAsUrl(String namespace) throws MalformedURLException {
-        URL url = new URL(namespace);
-        String host = url.getHost();
-        String[] hostparts = StringUtils.split(host, ".");
+	private static String convertAsUrl(String namespace) throws MalformedURLException {
+		URL url = new URL(namespace);
+		String host = url.getHost();
+		String[] hostparts = StringUtils.split(host, ".");
 
-        StringBuilder packageBuilder = new StringBuilder();
-        for (int i = hostparts.length; i > 0; i--) {
-            String hostpart = hostparts[i - 1];
-            hostpart = escapePart(hostpart);
-            packageBuilder.append(hostpart);
-            packageBuilder.append(".");
-        }
+		StringBuilder packageBuilder = new StringBuilder();
+		for (int i = hostparts.length; i > 0; i--) {
+			String hostpart = hostparts[i - 1];
+			hostpart = escapePart(hostpart);
+			packageBuilder.append(hostpart);
+			packageBuilder.append(".");
+		}
 
-        String path = url.getPath();
-        String[] pathparts = StringUtils.split(path, "/");
-        for (String pathpart : pathparts) {
-            pathpart = escapePart(pathpart);
-            packageBuilder.append(pathpart);
-            packageBuilder.append(".");
-        }
+		String path = url.getPath();
+		String[] pathparts = StringUtils.split(path, "/");
+		for (String pathpart : pathparts) {
+			pathpart = escapePart(pathpart);
+			packageBuilder.append(pathpart);
+			packageBuilder.append(".");
+		}
 
-        return StringUtils.removeEnd(packageBuilder.toString(), ".");
+		return StringUtils.removeEnd(packageBuilder.toString(), ".");
 
-    }
+	}
 
-    private static String escapePart(String pathpart) {
+	private static String escapePart(String pathpart) {
 
-        String escapedPart = StringUtils.replaceEach(pathpart, new String[]{".", "-", ":"}, new String[]{"_", "_", "_"});
+		String escapedPart = StringUtils.replaceEach(pathpart, new String[] { ".", "-", ":" }, new String[] { "_", "_", "_" });
 
-        if (Character.isDigit(escapedPart.charAt(0))) {
-            escapedPart = "_" + escapedPart; // Prefix leading number
-        }
-        return escapedPart;
-    }
+		if (Character.isDigit(escapedPart.charAt(0))) {
+			escapedPart = "_" + escapedPart; // Prefix leading number
+		}
+		return escapedPart;
+	}
 
-    public static String xmlNamespaceToProtoFieldPackagename(String namespace, String forceProtoPackage) {
-        if (XML_SCHEMA_NAMESPACE.equals(namespace) || XML_NAMESPACE_NAMESPACE.equals(namespace)) {
-            return null;
-        } else if (forceProtoPackage != null) {
-            return forceProtoPackage;
-        } else {
-            return xmlNamespaceToProtoPackage(namespace, forceProtoPackage);
-        }
+	public static String xmlNamespaceToProtoFieldPackagename(String namespace, String forceProtoPackage) {
+		if (XML_SCHEMA_NAMESPACE.equals(namespace) || XML_NAMESPACE_NAMESPACE.equals(namespace)) {
+			return null;
+		} else if (forceProtoPackage != null) {
+			return forceProtoPackage;
+		} else {
+			return xmlNamespaceToProtoPackage(namespace, forceProtoPackage);
+		}
 
-    }
+	}
 }

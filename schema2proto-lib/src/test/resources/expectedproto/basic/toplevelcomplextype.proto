@@ -4,10 +4,10 @@ package default;
 
 // topLevelComplexType doc
 message topLevelComplexType {
-    // topLevelComplexTypeAttribute doc
-    string top_level_complex_type_attribute = 1;
-    string another_top_level_complex_type_attribute = 2;
-    string anno_another_top_level_complex_type_attribute = 3;
-    // elementInComplexType doc
-    string element_in_complex_type = 4;
+  // topLevelComplexTypeAttribute doc
+  string top_level_complex_type_attribute = 1;
+  string another_top_level_complex_type_attribute = 2;
+  string anno_another_top_level_complex_type_attribute = 3;
+  // elementInComplexType doc
+  string element_in_complex_type = 4;
 }

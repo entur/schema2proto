@@ -412,7 +412,7 @@ public class SchemaParser implements ErrorHandler {
 
 								/*
 								 * String typeDoc = resolveDocumentationAnnotation(term);
-								 * 
+								 *
 								 * List<OptionElement> messageOptions = new ArrayList<>(); Options options = new Options(Options.MESSAGE_OPTIONS,
 								 * messageOptions); Location location = new Location("", "", 1, 1); List<Field> fields = new ArrayList<>(); List<Field>
 								 * extensions = new ArrayList<>(); List<OneOf> oneofs = new ArrayList<>(); List<Type> nestedTypes = new ArrayList<>();
@@ -420,9 +420,9 @@ public class SchemaParser implements ErrorHandler {
 								 * MessageType nestedMessageType = new MessageType(ProtoType.BOOL, location, typeDoc, currElementDecl.getName() + "Type",
 								 * fields, extensions, oneofs, nestedTypes, extendsions, reserved, options); messages.put(nestedMessageType.getName(),
 								 * nestedMessageType);
-								 * 
+								 *
 								 * addType(type.getTargetNamespace(), nestedMessageType);
-								 * 
+								 *
 								 * // TypeInlineDefinition jolieComplexType = createComplexType(complexType, currElementDecl.getName(), particle);
 								 * groupProcessing(modelGroup, particle, nestedMessageType, new HashSet<>()); // jolieType.putSubType(jolieComplexType); //
 								 * jolieType.addField(currElementDecl.getName(), jolieComplexType.getMessageName(), getRange(parentParticle), null, null, //
@@ -509,11 +509,10 @@ public class SchemaParser implements ErrorHandler {
 
 		LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "ComplexType " + complexType + ", proto " + messageType);
 
-	/*	if (messageType == null && complexType.isAbstract()) {
-			LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Abstract ComplexType " + complexType + ", ignored");
-			nestlevel--;
-			return null; // Do not create messages from abstract types
-		}*/
+		/*
+		 * if (messageType == null && complexType.isAbstract()) { LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Abstract ComplexType " + complexType +
+		 * ", ignored"); nestlevel--; return null; // Do not create messages from abstract types }
+		 */
 
 		boolean isBaseLevel = messageType == null;
 
@@ -550,8 +549,8 @@ public class SchemaParser implements ErrorHandler {
 				List<Extensions> extendsions = new ArrayList<>();
 				List<Reserved> reserved = new ArrayList<>();
 				// Add message type to file
-				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs,
-                        nestedTypes, extendsions, reserved, options);
+				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved,
+						options);
 
 				addType(nameSpace, messageType);
 
@@ -588,7 +587,7 @@ public class SchemaParser implements ErrorHandler {
 			/*
 			 * if (particle.getTerm() != null && particle.getTerm().asModelGroup() != null) { processModelGroup(particle.getTerm().asModelGroup(), schemaSet,
 			 * protobufMessage);
-			 * 
+			 *
 			 * } else if (particle.getTerm() != null && particle.getTerm().asModelGroupDecl() != null) {
 			 * processModelGroup(particle.getTerm().asModelGroupDecl().getModelGroup(), schemaSet, protobufMessage); }
 			 */
@@ -614,9 +613,8 @@ public class SchemaParser implements ErrorHandler {
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
 
-					Field field = new Field(
-							basicTypes.contains(simpleTypeName) ? null : packageName,
-							fieldLocation, null, "value", "SimpleContent value of element", tag, null, simpleTypeName, fieldOptions, extension, true);
+					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, null, "value",
+							"SimpleContent value of element", tag, null, simpleTypeName, fieldOptions, extension, true);
 					addField(messageType, field, false);
 
 				} else if (basicTypes.contains(xsSimpleType.getName())) {
@@ -629,8 +627,8 @@ public class SchemaParser implements ErrorHandler {
 					// Label label = attr. ? Label.REPEATED : null;
 					Location fieldLocation = getLocation(xsSimpleType);
 
-					Field field = new Field(null,
-							fieldLocation, null, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(), fieldOptions, extension, true);
+					Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(),
+							fieldOptions, extension, true);
 					addField(messageType, field, false);
 					// protobufMessage.addField(xsSimpleType.getName(), xsSimpleType.getName(), false, null, resolveDocumentationAnnotation(complexType),
 					// xsdMapping);
@@ -647,10 +645,8 @@ public class SchemaParser implements ErrorHandler {
 
 						Location fieldLocation = getLocation(xsSimpleType);
 
-						Field field = new Field(
-								null,
-								fieldLocation, null, "value", "SimpleContent value of element", tag, null, primitiveType.getName(), fieldOptions, extension,
-								true);
+						Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, primitiveType.getName(),
+								fieldOptions, extension, true);
 						addField(messageType, field, false);
 
 						// protobufMessage.addField(primitiveType.getName(), primitiveType.getTargetNamespace(), primitiveType.getName(), false, null,
@@ -815,41 +811,41 @@ public class SchemaParser implements ErrorHandler {
 
 	/*
 	 * private TypeDefinition loadSimpleType( XSSimpleType simpleType, boolean lazy, TypeDefinition lazyType ) {
-	 * 
+	 *
 	 * if ( simpleType.isRestriction() ) { XSRestrictionSimpleType restriction = simpleType.asRestriction(); checkType( restriction.getBaseType() ); jolietype =
 	 * new TypeInlineDefinition( parsingContext, simpleType.getName().replace("-","_") + TYPE_SUFFIX, XsdUtils.xsdToNativeType(
 	 * restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
-	 * 
+	 *
 	 * } else { log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() ); jolietype = new TypeInlineDefinition( parsingContext,
 	 * simpleType.getName().replace("-","_"), NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
-	 * 
+	 *
 	 * }
-	 * 
+	 *
 	 * return jolietype; }
 	 */
 
 	/*
 	 * private TypeDefinition loadComplexType( XSComplexType complexType, boolean lazy, TypeDefinition lazyType ) throws ConversionException { XSParticle
 	 * particle; XSContentType contentType; contentType = complexType.getContentType();
-	 * 
+	 *
 	 * if ( (particle = contentType.asParticle()) == null ) { return null;//createAnyOrUndefined( complexType.getName(), complexType );
-	 * 
+	 *
 	 * }
-	 * 
+	 *
 	 * TypeInlineDefinition jolieType;
-	 * 
+	 *
 	 * if ( lazy ) { jolieType = (TypeInlineDefinition) lazyType; } else { jolieType = createComplexType( complexType, complexType.getName().replace("-","_") +
 	 * TYPE_SUFFIX, particle ); }
-	 * 
+	 *
 	 * if ( contentType.asSimpleType() != null ) { checkStrictModeForSimpleType( contentType );
-	 * 
+	 *
 	 * } else if ( (particle = contentType.asParticle()) != null ) { XSTerm term = particle.getTerm(); XSModelGroupDecl modelGroupDecl = null; XSModelGroup
 	 * modelGroup = null; modelGroup = getModelGroup( modelGroupDecl, term );
-	 * 
-	 * 
+	 *
+	 *
 	 * if ( modelGroup != null ) { groupProcessing( modelGroup, particle, jolieType ); } } return jolieType;
-	 * 
-	 * 
+	 *
+	 *
 	 * }
 	 */
 

@@ -37,7 +37,7 @@ public class Schema2Proto {
 	private static final String OPTION_CUSTOM_IMPORTS = "customImports";
 	private static final String OPTION_CUSTOM_NAME_MAPPINGS = "customNameMappings";
 	private static final String OPTION_CUSTOM_TYPE_MAPPINGS = "customTypeMappings";
-//	private static final String OPTION_SPLIT_BY_SCHEMA = "splitBySchema";
+	// private static final String OPTION_SPLIT_BY_SCHEMA = "splitBySchema";
 //	private static final String OPTION_NEST_ENUMS = "nestEnums";
 	private static final String OPTION_CONFIG_FILE = "configFile";
 

@@ -3,6 +3,6 @@ syntax = "proto3";
 package default;
 
 message topLevelComplexType {
-    // elementInComplexType doc
-    string element_in_complex_type = 1;
+  // elementInComplexType doc
+  string element_in_complex_type = 1;
 }

@@ -2,11 +2,15 @@
 syntax = "proto3";
 package default;
 
+message PriceableObject_VersionStructure {
+  string name = 1;
+  string description = 2;
+}
 message CustomerPurchasePackage_VersionStructure {
-    string name = 1;
-    string description = 2;
-    string private_code = 41;
-    string validity_parameter_assignments = 42;
-    string distribution_assignments = 43;
-    string customer_purchase_package_elements = 44;
+  string name = 1;
+  string description = 2;
+  string private_code = 41;
+  string validity_parameter_assignments = 42;
+  string distribution_assignments = 43;
+  string customer_purchase_package_elements = 44;
 }
