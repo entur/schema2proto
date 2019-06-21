@@ -180,6 +180,14 @@ public final class ProtoFile {
 		linker.validateEnumConstantNameUniqueness(types);
 	}
 
+	public Syntax getSyntax() {
+		return syntax;
+	}
+
+	public List<Extend> getExtendList() {
+		return extendList;
+	}
+
 	/** Syntax version. */
 	public enum Syntax {
 		PROTO_2("proto2"),
