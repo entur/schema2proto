@@ -509,11 +509,11 @@ public class SchemaParser implements ErrorHandler {
 
 		LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "ComplexType " + complexType + ", proto " + messageType);
 
-		if (messageType == null && complexType.isAbstract()) {
-			LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Abstract ComplexType " + complexType + ", ignored");
-			nestlevel--;
-			return null; // Do not create messages from abstract types
-		}
+//		if (messageType == null && complexType.isAbstract()) {
+//			LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Abstract ComplexType " + complexType + ", ignored");
+//			nestlevel--;
+//			return null; // Do not create messages from abstract types
+//		}
 
 		boolean isBaseLevel = messageType == null;
 
