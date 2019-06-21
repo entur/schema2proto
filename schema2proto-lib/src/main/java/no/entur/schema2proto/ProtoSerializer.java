@@ -43,9 +43,6 @@ public class ProtoSerializer {
 		// Add options specified in config file
 		addConfigurationSpecifiedOptions(packageToProtoFileMap);
 
-		// Rename packages
-		// ensureValidPackagenames(packageToProtoFileMap);
-
 		// Compute filenames based on package
 		computeFilenames(packageToProtoFileMap);
 
@@ -55,7 +52,7 @@ public class ProtoSerializer {
 		// Compute imports
 		computeLocalImports(packageToProtoFileMap);
 
-		// Add options specified in config file
+		// Add imports specified in config file
 		addConfigurationSpecifiedImports(packageToProtoFileMap);
 
 		// Handle cases where identical field name comes from both attribute and element (but with different case)
@@ -112,25 +109,6 @@ public class ProtoSerializer {
 		parseWrittenFiles(writtenProtoFiles);
 
 	}
-
-	/*
-	 * private void ensureValidPackagenames(Map<String, ProtoFile> packageToProtoFileMap) {
-	 * 
-	 * Map<String, ProtoFile> updatedPackageToProtoFileMap = new HashMap<>();
-	 * 
-	 * for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) { String packageName = protoFile.getKey();
-	 * 
-	 * String newPackageName = getValidPackageName(packageName);
-	 * 
-	 * ProtoFile file = protoFile.getValue(); if (!packageName.equals(newPackageName)) { //Create new entry with updated packagename ProtoFile newFile = new
-	 * ProtoFile(file.location(), file.imports(), file.publicImports(), newPackageName, file.types(), file.services(), file.getExtendList(), file.options(),
-	 * file.getSyntax()); updatedPackageToProtoFileMap.put(newPackageName, newFile); } else { updatedPackageToProtoFileMap.put(packageName, file); } }
-	 * packageToProtoFileMap.clear(); packageToProtoFileMap.putAll(updatedPackageToProtoFileMap); }
-	 */
-
-	/*
-	 * private String getValidPackageName(String packageName) { if (packageName == null) { return null; } return packageName.replaceAll("\\.[0-9]", "."); }
-	 */
 
 	private void updateEnumValues(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
@@ -231,9 +209,23 @@ public class ProtoSerializer {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
 			for (Entry<String, String> option : configuration.options.entrySet()) {
 
-				OptionElement optionElement = new OptionElement(option.getKey(), Kind.STRING, option.getValue(), false);
+
+				String value = option.getValue();
+
+				OptionElement optionElement = new OptionElement(option.getKey(), resolveKind(value), value, false);
 				protoFile.getValue().options().add(optionElement);
 			}
+		}
+	}
+
+	private Kind resolveKind(String value) {
+		switch (value) {
+			case "true":
+				return Kind.BOOLEAN;
+			case "false":
+				return Kind.BOOLEAN;
+			default:
+				return Kind.STRING;
 		}
 	}
 
