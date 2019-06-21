@@ -176,7 +176,7 @@ public class ProtoSerializer {
 		case "-":
 			return "minus";
 		default:
-			return name;
+			return name.replaceAll("-", "");
 		}
 
 	}
