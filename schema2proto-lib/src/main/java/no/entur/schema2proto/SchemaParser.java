@@ -887,6 +887,7 @@ public class SchemaParser implements ErrorHandler {
 			 * Options(Options.ENUM_VALUE_OPTIONS, optionElementsUnspecified)));
 			 */
 			int counter = 1;
+			Set<String> addedValues = new HashSet<>();
 			while (it.hasNext()) {
 				List<OptionElement> optionElements = new ArrayList<>();
 				XSFacet next = it.next();
@@ -894,7 +895,10 @@ public class SchemaParser implements ErrorHandler {
 				String enumValue = next.getValue().value;
 
 				/* String enumConstant = enumValuePrefix + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, enumValue); */
-				constants.add(new EnumConstant(location, enumValue, counter++, doc, new Options(Options.ENUM_VALUE_OPTIONS, optionElements)));
+				if (!addedValues.contains(enumValue)) {
+					addedValues.add(enumValue);
+					constants.add(new EnumConstant(location, enumValue, counter++, doc, new Options(Options.ENUM_VALUE_OPTIONS, optionElements)));
+				}
 			}
 
 			List<OptionElement> enumOptionElements = new ArrayList<>();
