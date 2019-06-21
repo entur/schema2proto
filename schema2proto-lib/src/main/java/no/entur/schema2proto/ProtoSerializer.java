@@ -43,6 +43,9 @@ public class ProtoSerializer {
 		// Add options specified in config file
 		addConfigurationSpecifiedOptions(packageToProtoFileMap);
 
+		// Rename packages
+		ensureValidPackagenames(packageToProtoFileMap);
+
 		// Compute filenames based on package
 		computeFilenames(packageToProtoFileMap);
 
@@ -108,6 +111,36 @@ public class ProtoSerializer {
 		// Parse and verify written proto files
 		parseWrittenFiles(writtenProtoFiles);
 
+	}
+
+	private void ensureValidPackagenames(Map<String, ProtoFile> packageToProtoFileMap) {
+
+		Map<String, ProtoFile> updatedPackageToProtoFileMap = new HashMap<>();
+
+		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			String packageName = protoFile.getKey();
+
+			String newPackageName = getValidPackageName(packageName);
+
+			ProtoFile file = protoFile.getValue();
+			if (!packageName.equals(newPackageName)) {
+				//Create new entry with updated packagename
+				ProtoFile newFile = new ProtoFile(file.location(), file.imports(), file.publicImports(), newPackageName, file.types(),
+						file.services(), file.getExtendList(), file.options(), file.getSyntax());
+				updatedPackageToProtoFileMap.put(newPackageName, newFile);
+			} else {
+				updatedPackageToProtoFileMap.put(packageName, file);
+			}
+		}
+		packageToProtoFileMap.clear();
+		packageToProtoFileMap.putAll(updatedPackageToProtoFileMap);
+	}
+
+	private String getValidPackageName(String packageName) {
+		if (packageName == null) {
+			return null;
+		}
+		return packageName.replaceAll("\\.[0-9]", ".");
 	}
 
 	private void updateEnumValues(Map<String, ProtoFile> packageToProtoFileMap) {
@@ -232,17 +265,19 @@ public class ProtoSerializer {
 					MessageType mt = (MessageType) type;
 					for (Field field : mt.fields()) {
 
-						if (file.packageName() != null && file.packageName().equals(field.packageName())) {
+						String packageName = getValidPackageName(field.packageName());
+						if (file.packageName() != null && file.packageName().equals(packageName)) {
 							field.clearPackageName();
 						}
 
-						if (StringUtils.trimToNull(field.packageName()) != null && !field.packageName().equals(XML_NAMESPACE_PACKAGE)) {
+						if (StringUtils.trimToNull(packageName) != null && !packageName.equals(XML_NAMESPACE_PACKAGE)) {
 							// Add import
-							ProtoFile fileToImport = packageToProtoFileMap.get(field.packageName());
+
+							ProtoFile fileToImport = packageToProtoFileMap.get(packageName);
 							if (fileToImport != null) {
 								imports.add(fileToImport.location().getPath());
 							} else {
-								LOGGER.error("Tried to create import for field packageName " + field.packageName() + ", but no such protofile exist");
+								LOGGER.error("Tried to create import for field packageName " + packageName + ", but no such protofile exist");
 							}
 						}
 					}
@@ -264,7 +299,7 @@ public class ProtoSerializer {
 					MessageType mt = (MessageType) type;
 					for (Field field : mt.fields()) {
 
-						String fieldPackageName = StringUtils.trimToNull(field.packageName());
+						String fieldPackageName = StringUtils.trimToNull(getValidPackageName(field.packageName()));
 						if (fieldPackageName != null) {
 							field.clearPackageName();
 							field.updateElementType(fieldPackageName + "." + field.getElementType());
