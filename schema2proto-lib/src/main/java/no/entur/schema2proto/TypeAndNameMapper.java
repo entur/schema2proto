@@ -133,8 +133,13 @@ public class TypeAndNameMapper {
 		for (Pattern p : typeMappings.keySet()) {
 			Matcher m = p.matcher(type);
 			if (m.find()) {
-				return m.replaceAll(typeMappings.get(p));
+				type =  m.replaceAll(typeMappings.get(p));
+				break;
 			}
+		}
+
+		if(type.contains("-")) {
+			type = type.replaceAll("-","_");
 		}
 
 		return type;
