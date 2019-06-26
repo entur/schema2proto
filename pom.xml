@@ -65,18 +65,6 @@
                     <groupId>com.diffplug.spotless</groupId>
                     <artifactId>spotless-maven-plugin</artifactId>
                     <version>${spotless.version}</version>
-                    <configuration>
-                        <java>
-                            <eclipse>
-                                <file>${project.parent.basedir}/codestyle/jdt_codestyle.xml</file>
-                                <version>4.9.0</version>
-                            </eclipse>
-                            <removeUnusedImports/>
-                            <importOrder>
-                                <file>${project.parent.basedir}/codestyle/jdt.importorder</file>
-                            </importOrder>
-                        </java>
-                    </configuration>
                     <executions>
                         <execution>
                             <id>codestyle_check</id>
@@ -136,10 +124,16 @@
                         <id>check-license-header</id>
                         <phase>initialize</phase>
                         <goals>
-                            <goal>check-file-header</goal>
+                            <goal>update-file-header</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*.java</include>
+                    </includes>
+
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>

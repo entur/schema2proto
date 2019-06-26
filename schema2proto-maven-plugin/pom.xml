@@ -21,7 +21,7 @@
         <dependency>
             <groupId>no.entur</groupId>
             <artifactId>schema2proto-lib</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
@@ -70,6 +70,23 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <configuration>
+                    <java>
+                        <eclipse>
+                            <file>../codestyle/jdt_codestyle.xml</file>
+                            <version>4.9.0</version>
+                        </eclipse>
+                        <removeUnusedImports/>
+                        <importOrder>
+                            <file>../codestyle/jdt.importorder</file>
+                        </importOrder>
+                    </java>
+                </configuration>
+
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
