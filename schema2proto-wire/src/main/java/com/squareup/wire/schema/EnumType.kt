@@ -19,10 +19,10 @@ import com.squareup.wire.schema.internal.parser.EnumElement
 import com.squareup.wire.schema.Options.ENUM_OPTIONS
 
 class EnumType public constructor(
-        private val protoType: ProtoType,
+        private var protoType: ProtoType,
         private val location: Location,
         private val documentation: String,
-        private val name: String,
+        private var name: String,
         private val constants: List<EnumConstant>,
         private val options: Options
 ) : Type() {
@@ -118,6 +118,11 @@ class EnumType public constructor(
 
     fun name(): String {
         return name;
+    }
+
+    fun updateName(newMessageName: String) {
+        name = newMessageName;
+        protoType = ProtoType.get(protoType.enclosingTypeOrPackage(),newMessageName);
     }
 
     companion object {

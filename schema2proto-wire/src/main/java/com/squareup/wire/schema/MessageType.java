@@ -49,7 +49,7 @@ import com.squareup.wire.schema.internal.parser.TypeElement;
 
 public final class MessageType extends Type {
 	public static final int FIELD_NUM_INCREMENT = 10;
-	private final ProtoType protoType;
+	private ProtoType protoType;
 	private final Location location;
 	private final String documentation;
 	private String name;
@@ -107,6 +107,8 @@ public final class MessageType extends Type {
 
 	public void updateName(String newName) {
 		this.name = newName;
+		protoType = ProtoType.get(protoType.enclosingTypeOrPackage(), newName);
+
 	}
 
 	@Override

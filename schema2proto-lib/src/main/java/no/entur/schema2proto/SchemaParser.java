@@ -84,7 +84,7 @@ public class SchemaParser implements ErrorHandler {
 		documentation = new HashMap<String, String>();
 
 		basicTypes = new TreeSet<String>();
-		basicTypes.addAll(getBasicTypes());
+		basicTypes.addAll(TypeRegistry.getBasicTypes());
 
 		defaultValidationRulesForBasicTypes = new HashMap<>();
 		defaultValidationRulesForBasicTypes.putAll(getValidationRuleForBasicTypes());
@@ -988,67 +988,6 @@ public class SchemaParser implements ErrorHandler {
 	public void warning(SAXParseException exception) throws SAXException {
 		LOGGER.warn(exception.getMessage() + " at " + exception.getSystemId());
 		exception.printStackTrace();
-	}
-
-	public Set<String> getBasicTypes() {
-
-		Set<String> basicTypes = new HashSet<>();
-		basicTypes.add("string");
-		basicTypes.add("boolean");
-		basicTypes.add("float");
-		basicTypes.add("double");
-		basicTypes.add("decimal");
-		basicTypes.add("duration");
-		basicTypes.add("dateTime");
-		basicTypes.add("time");
-		basicTypes.add("date");
-
-		basicTypes.add("gYearMonth");
-		basicTypes.add("gYear");
-		basicTypes.add("gMonthDay");
-		basicTypes.add("gDay");
-		basicTypes.add("gMonth");
-
-		basicTypes.add("hexBinary");
-		basicTypes.add("base64Binary");
-		basicTypes.add("anyURI");
-		basicTypes.add("QName");
-		basicTypes.add("NOTATION");
-
-		basicTypes.add("normalizedString");
-		basicTypes.add("token");
-		basicTypes.add("language");
-
-		basicTypes.add("IDREFS");
-		basicTypes.add("ENTITIES");
-		basicTypes.add("NMTOKEN");
-		basicTypes.add("NMTOKENS");
-		basicTypes.add("Name");
-		basicTypes.add("NCName");
-		basicTypes.add("ID");
-		basicTypes.add("IDREF");
-		basicTypes.add("ENTITY");
-
-		basicTypes.add("integer");
-		basicTypes.add("nonPositiveInteger");
-		basicTypes.add("negativeInteger");
-		basicTypes.add("long");
-		basicTypes.add("int");
-		basicTypes.add("short");
-		basicTypes.add("byte");
-
-		basicTypes.add("nonNegativeInteger");
-		basicTypes.add("unsignedLong");
-		basicTypes.add("unsignedInt");
-		basicTypes.add("unsignedShort");
-		basicTypes.add("unsignedByte");
-		basicTypes.add("positiveInteger");
-
-		basicTypes.add("anySimpleType");
-		basicTypes.add("anyType");
-
-		return basicTypes;
-
 	}
 
 	public Map<String, OptionElement> getValidationRuleForBasicTypes() {

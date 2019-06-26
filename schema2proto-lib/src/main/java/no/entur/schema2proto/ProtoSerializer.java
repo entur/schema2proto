@@ -9,12 +9,12 @@ package no.entur.schema2proto;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,11 +49,14 @@ public class ProtoSerializer {
 
 	private TypeAndNameMapper typeAndNameMapper;
 
+	private Set<String> basicTypes = new HashSet<>();
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
 	public ProtoSerializer(Schema2ProtoConfiguration configuration, TypeAndNameMapper marshaller) throws InvalidConfigurationException {
 		this.configuration = configuration;
 		this.typeAndNameMapper = marshaller;
+		basicTypes.addAll(TypeRegistry.getBasicTypes());
 
 		if (configuration.outputDirectory != null) {
 			if (!configuration.outputDirectory.mkdirs() && !configuration.outputDirectory.exists()) {
@@ -217,7 +220,7 @@ public class ProtoSerializer {
 	 * private void link(Map<String, ProtoFile> packageToProtoFileMap) { Iterable<ProtoFile> iterable =
 	 * getIterableFromIterator(packageToProtoFileMap.values().iterator()); Linker linker = new Linker(iterable); try { linker.link(); } catch (Exception e) {
 	 * LOGGER.error("Linking failed, the proto file is not valid", e); }
-	 * 
+	 *
 	 * }
 	 */
 	public static <T> Iterable<T> getIterableFromIterator(Iterator<T> iterator) {
@@ -321,24 +324,95 @@ public class ProtoSerializer {
 
 	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			Set<String> usedNames = findExistingTypeNamesInProtoFile(protoFile.getValue());
 			for (Type type : protoFile.getValue().types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
-						String fieldType = field.getElementType();
-						String newFieldType = typeAndNameMapper.translateType(fieldType);
-						field.updateElementType(newFieldType);
-					}
 
 					String messageName = mt.getName();
 					String newMessageName = typeAndNameMapper.translateType(messageName);
 
-					mt.updateName(newMessageName);
+					if (!messageName.equals(newMessageName)) {
+						if (!usedNames.contains(newMessageName)) {
+							mt.updateName(newMessageName);
+							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
+						} else {
+							LOGGER.error("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+						}
+
+					}
+					for (Field field : mt.fields()) {
+						// Translate basic types as well
+						if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
+							String newFieldType = typeAndNameMapper.translateType(field.getElementType());
+							if (!newFieldType.equals(field.getElementType())) {
+								LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
+								field.updateElementType(newFieldType);
+							}
+						}
+
+					}
+				} else if (type instanceof EnumType) {
+					EnumType et = (EnumType) type;
+					String messageName = et.name();
+					String newMessageName = typeAndNameMapper.translateType(messageName);
+
+					if (!messageName.equals(newMessageName)) {
+						if (!usedNames.contains(newMessageName)) {
+							et.updateName(newMessageName);
+							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
+						} else {
+							LOGGER.error("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+						}
+					}
 				}
-
 			}
-
 		}
+	}
+
+	private void updateTypeReferences(Map<String, ProtoFile> packageToProtoFileMap, String packageNameOfType, String oldName, String newName) {
+		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			for (Type type : protoFile.getValue().types()) {
+				if (type instanceof MessageType) {
+					MessageType mt = (MessageType) type;
+					for (Field field : mt.fields()) {
+						if (samePackage(field.packageName(), packageNameOfType)) {
+							String fieldType = field.getElementType();
+							if (fieldType.equals(oldName)) {
+								field.updateElementType(newName);
+								LOGGER.debug("Updating field " + oldName + " in type " + mt.getName() + " to " + newName);
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	private boolean samePackage(String packageNameOfFile, String packageNameOfReferencedTypeInField) {
+		if (packageNameOfFile == null && packageNameOfReferencedTypeInField == null) {
+			return true;
+		} else if (packageNameOfFile == null) {
+			return false;
+		} else if (packageNameOfReferencedTypeInField == null) {
+			return false;
+		} else {
+			return packageNameOfFile.equals(packageNameOfReferencedTypeInField);
+		}
+	}
+
+	private Set<String> findExistingTypeNamesInProtoFile(ProtoFile value) {
+		Set<String> existingTypeNames = new HashSet<>();
+		for (Type t : value.types()) {
+			if (t instanceof MessageType) {
+				existingTypeNames.add(((MessageType) t).getName());
+			} else if (t instanceof EnumType) {
+				existingTypeNames.add(((EnumType) t).name());
+			}
+		}
+
+		return existingTypeNames;
 	}
 
 	private void translateFieldNames(Map<String, ProtoFile> packageToProtoFileMap) {
