@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -165,11 +167,15 @@ public class ProtoSerializer {
 		try {
 
 			if (configuration.includeValidationRules) {
-				schemaLoader.addSource(new File("src/main/resources/proto/"));
+				try {
+					schemaLoader.addSource(Paths.get(ClassLoader.getSystemResource("proto").toURI()));
+				} catch (URISyntaxException e) {
+					LOGGER.error("Internal Error loading validation proto file from path, linking will fail", e);
+				}
 			}
 
 			for (String importRootFolder : configuration.customImportLocations) {
-				schemaLoader.addSource(new File(importRootFolder));
+				schemaLoader.addSource(new File(importRootFolder).toPath());
 			}
 
 			schemaLoader.addSource(configuration.outputDirectory);
