@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:complexType name="RulesRepeated">
+        <xsd:sequence>
+            <xsd:element name="optionalElement" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="mandatoryElement" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="zeroToThreeElement" type="xsd:string" minOccurs="0" maxOccurs="3"/>
+            <xsd:element name="nestedRulesElementWithPattern" type="xsd:string" minOccurs="2" maxOccurs="2"/>
+        </xsd:sequence>
+
+        <xsd:attribute name="optionalAttribute" type="xsd:string" use="optional"/>
+        <xsd:attribute name="requiredAttribute" type="xsd:string" use="required"/>
+        <xsd:attribute name="stringLength" type="RulesStringLength" use="required"/>
+        <xsd:attribute name="stringPattern" type="RulesStringPattern"/>
+        <xsd:attribute name="positiveInteger" type="xsd:positiveInteger"/>
+        <xsd:attribute name="simpleTypeRedefined" type="RulesStringLengthRedefined" use="required"/>
+
+    </xsd:complexType>
+
+    <xsd:simpleType name="RulesStringLength">
+        <xsd:restriction base="xsd:string">
+            <xsd:minLength value="2"/>
+            <xsd:maxLength value="5"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="RulesStringLengthRedefined">
+        <xsd:restriction base="RulesStringLength">
+            <xsd:minLength value="2"/>
+            <xsd:maxLength value="10"/>
+            <xsd:pattern value="[A-Z]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+    <xsd:simpleType name="RulesStringPattern">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[A-Z]{3}"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

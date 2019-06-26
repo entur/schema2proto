@@ -84,6 +84,11 @@ public class SchemaParserTest {
 		compareExpectedAndGenerated("src/test/resources/expectedproto/basic/elementref.proto", generateProtobuf("basic/elementref"));
 	}
 
+	// Disabled for now @Test
+	public void testValidationRules() throws IOException {
+		compareExpectedAndGenerated("src/test/resources/expectedproto/basic/validationrules.proto", generateProtobuf("basic/validationrules"));
+	}
+
 	@Test
 	public void testRestrictionBase() throws IOException {
 		compareExpectedAndGenerated("src/test/resources/expectedproto/basic/restrictionbaseduplicateelements.proto",

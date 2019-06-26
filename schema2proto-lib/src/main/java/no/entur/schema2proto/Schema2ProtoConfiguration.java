@@ -18,10 +18,12 @@ public class Schema2ProtoConfiguration {
 	public Map<Pattern, String> customTypeMappings = new HashMap<>();;
 	public Map<Pattern, String> customNameMappings = new HashMap<>();;
 	public List<String> customImports = new ArrayList<>();
+	public List<String> customImportLocations = new ArrayList<>();
 	public Map<String, Object> options = new HashMap<>();
 	// public boolean nestEnums = false;
 	// public boolean typeInEnums = true;
 	public boolean includeMessageDocs = true;
 	public boolean includeFieldDocs = true;
 	public boolean includeSourceLocationInDoc = false;
+	public boolean includeValidationRules = false;
 }

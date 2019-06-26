@@ -38,9 +38,6 @@ public class TypeAndNameMapper {
 	public TypeAndNameMapper(Schema2ProtoConfiguration configuration) {
 		typeMappings.putAll(getStandardXsdTypeMappings());
 
-		// typeMappings.put(Pattern.compile("^time$"), "google.protobuf.Timestamp");
-		// typeMappings.put(Pattern.compile("^duration$"), "google.protobuf.Duration");
-
 		// From external configuration
 		updateMappings(typeMappings, configuration.customTypeMappings);
 
@@ -110,7 +107,7 @@ public class TypeAndNameMapper {
 
 		standardTypeMappings.put(Pattern.compile("^integer$"), "int32");
 		standardTypeMappings.put(Pattern.compile("^nonPositiveInteger$"), "sint32");
-		standardTypeMappings.put(Pattern.compile("^negativeInteger$"), "sint64");
+		standardTypeMappings.put(Pattern.compile("^negativeInteger$"), "sint32");
 		standardTypeMappings.put(Pattern.compile("^long$"), "int64");
 		standardTypeMappings.put(Pattern.compile("^int$"), "int32");
 		standardTypeMappings.put(Pattern.compile("^short$"), "int32"); // No 16-bit int in protobuf

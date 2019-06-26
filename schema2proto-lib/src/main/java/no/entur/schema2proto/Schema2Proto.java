@@ -36,11 +36,13 @@ public class Schema2Proto {
 	// private static final String OPTION_TYPE_IN_ENUMS = "typeInEnums";
 	private static final String OPTION_OPTIONS = "options";
 	private static final String OPTION_CUSTOM_IMPORTS = "customImports";
+	private static final String OPTION_CUSTOM_IMPORT_LOCATIONS = "customImportLocations";
 	private static final String OPTION_CUSTOM_NAME_MAPPINGS = "customNameMappings";
 	private static final String OPTION_CUSTOM_TYPE_MAPPINGS = "customTypeMappings";
 	// private static final String OPTION_SPLIT_BY_SCHEMA = "splitBySchema";
 //	private static final String OPTION_NEST_ENUMS = "nestEnums";
 	private static final String OPTION_CONFIG_FILE = "configFile";
+	private static final String OPTION_INCLUDE_VALIDATION_RULES = "includeValidationRules";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
@@ -67,7 +69,7 @@ public class Schema2Proto {
 				serializer.serialize(packageToFiles);
 
 				LOGGER.info("Done");
-			} catch (InvalidConfigrationException | ParseException e) {
+			} catch (InvalidConfigurationException | ParseException e) {
 				LOGGER.error("Error parsing command line options: {}", e.getMessage());
 				printUsage(commandLineOptions);
 			} catch (InvalidXSDException e) {
@@ -140,6 +142,13 @@ public class Schema2Proto {
 				.desc("add additional imports")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_CUSTOM_IMPORT_LOCATIONS)
+				.hasArg()
+				.argName("folder1,folder2,...")
+				.desc("root folder for additional imports")
+				.required(false)
+				.build());
 		/*
 		 * commandLineOptions.addOption(Option.builder() .longOpt(OPTION_TYPE_IN_ENUMS) .hasArg() .argName("true|false")
 		 * .desc("include type as a prefix in enums, defaults to true") .required(false) .build());
@@ -172,6 +181,13 @@ public class Schema2Proto {
 				.desc("define each xsd extension base level as a message field instead of copying all inherited fields")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_INCLUDE_VALIDATION_RULES)
+				.hasArg()
+				.argName("true|false")
+				.desc("generate envoypropxy/protoc-gen-validate validation rules from xsd rules")
+				.required(false)
+				.build());
 		return commandLineOptions;
 	}
 
@@ -185,7 +201,7 @@ public class Schema2Proto {
 				commandLineOptions, null);
 	}
 
-	private static Schema2ProtoConfiguration getConfiguration(CommandLine cmd) throws InvalidConfigrationException {
+	private static Schema2ProtoConfiguration getConfiguration(CommandLine cmd) throws InvalidConfigurationException {
 
 		if (cmd.hasOption(OPTION_CONFIG_FILE)) {
 			return parseConfigFile(cmd);
@@ -195,17 +211,17 @@ public class Schema2Proto {
 
 	}
 
-	private static Schema2ProtoConfiguration parseConfigFile(CommandLine cmd) throws InvalidConfigrationException {
+	private static Schema2ProtoConfiguration parseConfigFile(CommandLine cmd) throws InvalidConfigurationException {
 
 		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
 
 		String[] args = cmd.getArgs();
 		if (args.length != 1) {
-			throw new InvalidConfigrationException("Missing xsd file argument");
+			throw new InvalidConfigurationException("Missing xsd file argument");
 		} else {
 			File xsdFile = new File(args[0]);
 			if (!xsdFile.exists()) {
-				throw new InvalidConfigrationException(String.format("XSD file %s not found", xsdFile.getAbsolutePath()));
+				throw new InvalidConfigurationException(String.format("XSD file %s not found", xsdFile.getAbsolutePath()));
 			}
 			configuration.xsdFile = new File(args[0]);
 		}
@@ -217,7 +233,7 @@ public class Schema2Proto {
 			Schema2ProtoConfigFile config = yaml.loadAs(in, Schema2ProtoConfigFile.class);
 
 			if (config.outputDirectory == null) {
-				throw new InvalidConfigrationException(OPTION_OUTPUT_DIRECTORY);
+				throw new InvalidConfigurationException(OPTION_OUTPUT_DIRECTORY);
 			} else {
 				configuration.outputDirectory = new File(config.outputDirectory);
 			}
@@ -250,6 +266,7 @@ public class Schema2Proto {
 			configuration.includeFieldDocs = config.includeFieldDocs;
 			configuration.includeSourceLocationInDoc = config.includeSourceLocationInDoc;
 			configuration.inheritanceToComposition = config.inheritanceToComposition;
+			configuration.includeValidationRules = config.includeValidationRules;
 
 			Map<String, Object> options = config.options;
 			if (config.options != null) {
@@ -262,29 +279,35 @@ public class Schema2Proto {
 				}
 
 			}
+			if (config.customImportLocations != null) {
+				for (String importLocation : config.customImportLocations.split(",")) {
+					configuration.customImportLocations.add(importLocation);
+				}
+
+			}
 
 			return configuration;
 
 		} catch (IOException e) {
-			throw new InvalidConfigrationException("Error reading config file", e);
+			throw new InvalidConfigurationException("Error reading config file", e);
 		} catch (YAMLException e) {
-			throw new InvalidConfigrationException("Error parsing config file", e);
+			throw new InvalidConfigurationException("Error parsing config file", e);
 		}
 	}
 
-	private static Schema2ProtoConfiguration parseCommandLineOptions(CommandLine cmd) throws InvalidConfigrationException {
+	private static Schema2ProtoConfiguration parseCommandLineOptions(CommandLine cmd) throws InvalidConfigurationException {
 
 		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
 
 		String[] args = cmd.getArgs();
 		if (args.length != 1) {
-			throw new InvalidConfigrationException("Missing xsd file argument");
+			throw new InvalidConfigurationException("Missing xsd file argument");
 		} else {
 			configuration.xsdFile = new File(args[0]);
 		}
 
 		if (!cmd.hasOption(OPTION_OUTPUT_DIRECTORY)) {
-			throw new InvalidConfigrationException(OPTION_OUTPUT_DIRECTORY);
+			throw new InvalidConfigurationException(OPTION_OUTPUT_DIRECTORY);
 		} else {
 			configuration.outputDirectory = new File(cmd.getOptionValue(OPTION_OUTPUT_DIRECTORY));
 		}
@@ -348,6 +371,14 @@ public class Schema2Proto {
 		}
 		configuration.customImports = imports;
 
+		List<String> importLocations = new ArrayList<>();
+		if (cmd.hasOption(OPTION_CUSTOM_IMPORT_LOCATIONS)) {
+			for (String importLocation : cmd.getOptionValue(OPTION_CUSTOM_IMPORT_LOCATIONS).split(",")) {
+				importLocations.add(importLocation);
+			}
+		}
+		configuration.customImportLocations = importLocations;
+
 //		if (cmd.hasOption(OPTION_NEST_ENUMS)) {
 //			configuration.nestEnums = Boolean.parseBoolean(cmd.getOptionValue(OPTION_NEST_ENUMS));
 //		}
@@ -365,6 +396,9 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_INHERITANCE_TO_COMPOSITION)) {
 			configuration.inheritanceToComposition = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INHERITANCE_TO_COMPOSITION));
+		}
+		if (cmd.hasOption(OPTION_INCLUDE_VALIDATION_RULES)) {
+			configuration.includeValidationRules = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_VALIDATION_RULES));
 		}
 
 		return configuration;

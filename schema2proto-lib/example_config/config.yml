@@ -12,6 +12,7 @@ options:
   java_package: org.entur.protobuf
   java_multiple_files: true
 customImports: google/protobuf/timestamp.proto,google/protobuf/duration.proto
+customImportLocations: pathToRootFolder1OfProtobufImport,pathToRootFolder2OfProtobufImport
 customTypeMappings:
   a: b
   x: y

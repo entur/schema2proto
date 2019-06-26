@@ -58,12 +58,6 @@ public class Schema2ProtoTest {
 	}
 
 	@Test
-	public void compareTestDatatypesStringDatesProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/test-datatypes-string-dates.proto",
-				generateProtobuf("test-datatypes-string-dates", "^date$:string,^dateTime$:string", null, "default", false));
-	}
-
-	@Test
 	public void compareTestExtensionProtobuf() throws IOException {
 		compareExpectedAndGenerated("src/test/resources/expectedproto/test-extension.proto", generateProtobuf("test-extension"));
 	}

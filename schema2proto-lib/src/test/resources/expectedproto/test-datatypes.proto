@@ -6,7 +6,7 @@ message Datatypes {
   uint32 a_positive_integer = 1;
   int32 an_int = 2;
   int32 an_integer = 3;
-  sint64 a_negative_integer = 4;
+  sint32 a_negative_integer = 4;
   uint32 a_non_negative_integer = 5;
   sint32 a_non_positive_integer = 6;
   uint64 an_unsigned_long = 7;

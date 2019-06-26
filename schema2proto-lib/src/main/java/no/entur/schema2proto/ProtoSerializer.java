@@ -19,22 +19,22 @@ import com.squareup.wire.schema.internal.parser.OptionElement.Kind;
 public class ProtoSerializer {
 
 	public static final String UNDERSCORE = "_";
+	public static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
 	private Schema2ProtoConfiguration configuration;
 
 	private TypeAndNameMapper typeAndNameMapper;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
-	public static final String XML_NAMESPACE_PACKAGE = "www.w3.org.2001.XMLSchema";
-
-	public ProtoSerializer(Schema2ProtoConfiguration configuration, TypeAndNameMapper marshaller) throws InvalidConfigrationException {
+	public ProtoSerializer(Schema2ProtoConfiguration configuration, TypeAndNameMapper marshaller) throws InvalidConfigurationException {
 		this.configuration = configuration;
 		this.typeAndNameMapper = marshaller;
 
 		if (configuration.outputDirectory != null) {
 			if (!configuration.outputDirectory.mkdirs() && !configuration.outputDirectory.exists()) {
-				throw new InvalidConfigrationException("Could not create outputDirectory", null);
+				throw new InvalidConfigurationException("Could not create outputDirectory", null);
 			}
+			LOGGER.info("Writing proto files to " + configuration.outputDirectory.getAbsolutePath());
 		}
 	}
 
@@ -163,8 +163,16 @@ public class ProtoSerializer {
 		SchemaLoader schemaLoader = new SchemaLoader();
 
 		try {
-			schemaLoader.addSource(configuration.outputDirectory);
 
+			if (configuration.includeValidationRules) {
+				schemaLoader.addSource(new File("src/main/resources/proto/"));
+			}
+
+			for (String importRootFolder : configuration.customImportLocations) {
+				schemaLoader.addSource(new File(importRootFolder));
+			}
+
+			schemaLoader.addSource(configuration.outputDirectory);
 			for (File f : writtenProtoFiles) {
 				schemaLoader.addProto(f.getAbsolutePath().substring(configuration.outputDirectory.getAbsolutePath().length() + 1));
 			}
@@ -176,17 +184,13 @@ public class ProtoSerializer {
 
 	}
 
-	private void link(Map<String, ProtoFile> packageToProtoFileMap) {
-		Iterable<ProtoFile> iterable = getIterableFromIterator(packageToProtoFileMap.values().iterator());
-		Linker linker = new Linker(iterable);
-		try {
-			linker.link();
-		} catch (Exception e) {
-			LOGGER.error("Linking failed, the proto file is not valid", e);
-		}
-
-	}
-
+	/*
+	 * private void link(Map<String, ProtoFile> packageToProtoFileMap) { Iterable<ProtoFile> iterable =
+	 * getIterableFromIterator(packageToProtoFileMap.values().iterator()); Linker linker = new Linker(iterable); try { linker.link(); } catch (Exception e) {
+	 * LOGGER.error("Linking failed, the proto file is not valid", e); }
+	 * 
+	 * }
+	 */
 	public static <T> Iterable<T> getIterableFromIterator(Iterator<T> iterator) {
 		return new Iterable<T>() {
 			@Override
@@ -227,6 +231,10 @@ public class ProtoSerializer {
 	private void addConfigurationSpecifiedImports(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
 			protoFile.getValue().imports().addAll(configuration.customImports);
+
+			if (configuration.includeValidationRules) {
+				protoFile.getValue().imports().add(VALIDATION_PROTO_IMPORT);
+			}
 		}
 	}
 

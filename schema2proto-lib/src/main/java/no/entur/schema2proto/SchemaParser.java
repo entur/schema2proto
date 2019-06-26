@@ -5,6 +5,7 @@ import java.util.*;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
@@ -47,53 +48,23 @@ public class SchemaParser implements ErrorHandler {
 	private Map<String, String> documentation;
 	private Map<MessageType, Set<Object>> elementDeclarationsPerMessageType = new HashMap<>();
 	private Set<String> basicTypes;
+	private Map<String, OptionElement> defaultValidationRulesForBasicTypes;
 
 	private int nestlevel = 0;
 
 	private Schema2ProtoConfiguration configuration;
+	private String typeName;
+	private String name;
 
 	private void init() {
 		simpleTypes = new HashMap<String, String>();
 		documentation = new HashMap<String, String>();
 
 		basicTypes = new TreeSet<String>();
-		basicTypes.add("string");
-		basicTypes.add("normalizedString");
-		basicTypes.add("anyType");
-		basicTypes.add("anyURI");
-		basicTypes.add("anySimpleType");
-		basicTypes.add("language");
+		basicTypes.addAll(getBasicTypes());
 
-		basicTypes.add("integer");
-		basicTypes.add("positiveInteger");
-		basicTypes.add("nonPositiveInteger");
-		basicTypes.add("negativeInteger");
-		basicTypes.add("nonNegativeInteger");
-
-		basicTypes.add("unsignedLong");
-		basicTypes.add("unsignedInt");
-		basicTypes.add("unsignedShort");
-		basicTypes.add("unsignedByte");
-
-		basicTypes.add("base64Binary");
-		basicTypes.add("hexBinary");
-		basicTypes.add("boolean");
-		basicTypes.add("date");
-		basicTypes.add("dateTime");
-		basicTypes.add("time");
-		basicTypes.add("duration");
-		basicTypes.add("decimal");
-		basicTypes.add("float");
-		basicTypes.add("double");
-		basicTypes.add("byte");
-		basicTypes.add("short");
-		basicTypes.add("long");
-		basicTypes.add("int");
-		basicTypes.add("ID");
-		basicTypes.add("IDREF");
-		basicTypes.add("NMTOKEN");
-		basicTypes.add("NMTOKENS");
-		basicTypes.add("Name");
+		defaultValidationRulesForBasicTypes = new HashMap<>();
+		defaultValidationRulesForBasicTypes.putAll(getValidationRuleForBasicTypes());
 
 	}
 
@@ -286,69 +257,27 @@ public class SchemaParser implements ErrorHandler {
 
 					String doc = resolveDocumentationAnnotation(currElementDecl);
 
-					boolean extension = false;
-					List<OptionElement> optionElements = new ArrayList<OptionElement>();
-					Options options = new Options(Options.FIELD_OPTIONS, optionElements);
+					Options options = getFieldOptions(parentParticle);
 					int tag = messageType.getNextFieldNum();
 					Label label = getRange(parentParticle) ? Label.REPEATED : null;
 					Location location = getLocation(currElementDecl);
 
 					Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage),
-							location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, extension, true);
+							location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
 					addField(messageType, field, isExtension);
-
-					// jolieType.addField(currElementDecl.getName(), type.getName(), getRange(parentParticle), null, null, xsdMapping);
-					/*
-					 * TypeDefinition jolieSimpleType = new TypeDefinitionLink(parsingContext, currElementDecl.getName(), getRange(parentParticle),
-					 * complexTypes.get(type.getName() + TYPE_SUFFIX)); jolieType.putSubType(jolieSimpleType);
-					 */
-
-//				} else if (type != null && type.getName() != null) {// && simpleTypes.get(type.getName() + TYPE_SUFFIX) != null) {
-//
-//					// SIMPLE TYPE
-//					/*
-//					 * if ( simpleTypes.get( type.getName() + TYPE_SUFFIX ) == null ) { // create lazy type TypeDefinition jolieLazyType = new
-//					 * TypeInlineDefinition( parsingContext, type.getName() + TYPE_SUFFIX, NativeType.ANY, Constants.RANGE_ONE_TO_ONE ); simpleTypes.put(
-//					 * type.getName() + TYPE_SUFFIX, jolieLazyType ); }
-//					 */
-//
-//					String doc = resolveDocumentationAnnotation(currElementDecl);
-//
-//					boolean extension = false;
-//					List<OptionElement> optionElements = new ArrayList<OptionElement>();
-//					Options options = new Options(Options.FIELD_OPTIONS, optionElements);
-//					int tag = messageType.getNextFieldNum();
-//					Label label = getRange(parentParticle) ? Label.REPEATED : null;
-//					Location location = new Location("", "", 1, 1);
-//
-//					Field field = new Field("", location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, extension);
-//					addField(messageType,field);
-//
-//					// jolieType.addField(currElementDecl.getName(), type.getName(), getRange(parentParticle), null, null, xsdMapping);
-//
-//					/*
-//					 * TypeDefinition jolieSimpleType = new TypeDefinitionLink(parsingContext, currElementDecl.getName(), getRange(parentParticle),
-//					 * simpleTypes.get(type.getName() + TYPE_SUFFIX)); jolieType.putSubType(jolieSimpleType);
-//					 */
 
 				} else {
 
-					// checkDefaultAndFixed(currElementDecl);
 					if (type.isSimpleType()) {
-						// checkForNativeType(type, WARNING_2);
-
-						// String typeName = processSimpleType(type.asSimpleType(), currElementDecl.getName());
 
 						String doc = resolveDocumentationAnnotation(currElementDecl);
 
 						if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
 
 							String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), messageType);
-							// jolieType.addField(currElementDecl.getName(), enumName, false, null, null, xsdMapping);
 
 							boolean extension = false;
-							List<OptionElement> optionElements = new ArrayList<OptionElement>();
-							Options options = new Options(Options.FIELD_OPTIONS, optionElements);
+							Options options = getFieldOptions(parentParticle);
 							int tag = messageType.getNextFieldNum();
 							Label label = getRange(parentParticle) ? Label.REPEATED : null;
 							Location location = getLocation(currElementDecl);
@@ -361,12 +290,10 @@ public class SchemaParser implements ErrorHandler {
 							XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
 							// checkType(restriction.getBaseType());
 							// TODO ENUM
-							// jolieType.putSubType(createSimpleType(restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE));
+
 						} else {
 							//
-							boolean extension = false;
-							List<OptionElement> optionElements = new ArrayList<OptionElement>();
-							Options options = new Options(Options.FIELD_OPTIONS, optionElements);
+							Options options = getFieldOptions(parentParticle);
 							int tag = messageType.getNextFieldNum();
 							Label label = getRange(parentParticle) ? Label.REPEATED : null;
 							Location location = getLocation(currElementDecl);
@@ -377,7 +304,7 @@ public class SchemaParser implements ErrorHandler {
 									configuration.forceProtoPackage);
 
 							Field field = new Field(basicTypes.contains(typeName) ? null : packageName, location, label, currElementDecl.getName(), doc, tag,
-									null, typeName, options, extension, true); // TODO add
+									null, typeName, options, false, true); // TODO add
 							// restriction
 							// as
 							// validation
@@ -400,40 +327,19 @@ public class SchemaParser implements ErrorHandler {
 							XSModelGroup modelGroup = null;
 							modelGroup = getModelGroup(modelGroupDecl, term);
 							if (modelGroup != null) {
-								// ProtobufMessage jolieComplexType = new ProtobufMessage(currElementDecl.getName() + "Type", type.getTargetNamespace());
-								// messages.put(jolieComplexType.getMessageName(), jolieComplexType);
 								MessageType referencedMessageType = processComplexType(complexType, currElementDecl.getName(), schemaSet, null, null);
 
-								/*
-								 * String typeDoc = resolveDocumentationAnnotation(term);
-								 *
-								 * List<OptionElement> messageOptions = new ArrayList<>(); Options options = new Options(Options.MESSAGE_OPTIONS,
-								 * messageOptions); Location location = new Location("", "", 1, 1); List<Field> fields = new ArrayList<>(); List<Field>
-								 * extensions = new ArrayList<>(); List<OneOf> oneofs = new ArrayList<>(); List<Type> nestedTypes = new ArrayList<>();
-								 * List<Extensions> extendsions = new ArrayList<>(); List<Reserved> reserved = new ArrayList<>(); // Add message type to file
-								 * MessageType nestedMessageType = new MessageType(ProtoType.BOOL, location, typeDoc, currElementDecl.getName() + "Type",
-								 * fields, extensions, oneofs, nestedTypes, extendsions, reserved, options); messages.put(nestedMessageType.getName(),
-								 * nestedMessageType);
-								 *
-								 * addType(type.getTargetNamespace(), nestedMessageType);
-								 *
-								 * // TypeInlineDefinition jolieComplexType = createComplexType(complexType, currElementDecl.getName(), particle);
-								 * groupProcessing(modelGroup, particle, nestedMessageType, new HashSet<>()); // jolieType.putSubType(jolieComplexType); //
-								 * jolieType.addField(currElementDecl.getName(), jolieComplexType.getMessageName(), getRange(parentParticle), null, null, //
-								 * xsdMapping);
-								 */
 								String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
-								boolean extension = false;
-								List<OptionElement> optionElements = new ArrayList<OptionElement>();
-								Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
+
+								Options options = getFieldOptions(parentParticle);
 								int tag = messageType.getNextFieldNum();
 								Label label = getRange(parentParticle) ? Label.REPEATED : null;
 								Location fieldLocation = getLocation(currElementDecl);
 
 								Field field = new Field(
 										NamespaceHelper.xmlNamespaceToProtoFieldPackagename(complexType.getTargetNamespace(), configuration.forceProtoPackage),
-										fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), fieldOptions,
-										extension, true);
+										fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), options, false,
+										true);
 								addField(messageType, field, isExtension);
 
 							}
@@ -452,6 +358,136 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 		}
+	}
+
+	@NotNull
+	private Options getFieldOptions(XSParticle parentParticle) {
+		List<OptionElement> optionElements = new ArrayList<OptionElement>();
+		OptionElement validationRule = getValidationRule(parentParticle);
+		if (validationRule != null) {
+			optionElements.add(validationRule);
+		}
+		return new Options(Options.FIELD_OPTIONS, optionElements);
+	}
+
+	private OptionElement getValidationRule(XSParticle parentParticle) {
+
+		if (configuration.includeValidationRules) {
+
+			int minOccurs = 0; // Default
+			int maxOccurs = 1; // Default
+
+			if (parentParticle.getMinOccurs() != null) {
+				minOccurs = parentParticle.getMinOccurs().intValue();
+			}
+
+			if (parentParticle.getMaxOccurs() != null) {
+				maxOccurs = parentParticle.getMaxOccurs().intValue();
+			}
+
+			if (minOccurs == 1 && maxOccurs == 1) {
+				OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false);
+				OptionElement e = new OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
+				return e;
+			}
+		}
+		return null;
+
+	}
+
+	@NotNull
+	private Options getFieldOptions(XSAttributeDecl attributeDecl) {
+		List<OptionElement> optionElements = new ArrayList<OptionElement>();
+
+		// First see if there are rules associated with attribute declaration
+		OptionElement validationRule = getValidationRule(attributeDecl);
+		if (validationRule != null) {
+			optionElements.add(validationRule);
+		} else {
+			// Check attribute TYPE rules
+			OptionElement typeRule = getValidationRule(attributeDecl.getType());
+			if (typeRule != null) {
+				optionElements.add(typeRule);
+			}
+		}
+		return new Options(Options.FIELD_OPTIONS, optionElements);
+	}
+
+	private OptionElement getValidationRule(XSAttributeDecl attributeDecl) {
+		if (configuration.includeValidationRules) {
+		}
+		// TOOD check if optional
+		return null;
+	}
+
+	@NotNull
+	private Options getFieldOptions(XSSimpleType attributeDecl) {
+		List<OptionElement> optionElements = new ArrayList<OptionElement>();
+		OptionElement validationRule = getValidationRule(attributeDecl);
+		if (validationRule != null) {
+			optionElements.add(validationRule);
+		}
+		return new Options(Options.FIELD_OPTIONS, optionElements);
+	}
+
+	private OptionElement getValidationRule(XSSimpleType simpleType) {
+		if (configuration.includeValidationRules) {
+
+			String typeName = simpleType.getName();
+
+			if (typeName != null && basicTypes.contains(typeName)) {
+				return getValidationRuleForBasicType(typeName);
+			} else if (simpleType.isRestriction()) {
+				XSRestrictionSimpleType restriction = simpleType.asRestriction();
+				// XSType baseType = restriction.getBaseType();
+				Collection<? extends XSFacet> declaredFacets = restriction.getDeclaredFacets();
+				String baseType = findFieldType(simpleType);
+				if ("string".equals(baseType)) {
+					Map<String, Object> parameters = new HashMap<>();
+					for (XSFacet facet : declaredFacets) {
+						switch (facet.getName()) {
+						case "pattern":
+							parameters.put("pattern", facet.getValue().value);
+							break;
+						case "minLength":
+							parameters.put("min_len", Integer.parseInt(facet.getValue().value));
+							break;
+						case "maxLength":
+							parameters.put("max_len", Integer.parseInt(facet.getValue().value));
+							break;
+
+						}
+					}
+					OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
+					OptionElement e = new OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
+					return e;
+				}
+
+				// TODO check baseType, add restrictions on it.
+				// TODO check if facets are inherited or not. If inherited then iterate to top primitive to find
+				// base rule, then select supported facets
+				// System.out.println("x");
+			} else {
+				LOGGER.warn("During validation rules extraction; Found anonymous simpleType that is not a restriction", simpleType);
+
+			}
+
+		}
+		/*
+		 * if (minOccurs == 1 && maxOccurs == 1) {
+		 * 
+		 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
+		 * OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
+		 * 
+		 * return e; }
+		 */
+
+		return null;
+
+	}
+
+	private OptionElement getValidationRuleForBasicType(String name) {
+		return defaultValidationRulesForBasicTypes.get(name);
 	}
 
 	private String findFieldType(XSType type) {
@@ -491,12 +527,6 @@ public class SchemaParser implements ErrorHandler {
 		return max > 1 || max == -1;
 	}
 
-	private Set<Object> findElementDeclarations(XSComplexType type, Set<Object> elements) {
-
-		return elements;
-
-	}
-
 	/**
 	 * @param complexType
 	 * @param elementName
@@ -509,11 +539,6 @@ public class SchemaParser implements ErrorHandler {
 		nestlevel++;
 
 		LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "ComplexType " + complexType + ", proto " + messageType);
-
-		/*
-		 * if (messageType == null && complexType.isAbstract()) { LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Abstract ComplexType " + complexType +
-		 * ", ignored"); nestlevel--; return null; // Do not create messages from abstract types }
-		 */
 
 		boolean isBaseLevel = messageType == null;
 
@@ -627,13 +652,6 @@ public class SchemaParser implements ErrorHandler {
 				groupProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, isExtension);
 			}
 
-			/*
-			 * if (particle.getTerm() != null && particle.getTerm().asModelGroup() != null) { processModelGroup(particle.getTerm().asModelGroup(), schemaSet,
-			 * protobufMessage);
-			 *
-			 * } else if (particle.getTerm() != null && particle.getTerm().asModelGroupDecl() != null) {
-			 * processModelGroup(particle.getTerm().asModelGroupDecl().getModelGroup(), schemaSet, protobufMessage); }
-			 */
 		} else if (complexType.getContentType().asSimpleType() != null) {
 			XSSimpleType xsSimpleType = complexType.getContentType().asSimpleType();
 
@@ -645,10 +663,9 @@ public class SchemaParser implements ErrorHandler {
 				if (name == null) {
 					// Add simple field
 					boolean extension = false;
-					List<OptionElement> optionElements = new ArrayList<>();
-					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
+					Options options = getFieldOptions(xsSimpleType);
 					int tag = messageType.getNextFieldNum();
-					// Label label = attr. ? Label.REPEATED : null;
+
 					Location fieldLocation = getLocation(xsSimpleType);
 
 					String simpleTypeName = findFieldType(xsSimpleType);
@@ -657,24 +674,22 @@ public class SchemaParser implements ErrorHandler {
 							configuration.forceProtoPackage);
 
 					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, null, "value",
-							"SimpleContent value of element", tag, null, simpleTypeName, fieldOptions, extension, true);
+							"SimpleContent value of element", tag, null, simpleTypeName, options, extension, true);
 					addField(messageType, field, false);
 
 				} else if (basicTypes.contains(xsSimpleType.getName())) {
 
 					// Add simple field
 					boolean extension = false;
-					List<OptionElement> optionElements = new ArrayList<>();
-					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
+					Options options = getFieldOptions(xsSimpleType);
 					int tag = messageType.getNextFieldNum();
 					// Label label = attr. ? Label.REPEATED : null;
 					Location fieldLocation = getLocation(xsSimpleType);
 
-					Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(),
-							fieldOptions, extension, true);
+					Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(), options,
+							extension, true);
 					addField(messageType, field, false);
-					// protobufMessage.addField(xsSimpleType.getName(), xsSimpleType.getName(), false, null, resolveDocumentationAnnotation(complexType),
-					// xsdMapping);
+
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
 					if (primitiveType != null) {
@@ -692,8 +707,6 @@ public class SchemaParser implements ErrorHandler {
 								fieldOptions, extension, true);
 						addField(messageType, field, false);
 
-						// protobufMessage.addField(primitiveType.getName(), primitiveType.getTargetNamespace(), primitiveType.getName(), false, null,
-						// resolveDocumentationAnnotation(complexType), xsdMapping);
 					}
 				}
 			}
@@ -725,8 +738,6 @@ public class SchemaParser implements ErrorHandler {
 
 	private void processAttributes(XSAttContainer complexType, MessageType messageType, Set<Object> processedXmlObjects) {
 		Iterator<? extends XSAttributeUse> iterator = complexType.iterateDeclaredAttributeUses();
-		// Collection attributes = complexType.getAttributeUses();
-		// Iterator<XSAttributeUse> iterator = attributes.iterator();
 		while (iterator.hasNext()) {
 			XSAttributeUse attr = iterator.next();
 			processAttribute(messageType, processedXmlObjects, attr);
@@ -768,9 +779,7 @@ public class SchemaParser implements ErrorHandler {
 
 				} else {
 
-					boolean extension = false;
-					List<OptionElement> optionElements = new ArrayList<OptionElement>();
-					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
+					Options options = getFieldOptions(decl);
 					int tag = messageType.getNextFieldNum();
 					// Label label = attr. ? Label.REPEATED : null;
 					Location fieldLocation = getLocation(decl);
@@ -781,7 +790,7 @@ public class SchemaParser implements ErrorHandler {
 							configuration.forceProtoPackage);
 
 					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, null, fieldName, doc, tag, null, typeName,
-							fieldOptions, extension, false);
+							options, false, false);
 					addField(messageType, field, false);
 
 				}
@@ -866,49 +875,6 @@ public class SchemaParser implements ErrorHandler {
 
 	private int anonymousCounter = 0;
 
-	/*
-	 * private TypeDefinition loadSimpleType( XSSimpleType simpleType, boolean lazy, TypeDefinition lazyType ) {
-	 *
-	 * if ( simpleType.isRestriction() ) { XSRestrictionSimpleType restriction = simpleType.asRestriction(); checkType( restriction.getBaseType() ); jolietype =
-	 * new TypeInlineDefinition( parsingContext, simpleType.getName().replace("-","_") + TYPE_SUFFIX, XsdUtils.xsdToNativeType(
-	 * restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
-	 *
-	 * } else { log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() ); jolietype = new TypeInlineDefinition( parsingContext,
-	 * simpleType.getName().replace("-","_"), NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
-	 *
-	 * }
-	 *
-	 * return jolietype; }
-	 */
-
-	/*
-	 * private TypeDefinition loadComplexType( XSComplexType complexType, boolean lazy, TypeDefinition lazyType ) throws ConversionException { XSParticle
-	 * particle; XSContentType contentType; contentType = complexType.getContentType();
-	 *
-	 * if ( (particle = contentType.asParticle()) == null ) { return null;//createAnyOrUndefined( complexType.getName(), complexType );
-	 *
-	 * }
-	 *
-	 * TypeInlineDefinition jolieType;
-	 *
-	 * if ( lazy ) { jolieType = (TypeInlineDefinition) lazyType; } else { jolieType = createComplexType( complexType, complexType.getName().replace("-","_") +
-	 * TYPE_SUFFIX, particle ); }
-	 *
-	 * if ( contentType.asSimpleType() != null ) { checkStrictModeForSimpleType( contentType );
-	 *
-	 * } else if ( (particle = contentType.asParticle()) != null ) { XSTerm term = particle.getTerm(); XSModelGroupDecl modelGroupDecl = null; XSModelGroup
-	 * modelGroup = null; modelGroup = getModelGroup( modelGroupDecl, term );
-	 *
-	 *
-	 * if ( modelGroup != null ) { groupProcessing( modelGroup, particle, jolieType ); } } return jolieType;
-	 *
-	 *
-	 * }
-	 */
-
-	/**
-	 * @return
-	 */
 	private String generateAnonymousName() {
 		anonymousCounter++;
 		return String.format("Anonymous%03d", anonymousCounter);
@@ -936,11 +902,6 @@ public class SchemaParser implements ErrorHandler {
 			List<EnumConstant> constants = new ArrayList<EnumConstant>();
 			it = type.getDeclaredFacets().iterator();
 
-			/*
-			 * String enumValuePrefix = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, typeName) + "_"; List<OptionElement> optionElementsUnspecified =
-			 * new ArrayList<>(); constants.add(new EnumConstant(location, enumValuePrefix + "UNSPECIFIED", 0, "Default", new
-			 * Options(Options.ENUM_VALUE_OPTIONS, optionElementsUnspecified)));
-			 */
 			int counter = 1;
 			Set<String> addedValues = new HashSet<>();
 			while (it.hasNext()) {
@@ -949,7 +910,6 @@ public class SchemaParser implements ErrorHandler {
 				String doc = resolveDocumentationAnnotation(next);
 				String enumValue = next.getValue().value;
 
-				/* String enumConstant = enumValuePrefix + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, enumValue); */
 				if (!addedValues.contains(enumValue)) {
 					addedValues.add(enumValue);
 					constants.add(new EnumConstant(location, enumValue, counter++, doc, new Options(Options.ENUM_VALUE_OPTIONS, optionElements)));
@@ -1005,6 +965,138 @@ public class SchemaParser implements ErrorHandler {
 	public void warning(SAXParseException exception) throws SAXException {
 		LOGGER.warn(exception.getMessage() + " at " + exception.getSystemId());
 		exception.printStackTrace();
+	}
+
+	public Set<String> getBasicTypes() {
+
+		Set<String> basicTypes = new HashSet<>();
+		basicTypes.add("string");
+		basicTypes.add("boolean");
+		basicTypes.add("float");
+		basicTypes.add("double");
+		basicTypes.add("decimal");
+		basicTypes.add("duration");
+		basicTypes.add("dateTime");
+		basicTypes.add("time");
+		basicTypes.add("date");
+
+		basicTypes.add("gYearMonth");
+		basicTypes.add("gYear");
+		basicTypes.add("gMonthDay");
+		basicTypes.add("gDay");
+		basicTypes.add("gMonth");
+
+		basicTypes.add("hexBinary");
+		basicTypes.add("base64Binary");
+		basicTypes.add("anyURI");
+		basicTypes.add("QName");
+		basicTypes.add("NOTATION");
+
+		basicTypes.add("normalizedString");
+		basicTypes.add("token");
+		basicTypes.add("language");
+
+		basicTypes.add("IDREFS");
+		basicTypes.add("ENTITIES");
+		basicTypes.add("NMTOKEN");
+		basicTypes.add("NMTOKENS");
+		basicTypes.add("Name");
+		basicTypes.add("NCName");
+		basicTypes.add("ID");
+		basicTypes.add("IDREF");
+		basicTypes.add("ENTITY");
+
+		basicTypes.add("integer");
+		basicTypes.add("nonPositiveInteger");
+		basicTypes.add("negativeInteger");
+		basicTypes.add("long");
+		basicTypes.add("int");
+		basicTypes.add("short");
+		basicTypes.add("byte");
+
+		basicTypes.add("nonNegativeInteger");
+		basicTypes.add("unsignedLong");
+		basicTypes.add("unsignedInt");
+		basicTypes.add("unsignedShort");
+		basicTypes.add("unsignedByte");
+		basicTypes.add("positiveInteger");
+
+		basicTypes.add("anySimpleType");
+		basicTypes.add("anyType");
+
+		return basicTypes;
+
+	}
+
+	public Map<String, OptionElement> getValidationRuleForBasicTypes() {
+
+		Map<String, OptionElement> basicTypes = new HashMap<>();
+
+//        basicTypes.add("string");
+//        basicTypes.add("boolean");
+//        basicTypes.add("float");
+//        basicTypes.add("double");
+//        basicTypes.add("decimal");
+//        basicTypes.add("duration");
+//        basicTypes.add("dateTime");
+//        basicTypes.add("time");
+//        basicTypes.add("date");
+
+		basicTypes.put("gYearMonth", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
+		basicTypes.put("gYear", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}"));
+		basicTypes.put("gMonthDay", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
+		basicTypes.put("gDay", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{2}")); // 1-31
+		basicTypes.put("gMonth", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{2}")); // 1-12
+
+//        basicTypes.add("hexBinary");
+//        basicTypes.add("base64Binary");
+//        basicTypes.add("anyURI");
+//        basicTypes.add("QName");
+//        basicTypes.add("NOTATION");
+//
+//        basicTypes.add("normalizedString");
+//        basicTypes.add("token");
+
+		basicTypes.put("language", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*"));
+
+//        basicTypes.put("IDREFS");
+//        basicTypes.put("ENTITIES");
+//        basicTypes.put("NMTOKEN");
+//        basicTypes.put("NMTOKENS");
+//        basicTypes.put("Name");
+//        basicTypes.put("NCName");
+//        basicTypes.put("ID");
+//        basicTypes.put("IDREF");
+//        basicTypes.put("ENTITY");
+
+//        basicTypes.put("integer");
+
+		basicTypes.put("nonPositiveInteger", createOptionElement("sint32.lte", OptionElement.Kind.NUMBER, 0));
+		basicTypes.put("negativeInteger", createOptionElement("sint32.lt", OptionElement.Kind.NUMBER, 0));
+//        basicTypes.put("long");
+//        basicTypes.put("int");
+//        basicTypes.put("short");
+//        basicTypes.put("byte");
+
+		basicTypes.put("nonNegativeInteger", createOptionElement("uint32.gte", OptionElement.Kind.NUMBER, 0));
+//        basicTypes.put("unsignedLong");
+//        basicTypes.put("unsignedInt");
+//        basicTypes.put("unsignedShort");
+//        basicTypes.put("unsignedByte");
+		basicTypes.put("positiveInteger", createOptionElement("uint32.gt", OptionElement.Kind.NUMBER, 0));
+
+//        basicTypes.put("anySimpleType");
+//        basicTypes.put("anyType");
+
+		return basicTypes;
+
+	}
+
+	private OptionElement createOptionElement(String name, OptionElement.Kind kind, Object value) {
+		OptionElement option = new OptionElement(name, kind, value, false);
+		OptionElement wrapper = new OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
+
+		return wrapper;
 	}
 
 }
