@@ -9,12 +9,12 @@ package no.entur.schema2proto;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -229,13 +229,7 @@ public class SchemaParser implements ErrorHandler {
 		String typeName = xs.getName();
 
 		if (typeName == null) {
-			if (xs.getFacet("enumeration") != null) {
-				typeName = elementName != null ? elementName + GENERATED_NAME_SUFFIX_UNIQUENESS : generateAnonymousName();
-			} else {
-				// can't use elementName here as it might not be unique
-				// (test-range.xsd)
-				typeName = generateAnonymousName();
-			}
+			typeName = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
 		}
 
 		if (xs.isRestriction() && xs.getFacet("enumeration") != null) {
@@ -523,10 +517,10 @@ public class SchemaParser implements ErrorHandler {
 		}
 		/*
 		 * if (minOccurs == 1 && maxOccurs == 1) {
-		 * 
+		 *
 		 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
 		 * OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
-		 * 
+		 *
 		 * return e; }
 		 */
 
@@ -605,7 +599,7 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 			if (typeName == null) {
-				typeName = elementName != null ? elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
+				typeName = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
 			}
 			messageType = (MessageType) getType(nameSpace, typeName);
 
@@ -920,8 +914,6 @@ public class SchemaParser implements ErrorHandler {
 		}
 		return StringUtils.trimToEmpty(b.toString());
 	}
-
-	private int anonymousCounter = 0;
 
 	private String createEnum(String elementName, XSRestrictionSimpleType type, MessageType enclosingType) {
 		Iterator<? extends XSFacet> it;
