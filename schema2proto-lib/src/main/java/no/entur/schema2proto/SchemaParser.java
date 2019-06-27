@@ -61,11 +61,12 @@ import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
 public class SchemaParser implements ErrorHandler {
 
+	public static final String TYPE_SUFFIX = "Type";
+	public static final String GENERATED_NAME_SUFFIX_UNIQUENESS = "GeneratedBySchemaToProto";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
 	private static final String DEFAULT_PROTO_PACKAGE = "default";
-
-	public static final String GENERATED_NAME_SUFFIX_UNIQUENESS = "GeneratedBySchemaToProto";
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
@@ -924,7 +925,11 @@ public class SchemaParser implements ErrorHandler {
 			typeNameToUse = type.getName();
 			enclosingType = null;
 		} else {
-			typeNameToUse = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
+			if (enclosingType != null) {
+				typeNameToUse = elementName + TYPE_SUFFIX;
+			} else {
+				typeNameToUse = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
+			}
 		}
 
 		Type protoType = getType(type.getTargetNamespace(), typeNameToUse);

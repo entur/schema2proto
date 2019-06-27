@@ -71,8 +71,7 @@
         <dependency>
             <groupId>no.entur</groupId>
             <artifactId>schema2proto-wire</artifactId>
-
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.java-diff-utils</groupId>

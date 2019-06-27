@@ -70,7 +70,7 @@ public class ProtoSerializer {
 			throws InvalidXSDException, IOException {
 
 		// Remove
-		replaceGeneratedSuffix(packageToProtoFileMap, generatedTypeNames, generatedTypeNameSuffix, "Type");
+		replaceGeneratedSuffix(packageToProtoFileMap, generatedTypeNames, generatedTypeNameSuffix, SchemaParser.TYPE_SUFFIX);
 
 		// Add options specified in config file
 		addConfigurationSpecifiedOptions(packageToProtoFileMap);
