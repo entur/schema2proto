@@ -66,7 +66,11 @@ public class ProtoSerializer {
 		}
 	}
 
-	public void serialize(Map<String, ProtoFile> packageToProtoFileMap) throws InvalidXSDException, IOException {
+	public void serialize(Map<String, ProtoFile> packageToProtoFileMap, Set<String> generatedTypeNames, String generatedTypeNameSuffix)
+			throws InvalidXSDException, IOException {
+
+		// Remove
+		replaceGeneratedSuffix(packageToProtoFileMap, generatedTypeNames, generatedTypeNameSuffix, "Type");
 
 		// Add options specified in config file
 		addConfigurationSpecifiedOptions(packageToProtoFileMap);
@@ -135,6 +139,42 @@ public class ProtoSerializer {
 
 		// Parse and verify written proto files
 		parseWrittenFiles(writtenProtoFiles);
+
+	}
+
+	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, Set<String> generatedTypeNames, String generatedRandomTypeSuffix,
+			String newTypeSuffix) {
+		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			Set<String> usedNames = findExistingTypeNamesInProtoFile(protoFile.getValue());
+			for (Type type : protoFile.getValue().types()) {
+				if (type instanceof MessageType) {
+					MessageType mt = (MessageType) type;
+
+					String messageName = mt.getName();
+					if (messageName.endsWith(generatedRandomTypeSuffix)) {
+						String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
+						if (!usedNames.contains(newMessageName)) {
+							mt.updateName(newMessageName);
+							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
+						} else {
+							LOGGER.error("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+						}
+					}
+				} else if (type instanceof EnumType) {
+					EnumType et = (EnumType) type;
+					String messageName = et.name();
+					if (messageName.endsWith(generatedRandomTypeSuffix)) {
+						String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
+						if (!usedNames.contains(newMessageName)) {
+							et.updateName(newMessageName);
+							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
+						} else {
+							LOGGER.error("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+						}
+					}
+				}
+			}
+		}
 
 	}
 

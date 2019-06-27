@@ -86,10 +86,12 @@ public class Schema2Proto {
 
 				LOGGER.info("Starting to parse {}", configuration.xsdFile);
 				Map<String, ProtoFile> packageToFiles = xp.parse();
+				Set<String> generatedTypeNames = xp.getGeneratedTypeNames();
+				String generatedNameSuffix = xp.getGeneratedNameSuffix();
 
 				TypeAndNameMapper pbm = new TypeAndNameMapper(configuration);
 				ProtoSerializer serializer = new ProtoSerializer(configuration, pbm);
-				serializer.serialize(packageToFiles);
+				serializer.serialize(packageToFiles, generatedTypeNames, generatedNameSuffix);
 
 				LOGGER.info("Done");
 			} catch (InvalidConfigurationException | ParseException e) {

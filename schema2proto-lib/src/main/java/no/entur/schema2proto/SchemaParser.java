@@ -61,9 +61,11 @@ import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
 public class SchemaParser implements ErrorHandler {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
+
 	private static final String DEFAULT_PROTO_PACKAGE = "default";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
+	public static final String GENERATED_NAME_SUFFIX_UNIQUENESS = "GeneratedBySchemaToProto";
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
@@ -73,11 +75,11 @@ public class SchemaParser implements ErrorHandler {
 	private Set<String> basicTypes;
 	private Map<String, OptionElement> defaultValidationRulesForBasicTypes;
 
+	private Set<String> generatedTypeNames = new HashSet<>();
+
 	private int nestlevel = 0;
 
 	private Schema2ProtoConfiguration configuration;
-	private String typeName;
-	private String name;
 
 	private void init() {
 		simpleTypes = new HashMap<String, String>();
@@ -113,9 +115,32 @@ public class SchemaParser implements ErrorHandler {
 
 	}
 
+	public Set<String> getGeneratedTypeNames() {
+		return generatedTypeNames;
+	}
+
+	public String getGeneratedNameSuffix() {
+		return GENERATED_NAME_SUFFIX_UNIQUENESS;
+	}
+
 	private void addType(String namespace, Type type) {
 		ProtoFile file = getProtoFileForNamespace(namespace);
 		file.types().add(type);
+
+		// Type auto generated collision avoidance
+		String typeName = null;
+
+		if (type instanceof MessageType) {
+			MessageType mt = (MessageType) type;
+			typeName = mt.getName();
+		} else if (type instanceof EnumType) {
+			typeName = ((EnumType) type).name();
+		}
+
+		if (typeName.endsWith(GENERATED_NAME_SUFFIX_UNIQUENESS)) {
+			generatedTypeNames.add(typeName);
+		}
+
 	}
 
 	private ProtoFile getProtoFileForNamespace(String namespace) {
@@ -205,7 +230,7 @@ public class SchemaParser implements ErrorHandler {
 
 		if (typeName == null) {
 			if (xs.getFacet("enumeration") != null) {
-				typeName = elementName != null ? elementName + "Type" : generateAnonymousName();
+				typeName = elementName != null ? elementName + GENERATED_NAME_SUFFIX_UNIQUENESS : generateAnonymousName();
 			} else {
 				// can't use elementName here as it might not be unique
 				// (test-range.xsd)
@@ -580,7 +605,7 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 			if (typeName == null) {
-				typeName = elementName != null ? elementName + "Type" : generateAnonymousName();
+				typeName = elementName != null ? elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
 			}
 			messageType = (MessageType) getType(nameSpace, typeName);
 
@@ -898,11 +923,6 @@ public class SchemaParser implements ErrorHandler {
 
 	private int anonymousCounter = 0;
 
-	private String generateAnonymousName() {
-		anonymousCounter++;
-		return String.format("Anonymous%03d", anonymousCounter);
-	}
-
 	private String createEnum(String elementName, XSRestrictionSimpleType type, MessageType enclosingType) {
 		Iterator<? extends XSFacet> it;
 
@@ -912,7 +932,7 @@ public class SchemaParser implements ErrorHandler {
 			typeNameToUse = type.getName();
 			enclosingType = null;
 		} else {
-			typeNameToUse = elementName + "Type";
+			typeNameToUse = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
 		}
 
 		Type protoType = getType(type.getTargetNamespace(), typeNameToUse);
