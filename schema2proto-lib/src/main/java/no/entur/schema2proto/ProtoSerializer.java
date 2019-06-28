@@ -100,6 +100,9 @@ public class ProtoSerializer {
 		// Combine field.packageName and field.Typename to field.packageName.typeName
 		moveFieldPackageNameToFieldTypeName(packageToProtoFileMap);
 
+		// Add leading '.' to field.elementType if applicable
+		addLeadingPeriodToElementType(packageToProtoFileMap);
+
 		// Adjust to naming standard
 		underscoreFieldNames(packageToProtoFileMap);
 
@@ -439,6 +442,38 @@ public class ProtoSerializer {
 						if (fieldPackageName != null) {
 							field.clearPackageName();
 							field.updateElementType(fieldPackageName + "." + field.getElementType());
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	 * Adds leading '.' to field.elementType when needed. Ref.: https://developers.google.com/protocol-buffers/docs/proto3#packages-and-name-resolution
+	 */
+	private void addLeadingPeriodToElementType(Map<String, ProtoFile> packageToProtoFileMap) {
+		for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
+
+			ProtoFile file = entry.getValue();
+			for (Type type : file.types()) {
+				if (type instanceof MessageType) {
+					MessageType mt = (MessageType) type;
+					for (Field field : mt.fields()) {
+
+						String fieldElementType = StringUtils.trimToNull(field.getElementType());
+						if (fieldElementType != null) {
+							if (fieldElementType.contains(".")) {
+								for (String pkg : packageToProtoFileMap.keySet()) {
+									if (!fieldElementType.equals(pkg)) {
+										String rootFieldElementType = fieldElementType.split("\\.")[0];
+										if (pkg.contains("." + rootFieldElementType + ".")) {
+											// elementType should only be prepended when root-package of elementType matches a non-root package
+											field.updateElementType("." + fieldElementType);
+										}
+									}
+								}
+							}
 						}
 					}
 				}
