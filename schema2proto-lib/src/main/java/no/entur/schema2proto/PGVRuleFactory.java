@@ -151,7 +151,11 @@ public class PGVRuleFactory {
 
 	private List<OptionElement> getValidationRuleForBasicType(String name) {
 		List<OptionElement> validationRules = new ArrayList<>();
-		validationRules.add(defaultValidationRulesForBasicTypes.get(name));
+		OptionElement validationRule = defaultValidationRulesForBasicTypes.get(name);
+		if (validationRule != null) {
+			validationRules.add(validationRule);
+
+		}
 		return validationRules;
 	}
 
