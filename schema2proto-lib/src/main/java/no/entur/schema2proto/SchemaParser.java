@@ -68,7 +68,6 @@ public class SchemaParser implements ErrorHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
 	private static final String DEFAULT_PROTO_PACKAGE = "default";
-	public static final String VALIDATE_RULES_NAME = "validate.rules";
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
@@ -76,13 +75,14 @@ public class SchemaParser implements ErrorHandler {
 	private Map<String, String> documentation;
 	private Map<MessageType, Set<Object>> elementDeclarationsPerMessageType = new HashMap<>();
 	private Set<String> basicTypes;
-	private Map<String, OptionElement> defaultValidationRulesForBasicTypes;
 
 	private Set<String> generatedTypeNames = new HashSet<>();
 
 	private int nestlevel = 0;
 
 	private Schema2ProtoConfiguration configuration;
+
+	private PGVRuleFactory ruleFactory;
 
 	private void init() {
 		simpleTypes = new HashMap<String, String>();
@@ -91,8 +91,7 @@ public class SchemaParser implements ErrorHandler {
 		basicTypes = new TreeSet<String>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
 
-		defaultValidationRulesForBasicTypes = new HashMap<>();
-		defaultValidationRulesForBasicTypes.putAll(getValidationRuleForBasicTypes());
+		ruleFactory = new PGVRuleFactory(configuration, this);
 
 	}
 
@@ -393,39 +392,8 @@ public class SchemaParser implements ErrorHandler {
 
 	@NotNull
 	private Options getFieldOptions(XSParticle parentParticle) {
-		List<OptionElement> optionElements = new ArrayList<OptionElement>();
-		OptionElement validationRule = getValidationRule(parentParticle);
-		if (validationRule != null) {
-			optionElements.add(validationRule);
-		}
+		List<OptionElement> optionElements = new ArrayList<OptionElement>(ruleFactory.getValidationRule(parentParticle));
 		return new Options(Options.FIELD_OPTIONS, optionElements);
-	}
-
-	private OptionElement getValidationRule(XSParticle parentParticle) {
-
-		if (configuration.includeValidationRules) {
-
-			int minOccurs = 0; // Default
-			int maxOccurs = 1; // Default
-
-			if (parentParticle.getMinOccurs() != null) {
-				minOccurs = parentParticle.getMinOccurs().intValue();
-			}
-
-			if (parentParticle.getMaxOccurs() != null) {
-				maxOccurs = parentParticle.getMaxOccurs().intValue();
-			}
-
-			if (minOccurs == 1 && maxOccurs == 1) {
-
-				/*
-				 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
-				 * OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true); return e;
-				 */
-			}
-		}
-		return null;
-
 	}
 
 	@NotNull
@@ -433,97 +401,24 @@ public class SchemaParser implements ErrorHandler {
 		List<OptionElement> optionElements = new ArrayList<OptionElement>();
 
 		// First see if there are rules associated with attribute declaration
-		OptionElement validationRule = getValidationRule(attributeDecl);
-		if (validationRule != null) {
-			optionElements.add(validationRule);
+		List<OptionElement> validationRule = ruleFactory.getValidationRule(attributeDecl);
+		if (validationRule.size() > 0) {
+			optionElements.addAll(validationRule);
 		} else {
 			// Check attribute TYPE rules
-			OptionElement typeRule = getValidationRule(attributeDecl.getType());
-			if (typeRule != null) {
-				optionElements.add(typeRule);
-			}
+			List<OptionElement> typeRule = ruleFactory.getValidationRule(attributeDecl.getType());
+			optionElements.addAll(typeRule);
 		}
 		return new Options(Options.FIELD_OPTIONS, optionElements);
-	}
-
-	private OptionElement getValidationRule(XSAttributeDecl attributeDecl) {
-		if (configuration.includeValidationRules) {
-		}
-		// TOOD check if optional
-		return null;
 	}
 
 	@NotNull
 	private Options getFieldOptions(XSSimpleType attributeDecl) {
-		List<OptionElement> optionElements = new ArrayList<OptionElement>();
-		OptionElement validationRule = getValidationRule(attributeDecl);
-		if (validationRule != null) {
-			optionElements.add(validationRule);
-		}
+		List<OptionElement> optionElements = new ArrayList<OptionElement>(ruleFactory.getValidationRule(attributeDecl));
 		return new Options(Options.FIELD_OPTIONS, optionElements);
 	}
 
-	private OptionElement getValidationRule(XSSimpleType simpleType) {
-		if (configuration.includeValidationRules) {
-
-			String typeName = simpleType.getName();
-
-			if (typeName != null && basicTypes.contains(typeName)) {
-				return getValidationRuleForBasicType(typeName);
-			} else if (simpleType.isRestriction()) {
-				XSRestrictionSimpleType restriction = simpleType.asRestriction();
-				// XSType baseType = restriction.getBaseType();
-				Collection<? extends XSFacet> declaredFacets = restriction.getDeclaredFacets();
-				String baseType = findFieldType(simpleType);
-				if ("string".equals(baseType)) {
-					Map<String, Object> parameters = new HashMap<>();
-					for (XSFacet facet : declaredFacets) {
-						switch (facet.getName()) {
-						case "pattern":
-							parameters.put("pattern", facet.getValue().value);
-							break;
-						case "minLength":
-							parameters.put("min_len", Integer.parseInt(facet.getValue().value));
-							break;
-						case "maxLength":
-							parameters.put("max_len", Integer.parseInt(facet.getValue().value));
-							break;
-
-						}
-					}
-					OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
-					OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
-					return e;
-				}
-
-				// TODO check baseType, add restrictions on it.
-				// TODO check if facets are inherited or not. If inherited then iterate to top primitive to find
-				// base rule, then select supported facets
-				// System.out.println("x");
-			} else {
-				LOGGER.warn("During validation rules extraction; Found anonymous simpleType that is not a restriction", simpleType);
-
-			}
-
-		}
-		/*
-		 * if (minOccurs == 1 && maxOccurs == 1) {
-		 *
-		 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
-		 * OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
-		 *
-		 * return e; }
-		 */
-
-		return null;
-
-	}
-
-	private OptionElement getValidationRuleForBasicType(String name) {
-		return defaultValidationRulesForBasicTypes.get(name);
-	}
-
-	private String findFieldType(XSType type) {
+	public String findFieldType(XSType type) {
 		String typeName = type.getName();
 		if (typeName == null) {
 
@@ -995,77 +890,6 @@ public class SchemaParser implements ErrorHandler {
 	public void warning(SAXParseException exception) throws SAXException {
 		LOGGER.warn(exception.getMessage() + " at " + exception.getSystemId());
 		exception.printStackTrace();
-	}
-
-	public Map<String, OptionElement> getValidationRuleForBasicTypes() {
-
-		Map<String, OptionElement> basicTypes = new HashMap<>();
-
-//        basicTypes.add("string");
-//        basicTypes.add("boolean");
-//        basicTypes.add("float");
-//        basicTypes.add("double");
-//        basicTypes.add("decimal");
-//        basicTypes.add("duration");
-//        basicTypes.add("dateTime");
-//        basicTypes.add("time");
-//        basicTypes.add("date");
-
-		basicTypes.put("gYearMonth", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
-		basicTypes.put("gYear", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}"));
-		basicTypes.put("gMonthDay", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
-		basicTypes.put("gDay", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{2}")); // 1-31
-		basicTypes.put("gMonth", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{2}")); // 1-12
-
-//        basicTypes.add("hexBinary");
-//        basicTypes.add("base64Binary");
-//        basicTypes.add("anyURI");
-//        basicTypes.add("QName");
-//        basicTypes.add("NOTATION");
-//
-//        basicTypes.add("normalizedString");
-//        basicTypes.add("token");
-
-		basicTypes.put("language", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*"));
-
-//        basicTypes.put("IDREFS");
-//        basicTypes.put("ENTITIES");
-//        basicTypes.put("NMTOKEN");
-//        basicTypes.put("NMTOKENS");
-//        basicTypes.put("Name");
-//        basicTypes.put("NCName");
-//        basicTypes.put("ID");
-//        basicTypes.put("IDREF");
-//        basicTypes.put("ENTITY");
-
-//        basicTypes.put("integer");
-
-		basicTypes.put("nonPositiveInteger", createOptionElement("sint32.lte", OptionElement.Kind.NUMBER, 0));
-		basicTypes.put("negativeInteger", createOptionElement("sint32.lt", OptionElement.Kind.NUMBER, 0));
-//        basicTypes.put("long");
-//        basicTypes.put("int");
-//        basicTypes.put("short");
-//        basicTypes.put("byte");
-
-		basicTypes.put("nonNegativeInteger", createOptionElement("uint32.gte", OptionElement.Kind.NUMBER, 0));
-//        basicTypes.put("unsignedLong");
-//        basicTypes.put("unsignedInt");
-//        basicTypes.put("unsignedShort");
-//        basicTypes.put("unsignedByte");
-		basicTypes.put("positiveInteger", createOptionElement("uint32.gt", OptionElement.Kind.NUMBER, 0));
-
-//        basicTypes.put("anySimpleType");
-//        basicTypes.put("anyType");
-
-		return basicTypes;
-
-	}
-
-	private OptionElement createOptionElement(String name, OptionElement.Kind kind, Object value) {
-		OptionElement option = new OptionElement(name, kind, value, false);
-		OptionElement wrapper = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
-
-		return wrapper;
 	}
 
 }
