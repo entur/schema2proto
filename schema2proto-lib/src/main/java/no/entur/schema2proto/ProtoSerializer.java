@@ -125,7 +125,7 @@ public class ProtoSerializer {
 				ProtoFile protoFile = packageToProtoFileMap.entrySet().iterator().next().getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
 
-				File outputFile = new File(destFolder, configuration.outputFilename);
+				File outputFile = new File(destFolder, configuration.outputFilename.toLowerCase());
 				Writer writer = new FileWriter(outputFile);
 				writer.write(protoFile.toSchema());
 				writer.close();
@@ -137,7 +137,7 @@ public class ProtoSerializer {
 			for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
 				ProtoFile protoFile = entry.getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
-				File outputFile = new File(destFolder, protoFile.location().getPath());
+				File outputFile = new File(destFolder, protoFile.location().getPath().toLowerCase());
 				Writer writer = new FileWriter(outputFile);
 				writer.write(protoFile.toSchema());
 				writer.close();

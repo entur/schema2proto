@@ -43,35 +43,36 @@ public class NamespaceHelper {
 	private static Map<String, String> namespaceToPackageNames = new HashMap<>();
 
 	public static String xmlNamespaceToProtoPackage(String namespace, String forceProtoPackage) {
+
+		String packageName = null;
 		if (forceProtoPackage != null) {
-			return forceProtoPackage;
-		}
-
-		if (StringUtils.trimToNull(namespace) == null) {
-			return null;
-		}
-
-		String packageName = namespaceToPackageNames.get(namespace);
-		if (packageName == null) {
-			try {
-				packageName = convertAsUrl(namespace);
-			} catch (MalformedURLException e) {
-				LOGGER.warn("Unable to create decent package name from XML defaultProtoPackage " + namespace, e);
-				if (namespace.contains("://")) {
-					namespace = namespace.substring(namespace.indexOf("://") + 3);
+			packageName = forceProtoPackage.toLowerCase();
+		} else if (StringUtils.trimToNull(namespace) == null) {
+			packageName = null; // redundant;
+		} else {
+			packageName = namespaceToPackageNames.get(namespace);
+			if (packageName == null) {
+				try {
+					packageName = convertAsUrl(namespace);
+				} catch (MalformedURLException e) {
+					LOGGER.warn("Unable to create decent package name from XML defaultProtoPackage " + namespace, e);
+					if (namespace.contains("://")) {
+						namespace = namespace.substring(namespace.indexOf("://") + 3);
+					}
+					namespace = namespace.replaceAll("/", ".").replace("-", ".");
+					if (namespace.startsWith("."))
+						namespace = namespace.substring(1);
+					if (namespace.endsWith("."))
+						namespace = namespace.substring(0, namespace.length() - 1);
+					packageName = namespace;
 				}
-				namespace = namespace.replaceAll("/", ".").replace("-", ".");
-				if (namespace.startsWith("."))
-					namespace = namespace.substring(1);
-				if (namespace.endsWith("."))
-					namespace = namespace.substring(0, namespace.length() - 1);
-				packageName = namespace;
+
+				packageName = StringUtils.trimToNull(packageName).toLowerCase();
+
+				namespaceToPackageNames.put(namespace, packageName);
 			}
-
-			packageName = StringUtils.trimToNull(packageName);
-
-			namespaceToPackageNames.put(namespace, packageName);
 		}
+
 		return packageName;
 	}
 
@@ -111,13 +112,21 @@ public class NamespaceHelper {
 	}
 
 	public static String xmlNamespaceToProtoFieldPackagename(String namespace, String forceProtoPackage) {
+		String packageName = null;
+
 		if (XML_SCHEMA_NAMESPACE.equals(namespace)) {
-			return null;
+			packageName = null; // redundant
 		} else if (forceProtoPackage != null) {
-			return forceProtoPackage;
+			packageName = forceProtoPackage;
 		} else {
-			return xmlNamespaceToProtoPackage(namespace, forceProtoPackage);
+			packageName = xmlNamespaceToProtoPackage(namespace, forceProtoPackage);
 		}
+
+		if (packageName != null) {
+			packageName = StringUtils.lowerCase(packageName);
+		}
+
+		return packageName;
 
 	}
 }
