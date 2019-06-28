@@ -49,7 +49,7 @@ public class ProtoSerializer {
 	public static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
 	private Schema2ProtoConfiguration configuration;
 
-	private TypeAndNameMapper typeAndNameMapper;
+	private TypeAndNameMapper typeAndFieldNameMapper;
 
 	private Set<String> basicTypes = new HashSet<>();
 
@@ -57,7 +57,7 @@ public class ProtoSerializer {
 
 	public ProtoSerializer(Schema2ProtoConfiguration configuration, TypeAndNameMapper marshaller) throws InvalidConfigurationException {
 		this.configuration = configuration;
-		this.typeAndNameMapper = marshaller;
+		this.typeAndFieldNameMapper = marshaller;
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
 
 		if (configuration.outputDirectory != null) {
@@ -149,10 +149,8 @@ public class ProtoSerializer {
 			}
 		}
 
-		if (!configuration.skipLinking) {
-			// Parse and verify written proto files
-			parseWrittenFiles(writtenProtoFiles);
-		}
+		// Parse and verify written proto files
+		parseWrittenFiles(writtenProtoFiles);
 
 	}
 
@@ -194,6 +192,7 @@ public class ProtoSerializer {
 					String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
 					if (!usedNames.contains(newMessageName)) {
 						mt.updateName(newMessageName);
+						usedNames.add(newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
 						LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
@@ -206,6 +205,7 @@ public class ProtoSerializer {
 					String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
 					if (!usedNames.contains(newMessageName)) {
 						et.updateName(newMessageName);
+						usedNames.add(newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
 						LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
@@ -236,6 +236,7 @@ public class ProtoSerializer {
 					String newMessageName = StringUtils.capitalize(messageName);
 					if (!usedNames.contains(newMessageName)) {
 						mt.updateName(newMessageName);
+						usedNames.add(newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
 						LOGGER.warn("Cannot uppercase message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
@@ -248,6 +249,7 @@ public class ProtoSerializer {
 					String newMessageName = StringUtils.capitalize(messageName);
 					if (!usedNames.contains(newMessageName)) {
 						et.updateName(newMessageName);
+						usedNames.add(newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
 						LOGGER.warn("Cannot uppercase enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
@@ -313,9 +315,10 @@ public class ProtoSerializer {
 
 			if (configuration.includeValidationRules) {
 				try {
-					URL validationProtoURL = ClassLoader.getSystemResource("proto");
-					if (validationProtoURL != null) {
-						schemaLoader.addSource(Paths.get(((URL) validationProtoURL).toURI()));
+					URL validationProtoFolderURL = ClassLoader.getSystemResource("proto");
+					if (validationProtoFolderURL != null) {
+						schemaLoader.addSource(Paths.get((validationProtoFolderURL).toURI()));
+						schemaLoader.addProto("validate/validate.proto");
 					} else {
 
 						LOGGER.info(
@@ -488,47 +491,53 @@ public class ProtoSerializer {
 	}
 
 	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap, List<Type> types, String packageName) {
-		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
-		for (Type type : types) {
-			if (type instanceof MessageType) {
-				MessageType mt = (MessageType) type;
+		if (types.size() > 0) {
+			Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
+			for (Type type : types) {
+				if (type instanceof MessageType) {
+					MessageType mt = (MessageType) type;
 
-				translateTypes(packageToProtoFileMap, type.nestedTypes(), packageName);
+					translateTypes(packageToProtoFileMap, type.nestedTypes(), packageName);
 
-				String messageName = mt.getName();
-				String newMessageName = typeAndNameMapper.translateType(messageName);
+					String messageName = mt.getName();
+					String newMessageName = typeAndFieldNameMapper.translateType(messageName);
+					if (newMessageName.contains("_"))
+						LOGGER.info(messageName + "  <--->  " + newMessageName);
 
-				if (!messageName.equals(newMessageName)) {
-					if (!usedNames.contains(newMessageName)) {
-						mt.updateName(newMessageName);
-						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
-					} else {
-						LOGGER.error("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
-					}
-
-				}
-				for (Field field : mt.fields()) {
-					// Translate basic types as well
-					if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
-						String newFieldType = typeAndNameMapper.translateType(field.getElementType());
-						if (!newFieldType.equals(field.getElementType())) {
-							LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
-							field.updateElementType(newFieldType);
+					if (!messageName.equals(newMessageName)) {
+						if (!usedNames.contains(newMessageName)) {
+							mt.updateName(newMessageName);
+							usedNames.add(newMessageName);
+							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+						} else {
+							LOGGER.error("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 						}
+
 					}
+					for (Field field : mt.fields()) {
+						// Translate basic types as well
+						if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
+							String newFieldType = typeAndFieldNameMapper.translateType(field.getElementType());
+							if (!newFieldType.equals(field.getElementType())) {
+								LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
+								field.updateElementType(newFieldType);
+							}
+						}
 
-				}
-			} else if (type instanceof EnumType) {
-				EnumType et = (EnumType) type;
-				String messageName = et.name();
-				String newMessageName = typeAndNameMapper.translateType(messageName);
+					}
+				} else if (type instanceof EnumType) {
+					EnumType et = (EnumType) type;
+					String messageName = et.name();
+					String newMessageName = typeAndFieldNameMapper.translateType(messageName);
 
-				if (!messageName.equals(newMessageName)) {
-					if (!usedNames.contains(newMessageName)) {
-						et.updateName(newMessageName);
-						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
-					} else {
-						LOGGER.error("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+					if (!messageName.equals(newMessageName)) {
+						if (!usedNames.contains(newMessageName)) {
+							et.updateName(newMessageName);
+							usedNames.add(newMessageName);
+							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+						} else {
+							LOGGER.error("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+						}
 					}
 				}
 			}
@@ -594,7 +603,7 @@ public class ProtoSerializer {
 					MessageType mt = (MessageType) type;
 					for (Field field : mt.fields()) {
 						String fieldName = field.name();
-						String newFieldName = typeAndNameMapper.translateName(fieldName);
+						String newFieldName = typeAndFieldNameMapper.translateFieldName(fieldName);
 						field.updateName(newFieldName);
 					}
 				}
@@ -655,7 +664,7 @@ public class ProtoSerializer {
 					MessageType mt = (MessageType) type;
 					for (Field field : mt.fields()) {
 						String fieldName = field.name();
-						String newFieldName = typeAndNameMapper.escapeFieldName(fieldName);
+						String newFieldName = typeAndFieldNameMapper.escapeFieldName(fieldName);
 						field.updateName(newFieldName);
 					}
 				}

@@ -24,10 +24,7 @@ package no.entur.schema2proto;
  */
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class Schema2ProtoConfiguration {
@@ -38,8 +35,8 @@ public class Schema2ProtoConfiguration {
 	public String forceProtoPackage = null;
 	public boolean inheritanceToComposition = false;
 	// public boolean splitBySchema = false;
-	public Map<Pattern, String> customTypeMappings = new HashMap<>();;
-	public Map<Pattern, String> customNameMappings = new HashMap<>();;
+	public Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();;
+	public Map<Pattern, String> customNameMappings = new LinkedHashMap<>();;
 	public List<String> customImports = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
 	public Map<String, Object> options = new HashMap<>();
@@ -49,5 +46,4 @@ public class Schema2ProtoConfiguration {
 	public boolean includeFieldDocs = true;
 	public boolean includeSourceLocationInDoc = false;
 	public boolean includeValidationRules = false;
-	public boolean skipLinking = false;
 }

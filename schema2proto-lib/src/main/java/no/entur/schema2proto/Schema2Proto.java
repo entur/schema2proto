@@ -271,7 +271,7 @@ public class Schema2Proto {
 
 			configuration.outputFilename = config.outputFilename;
 
-			HashMap<Pattern, String> customTypeMappings = new LinkedHashMap<>();
+			Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();
 			if (config.customTypeMappings != null) {
 				for (Entry<String, String> kv : config.customTypeMappings.entrySet()) {
 					Pattern p = Pattern.compile(kv.getKey());
@@ -279,7 +279,7 @@ public class Schema2Proto {
 				}
 			}
 
-			HashMap<Pattern, String> customNameMappings = new LinkedHashMap<>();
+			Map<Pattern, String> customNameMappings = new LinkedHashMap<>();
 			if (config.customNameMappings != null) {
 				for (Entry<String, String> kv : config.customNameMappings.entrySet()) {
 					Pattern p = Pattern.compile(kv.getKey());

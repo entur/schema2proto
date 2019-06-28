@@ -23,16 +23,13 @@ package no.entur.schema2proto;
  * #L%
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TypeAndNameMapper {
-	private Map<Pattern, String> typeMappings = new HashMap<>();
-	private Map<Pattern, String> nameMappings = new HashMap<>();
+	private Map<Pattern, String> typeMappings = new LinkedHashMap<>();
+	private Map<Pattern, String> nameMappings = new LinkedHashMap<>();
 	private Set<String> reservedJavaKeywords = new HashSet<>();
 
 	public TypeAndNameMapper(Schema2ProtoConfiguration configuration) {
@@ -127,25 +124,25 @@ public class TypeAndNameMapper {
 	}
 
 	public String translateType(String type) {
-		for (Pattern p : typeMappings.keySet()) {
-			Matcher m = p.matcher(type);
-			if (m.find()) {
-				type = m.replaceAll(typeMappings.get(p));
+
+		for (Map.Entry<Pattern, String> p : typeMappings.entrySet()) {
+			Matcher m = p.getKey().matcher(type);
+			if (m.matches()) {
+				type = m.replaceAll(p.getValue());
 				break;
 			}
 		}
 
-		if (type.contains("-")) {
-			type = type.replaceAll("-", "_");
-		}
+		type = type.replaceAll("-", "");
 
 		return type;
+
 	}
 
-	public String translateName(String name) {
+	public String translateFieldName(String name) {
 		for (Pattern p : nameMappings.keySet()) {
 			Matcher m = p.matcher(name);
-			if (m.find()) {
+			if (m.matches()) {
 				return m.replaceAll(nameMappings.get(p));
 			}
 		}
@@ -155,7 +152,7 @@ public class TypeAndNameMapper {
 
 	public String escapeFieldName(String fieldName) {
 		if (reservedJavaKeywords.contains(fieldName)) {
-			return "_" + fieldName;
+			return fieldName + "_field";
 		} else {
 			return fieldName;
 		}
