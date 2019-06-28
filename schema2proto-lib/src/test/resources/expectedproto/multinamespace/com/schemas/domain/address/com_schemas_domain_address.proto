@@ -2,15 +2,15 @@
 syntax = "proto3";
 package com.schemas.domain.address;
 
-import "com_schemas_domain_common.proto";
+import "com/schemas/domain/common/com_schemas_domain_common.proto";
 
-message addressType {
+message AddressType {
   // Any lines of the address that are not city, postal code or country. For example region, street name and building name/number.
-  addressLinesType address_lines = 1;
+  AddressLinesType address_lines = 1;
   string city = 2;
   string post_code = 3;
-  com.schemas.domain.common.country country = 4;
+  com.schemas.domain.common.Country country = 4;
 }
-message addressLinesType {
+message AddressLinesType {
   repeated string line = 1;
 }

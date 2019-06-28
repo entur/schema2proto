@@ -10,7 +10,36 @@
             <xsd:element ref="ResponseTimestamp" minOccurs="0"/>
 
         </xsd:sequence>
+
     </xsd:complexType>
+
+    <xsd:simpleType name="PopulatedStringType">
+        <xsd:restriction base="xsd:string">
+            <xsd:minLength value="1"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="PopulatedPlaceNameType">
+        <xsd:restriction base="PopulatedStringType">
+            <xsd:pattern value="[^,\[\]\{\}\?$%\^=@#;:]+"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="NaturalLanguagePlaceNameStructure">
+        <xsd:simpleContent>
+            <xsd:extension base="PopulatedPlaceNameType">
+                <xsd:attribute ref="lang" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:attribute name="lang">
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:language">
+                <xsd:enumeration value="A"/>
+                <xsd:enumeration value="B"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:attribute>
+
 
 
     <xsd:element name="ResponseTimestamp" type="xsd:dateTime">

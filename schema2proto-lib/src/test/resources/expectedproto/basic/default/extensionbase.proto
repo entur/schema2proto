@@ -2,13 +2,14 @@
 syntax = "proto3";
 package default;
 
-message abstractTopLevelComplexType {
+message AbstractTopLevelComplexType {
   string abstract_top_level_complex_type_attribute = 1;
   string element_in_abstract_complex_type = 2;
 }
 // concreteTopLevelComplexType doc
-message concreteTopLevelComplexType {
-  abstractTopLevelComplexType abstract_top_level_complex_type = 1;
+message ConcreteTopLevelComplexType {
+  string abstract_top_level_complex_type_attribute = 1;
+  string element_in_abstract_complex_type = 2;
   string concrete_top_level_complex_type_attribute = 11;
   string element_in_concrete_complex_type = 21;
 }

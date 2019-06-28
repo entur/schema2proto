@@ -50,17 +50,21 @@ public class GenerateProtoMojo extends AbstractMojo {
 
 	public void execute() throws MojoExecutionException {
 
-		if (configFile == null || !configFile.exists()) {
-			throw new MojoExecutionException("Config file not found");
+		try {
+			if (configFile == null || !configFile.exists()) {
+				throw new MojoExecutionException("Config file not found");
+			}
+
+			if (xsdFile == null || !xsdFile.exists()) {
+				throw new MojoExecutionException("XSD file not found");
+			}
+
+			getLog().info(String.format("Generating proto files from %s using config file %s. Output is defined in config file", xsdFile, configFile));
+
+			Schema2Proto.main(new String[] { "--configFile=" + configFile, "" + xsdFile });
+		} catch (MojoExecutionException e) {
+			throw new MojoExecutionException("Error generating proto files", e);
 		}
-
-		if (xsdFile == null || !xsdFile.exists()) {
-			throw new MojoExecutionException("XSD file not found");
-		}
-
-		getLog().info(String.format("Generating proto files from %s using config file %s. Output is defined in config file", xsdFile, configFile));
-
-		Schema2Proto.main(new String[] { "--configFile=" + configFile, "" + xsdFile });
 
 	}
 }

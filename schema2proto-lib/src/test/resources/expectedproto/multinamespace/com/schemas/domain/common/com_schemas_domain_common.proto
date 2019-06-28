@@ -3,7 +3,14 @@ syntax = "proto3";
 package com.schemas.domain.common;
 
 // A country. ISO3 code is the unique identifier.
-message country {
+message Country {
   string iso3 = 1;
   string description = 2;
+}
+
+enum LangType {
+  // Default
+  LANG_TYPE_UNSPECIFIED = 0;
+  LANG_TYPE_A = 1;
+  LANG_TYPE_B = 2;
 }

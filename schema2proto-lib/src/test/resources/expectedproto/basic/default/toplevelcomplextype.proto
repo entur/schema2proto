@@ -3,7 +3,7 @@ syntax = "proto3";
 package default;
 
 // topLevelComplexType doc
-message topLevelComplexType {
+message TopLevelComplexType {
   // topLevelComplexTypeAttribute doc
   string top_level_complex_type_attribute = 1;
   string another_top_level_complex_type_attribute = 2;

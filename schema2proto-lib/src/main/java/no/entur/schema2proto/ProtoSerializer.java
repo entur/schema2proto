@@ -28,11 +28,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,11 +68,13 @@ public class ProtoSerializer {
 		}
 	}
 
-	public void serialize(Map<String, ProtoFile> packageToProtoFileMap, Set<String> generatedTypeNames, String generatedTypeNameSuffix)
-			throws InvalidXSDException, IOException {
+	public void serialize(Map<String, ProtoFile> packageToProtoFileMap) throws InvalidXSDException, IOException {
 
-		// Remove
-		replaceGeneratedSuffix(packageToProtoFileMap, generatedTypeNames, generatedTypeNameSuffix, SchemaParser.TYPE_SUFFIX);
+		// Remove temporary generated name suffix
+		replaceGeneratedSuffix(packageToProtoFileMap, SchemaParser.GENERATED_NAME_SUFFIX_UNIQUENESS, SchemaParser.TYPE_SUFFIX);
+
+		// Uppercase message names
+		uppercaseMessageNames(packageToProtoFileMap);
 
 		// Add options specified in config file
 		addConfigurationSpecifiedOptions(packageToProtoFileMap);
@@ -118,9 +122,12 @@ public class ProtoSerializer {
 				throw new InvalidXSDException();
 			} else {
 
-				File outputFile = new File(configuration.outputDirectory, configuration.outputFilename);
+				ProtoFile protoFile = packageToProtoFileMap.entrySet().iterator().next().getValue();
+				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
+
+				File outputFile = new File(destFolder, configuration.outputFilename);
 				Writer writer = new FileWriter(outputFile);
-				writer.write(packageToProtoFileMap.entrySet().iterator().next().getValue().toSchema());
+				writer.write(protoFile.toSchema());
 				writer.close();
 
 				writtenProtoFiles.add(outputFile);
@@ -128,54 +135,123 @@ public class ProtoSerializer {
 		} else {
 
 			for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
-				File outputFile = new File(configuration.outputDirectory, entry.getValue().location().getPath());
+				ProtoFile protoFile = entry.getValue();
+				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
+				File outputFile = new File(destFolder, protoFile.location().getPath());
 				Writer writer = new FileWriter(outputFile);
-				writer.write(entry.getValue().toSchema());
+				writer.write(protoFile.toSchema());
 				writer.close();
 
 				writtenProtoFiles.add(outputFile);
 			}
 		}
 
-		// Parse and verify written proto files
-		parseWrittenFiles(writtenProtoFiles);
+		if (!configuration.skipLinking) {
+			// Parse and verify written proto files
+			parseWrittenFiles(writtenProtoFiles);
+		}
 
 	}
 
-	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, Set<String> generatedTypeNames, String generatedRandomTypeSuffix,
-			String newTypeSuffix) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			Set<String> usedNames = findExistingTypeNamesInProtoFile(protoFile.getValue());
-			for (Type type : protoFile.getValue().types()) {
-				if (type instanceof MessageType) {
-					MessageType mt = (MessageType) type;
+	private File createPackageFolderStructure(File outputDirectory, String packageName) {
 
-					String messageName = mt.getName();
-					if (messageName.endsWith(generatedRandomTypeSuffix)) {
-						String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
-						if (!usedNames.contains(newMessageName)) {
-							mt.updateName(newMessageName);
-							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
-						} else {
-							LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
-						}
+		String folderSubstructure = getPathFromPackageName(packageName);
+		File dstFolder = new File(outputDirectory, folderSubstructure);
+		dstFolder.mkdirs();
+
+		return dstFolder;
+
+	}
+
+	@NotNull
+	private String getPathFromPackageName(String packageName) {
+		return packageName.replace('.', '/');
+	}
+
+	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix) {
+		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, protoFile.getValue().types(),
+					protoFile.getValue().packageName());
+		}
+
+	}
+
+	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix, List<Type> types,
+			String packageName) {
+		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
+		for (Type type : types) {
+			// Recurse into nested types
+			replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, type.nestedTypes(), packageName);
+
+			if (type instanceof MessageType) {
+				MessageType mt = (MessageType) type;
+
+				String messageName = mt.getName();
+				if (messageName.endsWith(generatedRandomTypeSuffix)) {
+					String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
+					if (!usedNames.contains(newMessageName)) {
+						mt.updateName(newMessageName);
+						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+					} else {
+						LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 					}
-				} else if (type instanceof EnumType) {
-					EnumType et = (EnumType) type;
-					String messageName = et.name();
-					if (messageName.endsWith(generatedRandomTypeSuffix)) {
-						String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
-						if (!usedNames.contains(newMessageName)) {
-							et.updateName(newMessageName);
-							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
-						} else {
-							LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
-						}
+				}
+			} else if (type instanceof EnumType) {
+				EnumType et = (EnumType) type;
+				String messageName = et.name();
+				if (messageName.endsWith(generatedRandomTypeSuffix)) {
+					String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
+					if (!usedNames.contains(newMessageName)) {
+						et.updateName(newMessageName);
+						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+					} else {
+						LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 					}
 				}
 			}
 		}
+	}
 
+	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap) {
+		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			uppercaseMessageNames(packageToProtoFileMap, protoFile.getValue().types(), protoFile.getValue().packageName());
+		}
+
+	}
+
+	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap, List<Type> types, String packageName) {
+		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
+		for (Type type : types) {
+			// Recurse into nested types
+			uppercaseMessageNames(packageToProtoFileMap, type.nestedTypes(), packageName);
+
+			if (type instanceof MessageType) {
+				MessageType mt = (MessageType) type;
+
+				String messageName = mt.getName();
+				if (!Character.isUpperCase(messageName.charAt(0))) {
+					String newMessageName = StringUtils.capitalize(messageName);
+					if (!usedNames.contains(newMessageName)) {
+						mt.updateName(newMessageName);
+						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+					} else {
+						LOGGER.warn("Cannot uppercase message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+					}
+				}
+			} else if (type instanceof EnumType) {
+				EnumType et = (EnumType) type;
+				String messageName = et.name();
+				if (!Character.isUpperCase(messageName.charAt(0))) {
+					String newMessageName = StringUtils.capitalize(messageName);
+					if (!usedNames.contains(newMessageName)) {
+						et.updateName(newMessageName);
+						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+					} else {
+						LOGGER.warn("Cannot uppercase enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+					}
+				}
+			}
+		}
 	}
 
 	private void updateEnumValues(Map<String, ProtoFile> packageToProtoFileMap) {
@@ -234,7 +310,14 @@ public class ProtoSerializer {
 
 			if (configuration.includeValidationRules) {
 				try {
-					schemaLoader.addSource(Paths.get(ClassLoader.getSystemResource("proto").toURI()));
+					URL validationProtoURL = ClassLoader.getSystemResource("proto");
+					if (validationProtoURL != null) {
+						schemaLoader.addSource(Paths.get(((URL) validationProtoURL).toURI()));
+					} else {
+
+						LOGGER.info(
+								"Could not load validate/validate.proto from classpath, therefore it must be present as an external import location or linking will fail");
+					}
 				} catch (URISyntaxException e) {
 					LOGGER.error("Internal Error loading validation proto file from path, linking will fail", e);
 				}
@@ -245,9 +328,10 @@ public class ProtoSerializer {
 			}
 
 			schemaLoader.addSource(configuration.outputDirectory);
-			for (File f : writtenProtoFiles) {
-				schemaLoader.addProto(f.getAbsolutePath().substring(configuration.outputDirectory.getAbsolutePath().length() + 1));
-			}
+			/*
+			 * for (File f : writtenProtoFiles) { schemaLoader.addProto(f.getAbsolutePath().substring(configuration.outputDirectory.getAbsolutePath().length() +
+			 * 1)); }
+			 */
 			Schema schema = schemaLoader.load();
 		} catch (IOException e) {
 			LOGGER.error("Parsing of written output failed, the proto files are not valid", e);
@@ -327,7 +411,7 @@ public class ProtoSerializer {
 							// Add import
 							ProtoFile fileToImport = packageToProtoFileMap.get(packageName);
 							if (fileToImport != null) {
-								imports.add(fileToImport.location().getPath());
+								imports.add(getPathFromPackageName(packageName) + "/" + fileToImport.location().getPath());
 							} else {
 								LOGGER.error("Tried to create import for field packageName " + packageName + ", but no such protofile exist");
 							}
@@ -364,46 +448,52 @@ public class ProtoSerializer {
 
 	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			Set<String> usedNames = findExistingTypeNamesInProtoFile(protoFile.getValue());
-			for (Type type : protoFile.getValue().types()) {
-				if (type instanceof MessageType) {
-					MessageType mt = (MessageType) type;
+			translateTypes(packageToProtoFileMap, protoFile.getValue().types(), protoFile.getValue().packageName());
+		}
+	}
 
-					String messageName = mt.getName();
-					String newMessageName = typeAndNameMapper.translateType(messageName);
+	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap, List<Type> types, String packageName) {
+		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
+		for (Type type : types) {
+			if (type instanceof MessageType) {
+				MessageType mt = (MessageType) type;
 
-					if (!messageName.equals(newMessageName)) {
-						if (!usedNames.contains(newMessageName)) {
-							mt.updateName(newMessageName);
-							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
-						} else {
-							LOGGER.error("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
-						}
+				translateTypes(packageToProtoFileMap, type.nestedTypes(), packageName);
 
+				String messageName = mt.getName();
+				String newMessageName = typeAndNameMapper.translateType(messageName);
+
+				if (!messageName.equals(newMessageName)) {
+					if (!usedNames.contains(newMessageName)) {
+						mt.updateName(newMessageName);
+						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+					} else {
+						LOGGER.error("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 					}
-					for (Field field : mt.fields()) {
-						// Translate basic types as well
-						if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
-							String newFieldType = typeAndNameMapper.translateType(field.getElementType());
-							if (!newFieldType.equals(field.getElementType())) {
-								LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
-								field.updateElementType(newFieldType);
-							}
-						}
 
+				}
+				for (Field field : mt.fields()) {
+					// Translate basic types as well
+					if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
+						String newFieldType = typeAndNameMapper.translateType(field.getElementType());
+						if (!newFieldType.equals(field.getElementType())) {
+							LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
+							field.updateElementType(newFieldType);
+						}
 					}
-				} else if (type instanceof EnumType) {
-					EnumType et = (EnumType) type;
-					String messageName = et.name();
-					String newMessageName = typeAndNameMapper.translateType(messageName);
 
-					if (!messageName.equals(newMessageName)) {
-						if (!usedNames.contains(newMessageName)) {
-							et.updateName(newMessageName);
-							updateTypeReferences(packageToProtoFileMap, protoFile.getValue().packageName(), messageName, newMessageName);
-						} else {
-							LOGGER.error("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
-						}
+				}
+			} else if (type instanceof EnumType) {
+				EnumType et = (EnumType) type;
+				String messageName = et.name();
+				String newMessageName = typeAndNameMapper.translateType(messageName);
+
+				if (!messageName.equals(newMessageName)) {
+					if (!usedNames.contains(newMessageName)) {
+						et.updateName(newMessageName);
+						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+					} else {
+						LOGGER.error("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 					}
 				}
 			}
@@ -412,22 +502,29 @@ public class ProtoSerializer {
 
 	private void updateTypeReferences(Map<String, ProtoFile> packageToProtoFileMap, String packageNameOfType, String oldName, String newName) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			for (Type type : protoFile.getValue().types()) {
-				if (type instanceof MessageType) {
-					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
-						if (samePackage(field.packageName(), packageNameOfType)) {
-							String fieldType = field.getElementType();
-							if (fieldType.equals(oldName)) {
-								field.updateElementType(newName);
-								LOGGER.debug("Updating field " + oldName + " in type " + mt.getName() + " to " + newName);
-							}
+			updateTypeReferences(packageNameOfType, oldName, newName, protoFile.getValue().types());
+		}
+
+	}
+
+	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, List<Type> types) {
+		for (Type type : types) {
+			updateTypeReferences(packageNameOfType, oldName, newName, type.nestedTypes());
+
+			if (type instanceof MessageType) {
+				MessageType mt = (MessageType) type;
+
+				for (Field field : mt.fields()) {
+					if (samePackage(field.packageName(), packageNameOfType)) {
+						String fieldType = field.getElementType();
+						if (fieldType.equals(oldName)) {
+							field.updateElementType(newName);
+							LOGGER.debug("Updating field " + oldName + " in type " + mt.getName() + " to " + newName);
 						}
 					}
 				}
 			}
 		}
-
 	}
 
 	private boolean samePackage(String packageNameOfFile, String packageNameOfReferencedTypeInField) {
@@ -442,9 +539,9 @@ public class ProtoSerializer {
 		}
 	}
 
-	private Set<String> findExistingTypeNamesInProtoFile(ProtoFile value) {
+	private Set<String> findExistingTypeNamesInProtoFile(List<Type> types) {
 		Set<String> existingTypeNames = new HashSet<>();
-		for (Type t : value.types()) {
+		for (Type t : types) {
 			if (t instanceof MessageType) {
 				existingTypeNames.add(((MessageType) t).getName());
 			} else if (t instanceof EnumType) {

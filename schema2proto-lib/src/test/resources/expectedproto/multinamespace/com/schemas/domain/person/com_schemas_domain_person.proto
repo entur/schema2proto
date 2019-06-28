@@ -1,0 +1,14 @@
+// com_schemas_domain_person.proto at 0:0
+syntax = "proto3";
+package com.schemas.domain.person;
+
+import "com/schemas/domain/address/com_schemas_domain_address.proto";
+import "com/schemas/domain/common/com_schemas_domain_common.proto";
+
+message PersonType {
+  com.schemas.domain.common.LangType lang = 1;
+  string name = 2;
+  com.schemas.domain.common.Country domicile = 3;
+  // A physical postal address
+  com.schemas.domain.address.AddressType address = 4;
+}

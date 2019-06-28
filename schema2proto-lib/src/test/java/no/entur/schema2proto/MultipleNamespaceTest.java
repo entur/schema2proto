@@ -25,12 +25,16 @@ package no.entur.schema2proto;
 
 import static no.entur.schema2proto.TestHelper.compareExpectedAndGenerated;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class MultipleNamespaceTest {
+
+	private File expectedRootFolder = new File("src/test/resources/expectedproto/multinamespace");
+	private File generatedRootFolder = new File("target/generated-proto/multinamespace");
 
 	@BeforeAll
 	public static void generateProtobufForTests() {
@@ -39,19 +43,19 @@ public class MultipleNamespaceTest {
 
 	@Test
 	public void shouldCreateANamespacedProtobufPersonFile() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/multinamespace/com_schemas_domain_person.proto",
-				"target/generated-proto/multinamespace/com_schemas_domain_person.proto");
+		compareExpectedAndGenerated(expectedRootFolder, "com/schemas/domain/person/com_schemas_domain_person.proto", generatedRootFolder,
+				"com/schemas/domain/person/com_schemas_domain_person.proto");
 	}
 
 	@Test
 	public void shouldCreateANamespacedProtobufCommonFile() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/multinamespace/com_schemas_domain_common.proto",
-				"target/generated-proto/multinamespace/com_schemas_domain_common.proto");
+		compareExpectedAndGenerated(expectedRootFolder, "com/schemas/domain/common/com_schemas_domain_common.proto", generatedRootFolder,
+				"com/schemas/domain/common/com_schemas_domain_common.proto");
 	}
 
 	@Test
 	public void shouldCreateANamespacedProtobufAddressFile() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/multinamespace/com_schemas_domain_address.proto",
-				"target/generated-proto/multinamespace/com_schemas_domain_address.proto");
+		compareExpectedAndGenerated(expectedRootFolder, "com/schemas/domain/address/com_schemas_domain_address.proto", generatedRootFolder,
+				"com/schemas/domain/address/com_schemas_domain_address.proto");
 	}
 }

@@ -23,6 +23,7 @@ package no.entur.schema2proto;
  * #L%
  */
 
+import java.io.IOException;
 import java.util.*;
 
 import javax.xml.parsers.SAXParserFactory;
@@ -67,6 +68,7 @@ public class SchemaParser implements ErrorHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
 	private static final String DEFAULT_PROTO_PACKAGE = "default";
+	public static final String VALIDATE_RULES_NAME = "validate.rules";
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
@@ -99,7 +101,7 @@ public class SchemaParser implements ErrorHandler {
 		init();
 	}
 
-	public Map<String, ProtoFile> parse() throws Exception {
+	public Map<String, ProtoFile> parse() throws SAXException, IOException {
 
 		SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
 		saxParserFactory.setNamespaceAware(true);
@@ -113,15 +115,6 @@ public class SchemaParser implements ErrorHandler {
 		processSchemaSet(parser.getResult());
 
 		return packageToProtoFileMap;
-
-	}
-
-	public Set<String> getGeneratedTypeNames() {
-		return generatedTypeNames;
-	}
-
-	public String getGeneratedNameSuffix() {
-		return GENERATED_NAME_SUFFIX_UNIQUENESS;
 	}
 
 	private void addType(String namespace, Type type) {
@@ -137,11 +130,6 @@ public class SchemaParser implements ErrorHandler {
 		} else if (type instanceof EnumType) {
 			typeName = ((EnumType) type).name();
 		}
-
-		if (typeName.endsWith(GENERATED_NAME_SUFFIX_UNIQUENESS)) {
-			generatedTypeNames.add(typeName);
-		}
-
 	}
 
 	private ProtoFile getProtoFileForNamespace(String namespace) {
@@ -429,9 +417,11 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 			if (minOccurs == 1 && maxOccurs == 1) {
-				OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false);
-				OptionElement e = new OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
-				return e;
+
+				/*
+				 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
+				 * OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true); return e;
+				 */
 			}
 		}
 		return null;
@@ -502,7 +492,7 @@ public class SchemaParser implements ErrorHandler {
 						}
 					}
 					OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
-					OptionElement e = new OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
+					OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
 					return e;
 				}
 
@@ -520,7 +510,7 @@ public class SchemaParser implements ErrorHandler {
 		 * if (minOccurs == 1 && maxOccurs == 1) {
 		 *
 		 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
-		 * OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
+		 * OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
 		 *
 		 * return e; }
 		 */
@@ -806,7 +796,7 @@ public class SchemaParser implements ErrorHandler {
 
 				if (decl.getType().isRestriction() && decl.getType().getFacet("enumeration") != null) {
 
-					String enumName = createEnum(fieldName, decl.getType().asRestriction(), messageType);
+					String enumName = createEnum(fieldName, decl.getType().asRestriction(), decl.isLocal() ? messageType : null);
 
 					boolean extension = false;
 					List<OptionElement> optionElements = new ArrayList<OptionElement>();
@@ -1073,7 +1063,7 @@ public class SchemaParser implements ErrorHandler {
 
 	private OptionElement createOptionElement(String name, OptionElement.Kind kind, Object value) {
 		OptionElement option = new OptionElement(name, kind, value, false);
-		OptionElement wrapper = new OptionElement("validation.rules", OptionElement.Kind.OPTION, option, true);
+		OptionElement wrapper = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
 
 		return wrapper;
 	}

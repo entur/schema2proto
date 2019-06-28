@@ -3,31 +3,31 @@ syntax = "proto3";
 package default;
 
 // topLevelElement type doc
-message topLevelElementType {
+message TopLevelElementType {
   // topLevelElementAttribute field doc
   string top_level_element_attribute = 1;
   string top_level_attribute_from_group = 2;
   // simpleString field doc
   string simple_string = 3;
   // nestedElement field doc
-  nestedElementType nested_element = 4;
-  repeated nestedRepeatedElementType nested_repeated_element = 5;
+  NestedElementType nested_element = 4;
+  repeated NestedRepeatedElementType nested_repeated_element = 5;
 }
 // nestedElement type doc
-message nestedElementType {
+message NestedElementType {
   string name = 1;
 }
 // nestedRepeatedElement type doc
-message nestedRepeatedElementType {
+message NestedRepeatedElementType {
   string mandatory_string = 1;
   string optional_string = 2;
   uint32 quantity = 3;
   double val = 4;
   // embeddedEnum field doc
-  repeated embeddedEnumType embedded_enum = 5;
+  repeated EmbeddedEnumType embedded_enum = 5;
 
   // embeddedEnum type doc
-  enum embeddedEnumType {
+  enum EmbeddedEnumType {
     // Default
     EMBEDDED_ENUM_TYPE_UNSPECIFIED = 0;
     // embeddedEnumValue1 doc

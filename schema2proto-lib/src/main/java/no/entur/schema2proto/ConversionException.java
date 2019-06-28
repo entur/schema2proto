@@ -23,10 +23,12 @@ package no.entur.schema2proto;
  * #L%
  */
 
-public class ConversionException extends Exception {
-
-	public ConversionException(String errorChoice) {
-		// TODO Auto-generated constructor stub
+public class ConversionException extends RuntimeException {
+	public ConversionException(String message) {
+		super(message);
 	}
 
+	public ConversionException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

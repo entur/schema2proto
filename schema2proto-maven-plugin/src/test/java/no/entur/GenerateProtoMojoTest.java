@@ -63,7 +63,7 @@ public class GenerateProtoMojoTest {
 		myMojo.execute();
 
 		// Assert proto file is generated
-		File protoResultFile = new File("target/generated-proto/simple.proto");
+		File protoResultFile = new File("target/generated-proto/no/entur/www/schema/simple.proto");
 		assertNotNull(protoResultFile);
 		assertTrue(protoResultFile.exists());
 	}

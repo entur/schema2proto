@@ -3,7 +3,7 @@ syntax = "proto3";
 package default;
 
 // topLevelEnum doc
-enum topLevelEnum {
+enum TopLevelEnum {
   // Default
   TOP_LEVEL_ENUM_UNSPECIFIED = 0;
   // enumVal1 doc

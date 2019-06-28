@@ -18,6 +18,8 @@
                 <xs:element name="domicile" type="c:country"/>
                 <xs:element ref="a:address"/>
             </xs:sequence>
+            <xs:attribute ref="c:lang"/>
         </xs:complexType>
     </xs:element>
+
 </xs:schema>

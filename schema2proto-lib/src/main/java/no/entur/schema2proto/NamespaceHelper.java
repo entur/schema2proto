@@ -111,7 +111,7 @@ public class NamespaceHelper {
 	}
 
 	public static String xmlNamespaceToProtoFieldPackagename(String namespace, String forceProtoPackage) {
-		if (XML_SCHEMA_NAMESPACE.equals(namespace) || XML_NAMESPACE_NAMESPACE.equals(namespace)) {
+		if (XML_SCHEMA_NAMESPACE.equals(namespace)) {
 			return null;
 		} else if (forceProtoPackage != null) {
 			return forceProtoPackage;

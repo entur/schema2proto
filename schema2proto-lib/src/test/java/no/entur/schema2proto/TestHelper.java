@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
@@ -45,16 +46,16 @@ public class TestHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
 	private static final Logger FILECONTENTLOGGER = LoggerFactory.getLogger("FILECONTENT");
 
-	public static void compareExpectedAndGenerated(String expected, String generated) throws IOException {
+	public static void compareExpectedAndGenerated(File expectedRootFolder, String expected, File generatedRootFolder, String generated) throws IOException {
 
 		File e = new File(expected);
 		File g = new File(generated);
 
-		List<String> exlines = linesFromFile(expected);
-		List<String> genlines = linesFromFile(generated);
+		List<String> exlines = linesFromFile(expectedRootFolder, expected);
+		List<String> genlines = linesFromFile(generatedRootFolder, generated);
 
 		try {
-			ProtoComparator.compareProtoFiles(e, g);
+			ProtoComparator.compareProtoFiles(expectedRootFolder, e, generatedRootFolder, g);
 		} catch (AssertionFailedError e1) {
 			showDiff(expected, generated, exlines, genlines);
 
@@ -93,24 +94,27 @@ public class TestHelper {
 		FILECONTENTLOGGER.info("****** END   " + filename + " ******");
 	}
 
-	public static String generateProtobuf(String name, String typeMappings, String nameMappings, String packageName, boolean inheritanceToComposition) {
-		return generate(name, typeMappings, nameMappings, packageName, inheritanceToComposition);
+	public static String generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
+			String expectedFolder, String expectedFilename) throws IOException {
+		return generate(xsdFile, typeMappings, nameMappings, forcePackageName, inheritanceToComposition, expectedFolder, expectedFilename);
 	}
 
-	public static String generateProtobuf(String name) {
-		return generate(name, null, null, "default", false);
+	public static String generateProtobuf(String xsdFile, String expectedFolder, String expectedFilename) throws IOException {
+		return generate(xsdFile, null, null, "default", false, expectedFolder, expectedFilename);
 	}
 
-	private static String generate(String name, String typeMappings, String nameMappings, String packageName, boolean inheritanceToComposition) {
+	private static String generate(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
+			String expectedFolder, String expectedFilename) throws IOException {
 		File dir = new File("target/generated-proto/");
+		FileUtils.deleteDirectory(dir);
+		dir.mkdirs();
 
-		String filename = name + ".proto";
+		String filename = expectedFilename;
 
 		List<String> args = new ArrayList<>();
 		args.add("--outputDirectory=" + dir.getPath());
-		args.add("--outputFilename=" + filename);
-		if (packageName != null) {
-			args.add("--forceProtoPackage=" + packageName);
+		if (forcePackageName != null) {
+			args.add("--forceProtoPackage=" + forcePackageName);
 		}
 		if (typeMappings != null) {
 			args.add("--customTypeMappings=" + typeMappings);
@@ -121,9 +125,9 @@ public class TestHelper {
 
 		args.add("--inheritanceToComposition=" + inheritanceToComposition);
 
-		args.add("src/test/resources/xsd/" + name + ".xsd");
+		args.add("src/test/resources/xsd/" + xsdFile);
 
-		File outputFile = new File(dir, filename);
+		File outputFile = new File(dir, expectedFolder + "/" + filename);
 		if (outputFile.exists()) {
 			outputFile.delete();
 		}
@@ -136,9 +140,9 @@ public class TestHelper {
 		return outputFile.getPath();
 	}
 
-	private static List<String> linesFromFile(String file) throws IOException {
+	private static List<String> linesFromFile(File folder, String file) throws IOException {
 		List<String> lines = new ArrayList<String>();
-		BufferedReader reader = new BufferedReader(new FileReader(file));
+		BufferedReader reader = new BufferedReader(new FileReader(new File(folder, file)));
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			lines.add(line);

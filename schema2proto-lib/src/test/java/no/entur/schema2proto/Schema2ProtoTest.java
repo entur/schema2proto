@@ -26,68 +26,81 @@ package no.entur.schema2proto;
 import static no.entur.schema2proto.TestHelper.compareExpectedAndGenerated;
 import static no.entur.schema2proto.TestHelper.generateProtobuf;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
 public class Schema2ProtoTest {
 
+	private File expectedRootFolder = new File("src/test/resources/expectedproto/legacy");
+	private File generatedRootFolder = new File(".");
+
 	@Test
 	public void compareAtomProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/atom.proto", generateProtobuf("atom"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/atom.proto", generatedRootFolder, generateProtobuf("atom.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void compareRecipeProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/recipe.proto", generateProtobuf("recipe"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/recipe.proto", generatedRootFolder,
+				generateProtobuf("recipe.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void compareShiporderProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/shiporder.proto", generateProtobuf("shiporder"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/shiporder.proto", generatedRootFolder,
+				generateProtobuf("shiporder.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void compareTestChoiceProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/test-choice.proto", generateProtobuf("test-choice"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/test-choice.proto", generatedRootFolder,
+				generateProtobuf("test-choice.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void compareTestDatatypesProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/test-datatypes.proto", generateProtobuf("test-datatypes"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/test-datatypes.proto", generatedRootFolder,
+				generateProtobuf("test-datatypes.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void compareTestExtensionProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/test-extension.proto", generateProtobuf("test-extension"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/test-extension.proto", generatedRootFolder,
+				generateProtobuf("test-extension.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void compareTestExtensionAttributesProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/test-extension-attributes.proto", generateProtobuf("test-extension-attributes"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/test-extension-attributes.proto", generatedRootFolder,
+				generateProtobuf("test-extension-attributes.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void compareTestRangeProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/test-range.proto", generateProtobuf("test-range"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/test-range.proto", generatedRootFolder,
+				generateProtobuf("test-range.xsd", "default", "default.proto"));
 	}
 
 	// @Test
 	public void compareXmlRecipemlProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/xml-recipeml.proto", generateProtobuf("xml-recipeml"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/xml-recipeml.proto", generatedRootFolder,
+				generateProtobuf("xml-recipeml.xsd", "default", "default.proto"));
 	}
 
 	// @Test
 	public void compareRecipemlProtobuf() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/recipeml.proto", generateProtobuf("recipeml"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/recipeml.proto", generatedRootFolder,
+				generateProtobuf("recipeml.xsd", "default", "default.proto"));
 	}
 
 	@Test
 	public void fieldAndMessageRenaming() throws IOException {
-		compareExpectedAndGenerated("src/test/resources/expectedproto/complexTypeRenaming.proto", generateProtobuf("complexTypeRenaming",
+		compareExpectedAndGenerated(expectedRootFolder, "default/complexTypeRenaming.proto", generatedRootFolder, generateProtobuf("complexTypeRenaming.xsd",
 				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName",
 				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName",
-				"org.myrecipies", false));
+				"org.myrecipies", false, "org/myrecipies", "org_myrecipies.proto"));
 	}
 
 }

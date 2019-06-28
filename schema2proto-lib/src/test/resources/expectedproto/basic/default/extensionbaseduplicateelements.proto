@@ -2,11 +2,11 @@
 syntax = "proto3";
 package default;
 
-message abstractTopLevelComplexType {
+message AbstractTopLevelComplexType {
   string abstract_top_level_complex_type_attribute = 1;
   string repeated_element = 2;
 }
-message concreteTopLevelComplexType {
+message ConcreteTopLevelComplexType {
   string abstract_top_level_complex_type_attribute = 1;
   string concrete_top_level_complex_type_attribute = 11;
   repeated string repeated_element = 21;

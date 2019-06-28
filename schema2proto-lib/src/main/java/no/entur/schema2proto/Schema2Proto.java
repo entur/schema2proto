@@ -42,6 +42,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
@@ -69,7 +70,7 @@ public class Schema2Proto {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
-	public Schema2Proto(String[] args) {
+	public Schema2Proto(String[] args) throws IOException {
 		Options commandLineOptions = createCommandLineOptions();
 
 		if (args.length < 2) {
@@ -86,27 +87,32 @@ public class Schema2Proto {
 
 				LOGGER.info("Starting to parse {}", configuration.xsdFile);
 				Map<String, ProtoFile> packageToFiles = xp.parse();
-				Set<String> generatedTypeNames = xp.getGeneratedTypeNames();
-				String generatedNameSuffix = xp.getGeneratedNameSuffix();
 
 				TypeAndNameMapper pbm = new TypeAndNameMapper(configuration);
 				ProtoSerializer serializer = new ProtoSerializer(configuration, pbm);
-				serializer.serialize(packageToFiles, generatedTypeNames, generatedNameSuffix);
+				serializer.serialize(packageToFiles);
 
 				LOGGER.info("Done");
 			} catch (InvalidConfigurationException | ParseException e) {
-				LOGGER.error("Error parsing command line options: {}", e.getMessage());
 				printUsage(commandLineOptions);
+				throw new ConversionException("Error parsing command line options", e);
 			} catch (InvalidXSDException e) {
-				LOGGER.error("Error converting xsdFile to proto: {}", e.getMessage());
-			} catch (Exception e) {
-				LOGGER.error("Error parsing xsdFile", e);
+				throw new ConversionException("Error converting xsdFile to proto", e);
+			} catch (com.squareup.wire.schema.SchemaException e) {
+				throw new ConversionException("Generated proto files did not link", e);
+			} catch (SAXException e) {
+				throw new ConversionException("Error parsing provided xsd. Correct xsd and retry", e);
 			}
 		}
 	}
 
 	public static void main(String[] args) {
-		new Schema2Proto(args);
+		try {
+			new Schema2Proto(args);
+		} catch (Exception e) {
+			LOGGER.error("Error processing proto files: {}", e.getMessage(), e);
+			System.exit(1);
+		}
 	}
 
 	private static Options createCommandLineOptions() {

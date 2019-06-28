@@ -52,10 +52,10 @@ import com.squareup.wire.schema.Type;
 
 public class ProtoComparator {
 
-	public static void compareProtoFiles(File expectedFile, File generatedFile) {
+	public static void compareProtoFiles(File expectedRootFolder, File expectedFile, File generatedRootFolder, File generatedFile) {
 		try {
-			ProtoFile expected = load(expectedFile.getParentFile(), expectedFile.getName());
-			ProtoFile generated = load(generatedFile.getParentFile(), generatedFile.getName());
+			ProtoFile expected = load(expectedRootFolder, expectedFile);
+			ProtoFile generated = load(generatedRootFolder, generatedFile);
 
 			assertEquals(expected.javaPackage(), generated.javaPackage(),
 					"java package mismatch" + generateLocationInformation(expected.location(), generated.location()));
@@ -327,12 +327,12 @@ public class ProtoComparator {
 				"Field type mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
 	}
 
-	private static ProtoFile load(File folder, String protoFilename) throws IOException {
+	private static ProtoFile load(File folder, File protoFilename) throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
-		schemaLoader.addProto(protoFilename);
+		schemaLoader.addProto(protoFilename.getPath());
 		schemaLoader.addSource(folder);
 		Schema schema = schemaLoader.load();
-		ProtoFile protofile = schema.protoFile(protoFilename);
+		ProtoFile protofile = schema.protoFile(protoFilename.getPath());
 		return protofile;
 	}
 
