@@ -126,7 +126,7 @@
                 <artifactId>go-offline-maven-plugin</artifactId>
                 <version>1.2.0</version>
                 <configuration>
-                    <!--                    <dynamicDependencies>
+                    <!--                    <dynamicDmaependencies>
                                             <dynamicDependency>
                                                 <groupId>org.codehaus.mojo</groupId>
                                                 <artifactId>license-maven-plugin</artifactId>
