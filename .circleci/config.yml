@@ -12,7 +12,7 @@ jobs:
     - checkout
     - restore_cache:
         key: dep-cache-{{ checksum "pom.xml" }}
-    - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
+    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
     - save_cache:
         paths:
         - ~/.m2
