@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
@@ -315,7 +316,8 @@ public class ProtoSerializer {
 
 			if (configuration.includeValidationRules) {
 				try {
-					URL validationProtoFolderURL = ClassLoader.getSystemResource("proto");
+					URL validationProtoFolderURL = getClass().getResource("proto");
+
 					if (validationProtoFolderURL != null) {
 						schemaLoader.addSource(Paths.get((validationProtoFolderURL).toURI()));
 						schemaLoader.addProto("validate/validate.proto");
@@ -338,6 +340,14 @@ public class ProtoSerializer {
 			 * for (File f : writtenProtoFiles) { schemaLoader.addProto(f.getAbsolutePath().substring(configuration.outputDirectory.getAbsolutePath().length() +
 			 * 1)); }
 			 */
+
+			for (Path s : schemaLoader.sources()) {
+				LOGGER.info("Linking proto from path " + s);
+			}
+			for (String s : schemaLoader.protos()) {
+				LOGGER.info("Linking proto " + s);
+			}
+
 			Schema schema = schemaLoader.load();
 		} catch (IOException e) {
 			LOGGER.error("Parsing of written output failed, the proto files are not valid", e);
