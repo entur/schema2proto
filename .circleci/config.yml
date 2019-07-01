@@ -14,15 +14,13 @@ jobs:
         keys:
           - cache-dependencies-{{ checksum "pom.xml" }}
           - cache-dependencies-static
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -pl schema2proto-lib -s /tools/m2/settings.xml
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -pl schema2proto-wire -s /tools/m2/settings.xml
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -pl schema2proto-maven-plugin -s /tools/m2/settings.xml
+    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
     - save_cache:
         paths:
         - ~/.m2
         key: cache-dependencies-static
     # Cannot use -o because of snapshot dependencies.
-    - run: mvn verify -o -s /tools/m2/settings.xml
+    - run: mvn verify -s /tools/m2/settings.xml
     - run:
         name: Save test results
         command: |
@@ -47,15 +45,13 @@ jobs:
         keys:
           - cache-dependencies-{{ checksum "pom.xml" }}
           - cache-dependencies-static
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -pl schema2proto-lib -s /tools/m2/settings.xml
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -pl schema2proto-wire -s /tools/m2/settings.xml
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -pl schema2proto-maven-plugin -s /tools/m2/settings.xml
+    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
     - save_cache:
         paths:
         - ~/.m2
         key: cache-dependencies-static
     # Cannot use -o because of snapshot dependencies.
-    - run: mvn deploy -o -s /tools/m2/settings.xml -DskipTests
+    - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
 workflows:
   version: 2
   build_test_deploy:
