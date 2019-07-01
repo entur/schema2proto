@@ -46,12 +46,12 @@
                     <version>1.2.0</version>
                     <configuration>
                         <dynamicDependencies>
-                            <DynamicDependency>
+                            <dynamicDependency>
                                 <groupId>org.codehaus.mojo</groupId>
                                 <artifactId>license-maven-plugin</artifactId>
                                 <version>1.20</version>
                                 <repositoryType>PLUGIN</repositoryType>
-                            </DynamicDependency>
+                            </dynamicDependency>
                         </dynamicDependencies>
                     </configuration>
                 </plugin>
