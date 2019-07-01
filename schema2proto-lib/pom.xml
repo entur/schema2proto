@@ -22,21 +22,6 @@
         <junit.jupiter.version>5.4.2</junit.jupiter.version>
     </properties>
 
-    <scm>
-        <connection>scm:git:ssh://git@github.com/entur/schema2proto.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/entur/schema2proto.git</developerConnection>
-        <url>https://github.com/entur/schema2proto/tree/master</url>
-        <tag>HEAD</tag>
-    </scm>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>snapshot</id>
-            <name>entur2-snapshots</name>
-            <url>https://entur2.jfrog.io/entur2/libs-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <dependencies>
 
         <dependency>
