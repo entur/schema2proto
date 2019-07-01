@@ -44,16 +44,16 @@
                     <groupId>de.qaware.maven</groupId>
                     <artifactId>go-offline-maven-plugin</artifactId>
                     <version>1.2.0</version>
-               <!--     <configuration>
+                    <configuration>
                         <dynamicDependencies>
                             <DynamicDependency>
-                                <groupId>org.apache.maven.surefire</groupId>
-                                <artifactId>surefire-junit4</artifactId>
-                                <version>2.20.1</version>
+                                <groupId>org.codehaus.mojo</groupId>
+                                <artifactId>license-maven-plugin</artifactId>
+                                <version>1.20</version>
                                 <repositoryType>PLUGIN</repositoryType>
                             </DynamicDependency>
                         </dynamicDependencies>
-                    </configuration>-->
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
