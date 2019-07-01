@@ -27,10 +27,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -315,20 +312,7 @@ public class ProtoSerializer {
 		try {
 
 			if (configuration.includeValidationRules) {
-				try {
-					URL validationProtoFolderURL = getClass().getResource("proto");
-
-					if (validationProtoFolderURL != null) {
-						schemaLoader.addSource(Paths.get((validationProtoFolderURL).toURI()));
-						schemaLoader.addProto("validate/validate.proto");
-					} else {
-
-						LOGGER.info(
-								"Could not load validate/validate.proto from classpath, therefore it must be present as an external import location or linking will fail");
-					}
-				} catch (URISyntaxException e) {
-					LOGGER.error("Internal Error loading validation proto file from path, linking will fail", e);
-				}
+				schemaLoader.addProto("validate/validate.proto");
 			}
 
 			for (String importRootFolder : configuration.customImportLocations) {
@@ -336,16 +320,12 @@ public class ProtoSerializer {
 			}
 
 			schemaLoader.addSource(configuration.outputDirectory);
-			/*
-			 * for (File f : writtenProtoFiles) { schemaLoader.addProto(f.getAbsolutePath().substring(configuration.outputDirectory.getAbsolutePath().length() +
-			 * 1)); }
-			 */
 
 			for (Path s : schemaLoader.sources()) {
-				LOGGER.info("Linking proto from path " + s);
+				LOGGER.debug("Linking proto from path " + s);
 			}
 			for (String s : schemaLoader.protos()) {
-				LOGGER.info("Linking proto " + s);
+				LOGGER.debug("Linking proto " + s);
 			}
 
 			Schema schema = schemaLoader.load();

@@ -21,6 +21,13 @@
         <kotlin.version>1.3.31</kotlin.version>
     </properties>
 
+    <scm>
+        <connection>scm:git:ssh://git@github.com/entur/schema2proto.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/entur/schema2proto.git</developerConnection>
+        <url>https://github.com/entur/schema2proto/tree/master</url>
+        <tag>HEAD</tag>
+    </scm>
+
 
     <distributionManagement>
         <snapshotRepository>
