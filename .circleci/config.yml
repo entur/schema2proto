@@ -11,14 +11,14 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-#        key: dep-cache-{{ checksum "pom.xml" }}
-        key: dep-cache-static
+        keys:
+          - cache-dependencies-{{ checksum "pom.xml" }}
+          - cache-dependencies-static
     - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
     - save_cache:
         paths:
         - ~/.m2
-        key: dep-cache-static
-#        key: dep-cache-{{ checksum "pom.xml" }}
+        key: cache-dependencies-static
     # Cannot use -o because of snapshot dependencies.
     - run: mvn verify -o -s /tools/m2/settings.xml
     - run:
@@ -42,14 +42,14 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-#        key: dep-cache-{{ checksum "pom.xml" }}
-        key: dep-cache-static
+        keys:
+          - cache-dependencies-{{ checksum "pom.xml" }}
+          - cache-dependencies-static
     - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
     - save_cache:
         paths:
         - ~/.m2
-        key: dep-cache-static
-#        key: dep-cache-{{ checksum "pom.xml" }}
+        key: cache-dependencies-static
     # Cannot use -o because of snapshot dependencies.
     - run: mvn deploy -o -s /tools/m2/settings.xml -DskipTests
 workflows:
