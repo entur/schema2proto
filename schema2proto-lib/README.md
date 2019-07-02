@@ -3,21 +3,30 @@
 ## Usage
 
 ```
-Usage: java schema2proto-<VERSION>.jar [--output=FILENAME]
-                           [--package=NAME] filename.xsd
-
-  --configFile=FILENAME           : path to configuration file
-
-OR
-
-  --filename=FILENAME             : store the result in FILENAME instead of standard output
-  --package=NAME                  : set namespace/package of the output file
-  --nestEnums=true|false          : nest enum declaration within messages that reference them, only supported by protobuf, defaults to true
-  --splitBySchema=true|false      : split output into namespace-specific files, defaults to false
-  --customTypeMappings=a:b,x:y    : represent schema types as specific output types (regex support)
-  --customNameMappings=cake:ake   : represent schema types as specific output types (regex support)
-  --typeInEnums=true|false        : include type as a prefix in enums, defaults to true
-  --includeMessageDocs=true|false : include documentation of messages in output, defaults to true
-  --includeFieldDocs=true|false   : include documentation for fields in output, defaults to true
+java Schema2Proto [OPTIONS] XSDFILE
+Generate proto files from xsd file. Either --configFile or --outputDirectory must be specified.
+    --configFile <<outputFilename>>                 name of configfile specifying these parameters (instead of supplying them on the command
+                                                    line)
+    --customImportLocations <folder1,folder2,...>   root folder for additional imports
+    --customImports <filename1,filename2,...>       add additional imports
+    --customNameMappings <cake:kake,...>            translate message and field names
+    --customTypeMappings <a:b,x:y>                  represent schema types as specific output types
+    --defaultProtoPackage <NAME>                    default proto package of the output file if no xsd target defaultProtoPackage is
+                                                    specified
+    --forceProtoPackage <NAME>                      force all types in this package
+    --includeFieldDocs <true|false>                 include documentation for fields in output, defaults to true
+    --includeMessageDocs <true|false>               include documentation of messages in output, defaults to true
+    --includeSourceLocationInDoc <true|false>       include xsd source location in docs, defaults to true
+    --includeValidationRules <true|false>           generate envoypropxy/protoc-gen-validate validation rules from xsd rules
+    --inheritanceToComposition <true|false>         define each xsd extension base level as a message field instead of copying all inherited
+                                                    fields
+    --options <option1name:option1value,...>        translate message and field names
+    --outputDirectory <DIRECTORYNAME>               path to output folder
+    --outputFilename <FILENAME>                     name of output file
 ```
 
+## Config parameters
+
+Each parameter is explained in the example config file. The parameters have identical name on the command line as well as in the config file.
+
+See [example configuration file with comments here](example_config/config.yml)

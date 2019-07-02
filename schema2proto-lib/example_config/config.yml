@@ -1,21 +1,35 @@
+# Output proto file with this name. Only used when there is 1 file generated. Multiple XML namespaces give multiple files
 outputFilename: generated-file.proto
+# Target directory to write resulting proto files. Proto files are placed in sub folders according to their package name
 outputDirectory: src/main/proto
-#namespace:
-#splitBySchema: false
-#nestEnums: false
-#typeInEnums: true
+# Include XSD annotation/documentation on message level
 includeMessageDocs: true
+# Include XSD annotation/documentation on field level
 includeFieldDocs: true
+# Add XSD file location as message/field comment as well. Useful when debugging where a particular field/message arised
 includeSourceLocationInDoc: false
+# If true, each xsd extension base is treated as a field member of the parent type.
+# Ie if structure is C extends B extends A, the resulting structure will be a message C with fields a and b referring respectively to message a and b.
+#  Any elements or attributes declared in message a or be will be contained there.
+# If false, all attributes and elements from all parents are added to the generated proto message.
 inheritanceToComposition: false
+# Any options that will be added to each proto file
 options:
   java_package: org.entur.protobuf
   java_multiple_files: true
+# Any extra imports added to each proto file. Must be used if referring to external types
 customImports: google/protobuf/timestamp.proto,google/protobuf/duration.proto
+# Any extra import locations to use when the linker is trying to validate the generated proto files.
+# Used in conjunction with customImports
 customImportLocations: pathToRootFolder1OfProtobufImport,pathToRootFolder2OfProtobufImport
+# Any type mappings to perform. Use this to either rename message types or to do replacement of default mappings from
+# xml primitives to proto primitives. Regex supported.
+# Since possibly several expressions may match, the declaration order is honoured
 customTypeMappings:
-  a: b
+  # Left side of colon (:) is replaced by right side.
+  ^(.*)a$: $1b
   x: y
+# Same as customTypeMappings except used for field names. Regex also supported here as well
 customNameMappings:
   a: b
   x: y
