@@ -32,8 +32,8 @@
     <distributionManagement>
         <snapshotRepository>
             <id>snapshots</id>
-            <name>entur-team-kontobasert-billettering-snapshot</name>
-            <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-snapshot</url>
+            <name>entur2-snapshots</name>
+            <url>https://entur2.jfrog.io/entur2/libs-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
 
