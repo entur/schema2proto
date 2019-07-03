@@ -188,19 +188,22 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private void processElement(XSElementDecl el, XSSchemaSet schemaSet) throws ConversionException {
+	private String processElement(XSElementDecl el, XSSchemaSet schemaSet) throws ConversionException {
 		XSComplexType cType;
 		XSSimpleType xs;
 
 		if (el.getType() instanceof XSComplexType && el.getType() != schemaSet.getAnyType()) {
 			cType = (XSComplexType) el.getType();
-			processComplexType(cType, el.getName(), schemaSet, null, null);
+			MessageType t = processComplexType(cType, el.getName(), schemaSet, null, null);
+			return t.getName();
 		} else if (el.getType() instanceof XSSimpleType && el.getType() != schemaSet.getAnySimpleType()) {
 			xs = el.getType().asSimpleType();
-			processSimpleType(xs, el.getName());
+			return processSimpleType(xs, el.getName());
 		} else {
 			LOGGER.info("Unhandled element " + el + " at " + el.getLocator().getSystemId() + " at line/col " + el.getLocator().getLineNumber() + "/"
 					+ el.getLocator().getColumnNumber());
+
+			return null;
 		}
 	}
 
@@ -292,25 +295,38 @@ public class SchemaParser implements ErrorHandler {
 					String doc = resolveDocumentationAnnotation(currElementDecl);
 
 					Options options = getFieldOptions(parentParticle);
-					int tag = messageType.getNextFieldNum();
-					Label label = getRange(parentParticle) ? Label.REPEATED : null;
-					Location location = getLocation(currElementDecl);
 
-					if (substitutables.size() == 1) {
+					if (substitutables.size() <= 1) {
 
+						Label label = getRange(parentParticle) ? Label.REPEATED : null;
+						Location location = getLocation(currElementDecl);
+						int tag = messageType.getNextFieldNum();
 						Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage),
 								location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
 						addField(messageType, field, isExtension);
 					} else {
 						List<Field> fields = new ArrayList<>();
 						for (XSElementDecl substitutable : substitutables) {
-							Field field = new Field(
-									NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
-											configuration.forceProtoPackage),
-									location, label, substitutable.getName(), doc, tag, null, substitutable.getType().getName(), options, false, true);
-							fields.add(field);
+							if (substitutable.isAbstract()) {
+
+							} else {
+								String substDoc = resolveDocumentationAnnotation(substitutable);
+
+								String typeName = substitutable.getType().getName();
+								if (typeName == null) {
+									typeName = processElement(substitutable, schemaSet);
+								}
+
+								int tag = messageType.getNextFieldNum();
+								Location location = getLocation(substitutable);
+								Field field = new Field(
+										NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
+												configuration.forceProtoPackage),
+										location, null, substitutable.getName(), substDoc, tag, null, typeName, options, false, true);
+								fields.add(field);
+							}
 						}
-						OneOf oneOf = new OneOf(currElementDecl.getName(), doc, fields);
+						OneOf oneOf = new OneOf(currElementDecl.getType().getName(), doc, fields);
 						addField(messageType, oneOf); // Repeated oneOf not allowed
 					}
 				} else {

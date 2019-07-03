@@ -504,16 +504,9 @@ public class ProtoSerializer {
 						}
 
 					}
-					for (Field field : mt.fields()) {
-						// Translate basic types as well
-						if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
-							String newFieldType = typeAndFieldNameMapper.translateType(field.getElementType());
-							if (!newFieldType.equals(field.getElementType())) {
-								LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
-								field.updateElementType(newFieldType);
-							}
-						}
-
+					translateTypes(mt.fields());
+					for (OneOf oneOf : mt.oneOfs()) {
+						translateTypes(oneOf.fields());
 					}
 				} else if (type instanceof EnumType) {
 					EnumType et = (EnumType) type;
@@ -534,6 +527,20 @@ public class ProtoSerializer {
 		}
 	}
 
+	private void translateTypes(List<Field> fields) {
+		for (Field field : fields) {
+			// Translate basic types as well
+			if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
+				String newFieldType = typeAndFieldNameMapper.translateType(field.getElementType());
+				if (!newFieldType.equals(field.getElementType())) {
+					LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
+					field.updateElementType(newFieldType);
+				}
+			}
+
+		}
+	}
+
 	private void updateTypeReferences(Map<String, ProtoFile> packageToProtoFileMap, String packageNameOfType, String oldName, String newName) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
 			updateTypeReferences(packageNameOfType, oldName, newName, protoFile.getValue().types());
@@ -548,14 +555,22 @@ public class ProtoSerializer {
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
 
-				for (Field field : mt.fields()) {
-					if (samePackage(field.packageName(), packageNameOfType)) {
-						String fieldType = field.getElementType();
-						if (fieldType.equals(oldName)) {
-							field.updateElementType(newName);
-							LOGGER.debug("Updating field " + oldName + " in type " + mt.getName() + " to " + newName);
-						}
-					}
+				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fields());
+
+				for (OneOf oneOf : mt.oneOfs()) {
+					updateTypeReferences(packageNameOfType, oldName, newName, mt, oneOf.fields());
+				}
+			}
+		}
+	}
+
+	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, MessageType mt, Collection<Field> fields) {
+		for (Field field : fields) {
+			if (samePackage(field.packageName(), packageNameOfType)) {
+				String fieldType = field.getElementType();
+				if (fieldType.equals(oldName)) {
+					field.updateElementType(newName);
+					LOGGER.debug("Updating field " + oldName + " in type " + mt.getName() + " to " + newName);
 				}
 			}
 		}
@@ -591,13 +606,21 @@ public class ProtoSerializer {
 			for (Type type : protoFile.getValue().types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
-						String fieldName = field.name();
-						String newFieldName = typeAndFieldNameMapper.translateFieldName(fieldName);
-						field.updateName(newFieldName);
+					translateFieldNames(mt.fields());
+
+					for (OneOf oneOf : mt.oneOfs()) {
+						translateFieldNames(oneOf.fields());
 					}
 				}
 			}
+		}
+	}
+
+	private void translateFieldNames(List<Field> fields) {
+		for (Field field : fields) {
+			String fieldName = field.name();
+			String newFieldName = typeAndFieldNameMapper.translateFieldName(fieldName);
+			field.updateName(newFieldName);
 		}
 	}
 
@@ -627,32 +650,34 @@ public class ProtoSerializer {
 			for (Type type : protoFile.getValue().types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
-						String fieldName = field.name();
-						boolean startsWithUnderscore = fieldName.startsWith(UNDERSCORE);
-						boolean endsWithUnderscore = fieldName.endsWith(UNDERSCORE);
-
-						String strippedFieldName = StringUtils.removeEnd(StringUtils.removeStart(fieldName, UNDERSCORE), UNDERSCORE);
-
-						String newFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, strippedFieldName);
-
-						if (endsWithUnderscore) {
-							newFieldName += "u"; // Trailing underscore not accepted by protoc for java
-						}
-
-						if (startsWithUnderscore) {
-							newFieldName = UNDERSCORE + newFieldName;
-						}
-
-						/*
-						 * if(fieldName.startsWith(UNDERSCORE)) { newFieldName = UNDERSCORE+newFieldName; } if(fieldName.endsWith(UNDERSCORE)) { newFieldName +=
-						 * UNDERSCORE; }
-						 */
-
-						field.updateName(newFieldName);
+					underscoreFieldNames(mt.fields());
+					for (OneOf oneOf : mt.oneOfs()) {
+						underscoreFieldNames(oneOf.fields());
 					}
 				}
 			}
+		}
+	}
+
+	private void underscoreFieldNames(List<Field> fields) {
+		for (Field field : fields) {
+			String fieldName = field.name();
+			boolean startsWithUnderscore = fieldName.startsWith(UNDERSCORE);
+			boolean endsWithUnderscore = fieldName.endsWith(UNDERSCORE);
+
+			String strippedFieldName = StringUtils.removeEnd(StringUtils.removeStart(fieldName, UNDERSCORE), UNDERSCORE);
+
+			String newFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, strippedFieldName);
+
+			if (endsWithUnderscore) {
+				newFieldName += "u"; // Trailing underscore not accepted by protoc for java
+			}
+
+			if (startsWithUnderscore) {
+				newFieldName = UNDERSCORE + newFieldName;
+			}
+
+			field.updateName(newFieldName);
 		}
 	}
 
