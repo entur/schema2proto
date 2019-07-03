@@ -40,6 +40,7 @@ package com.squareup.wire.schema;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
@@ -245,7 +246,7 @@ final class Pruner {
 		}
 	}
 
-	private void markFields(ProtoType declaringType, ImmutableList<Field> fields) {
+	private void markFields(ProtoType declaringType, List<Field> fields) {
 		for (Field field : fields) {
 			markField(declaringType, field);
 		}

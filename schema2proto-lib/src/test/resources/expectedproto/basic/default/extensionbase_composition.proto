@@ -8,7 +8,7 @@ message AbstractTopLevelComplexType {
 }
 // concreteTopLevelComplexType doc
 message ConcreteTopLevelComplexType {
-  AbstractTopLevelComplexType abstract_top_level_complex_type = 1;
+  AbstractTopLevelComplexType _abstract_top_level_complex_type = 1;
   string concrete_top_level_complex_type_attribute = 11;
   string element_in_concrete_complex_type = 21;
 }

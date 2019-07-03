@@ -629,10 +629,19 @@ public class ProtoSerializer {
 					MessageType mt = (MessageType) type;
 					for (Field field : mt.fields()) {
 						String fieldName = field.name();
-						String newFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
+						boolean startsWithUnderscore = fieldName.startsWith(UNDERSCORE);
+						boolean endsWithUnderscore = fieldName.endsWith(UNDERSCORE);
 
-						if (newFieldName.endsWith(UNDERSCORE)) {
-							newFieldName += "u";
+						String strippedFieldName = StringUtils.removeEnd(StringUtils.removeStart(fieldName, UNDERSCORE), UNDERSCORE);
+
+						String newFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, strippedFieldName);
+
+						if (endsWithUnderscore) {
+							newFieldName += "u"; // Trailing underscore not accepted by protoc for java
+						}
+
+						if (startsWithUnderscore) {
+							newFieldName = UNDERSCORE + newFieldName;
 						}
 
 						/*

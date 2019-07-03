@@ -48,9 +48,9 @@ import com.squareup.wire.schema.internal.parser.OneOfElement;
 public final class OneOf {
 	private final String name;
 	private final String documentation;
-	private final ImmutableList<Field> fields;
+	private final List<Field> fields;
 
-	public OneOf(String name, String documentation, ImmutableList<Field> fields) {
+	public OneOf(String name, String documentation, List<Field> fields) {
 		this.name = name;
 		this.documentation = documentation;
 		this.fields = fields;
@@ -64,7 +64,7 @@ public final class OneOf {
 		return documentation;
 	}
 
-	public ImmutableList<Field> fields() {
+	public List<Field> fields() {
 		return fields;
 	}
 

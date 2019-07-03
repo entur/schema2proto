@@ -89,6 +89,10 @@ public final class MessageType extends Type {
 
 	public void advanceFieldNum() {
 
+		if (fieldNum == 0) {
+			return; // No need to advance num
+		}
+
 		int newFieldNum = (fieldNum + FIELD_NUM_INCREMENT) - (fieldNum % FIELD_NUM_INCREMENT);
 		if (newFieldNum - (FIELD_NUM_INCREMENT / 3) < fieldNum) {
 			// Ensure at least 30% field nums available for later

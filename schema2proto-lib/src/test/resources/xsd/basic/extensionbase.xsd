@@ -9,7 +9,9 @@
         <xs:attribute name="abstractTopLevelComplexTypeAttribute" type="xs:string"/>
     </xs:complexType>
 
-    <xs:complexType name="concreteTopLevelComplexType">
+    <xs:element name="concreteTopLevelComplex">
+
+    <xs:complexType >
         <xs:annotation>
             <xs:documentation>concreteTopLevelComplexType doc</xs:documentation>
         </xs:annotation>
@@ -23,6 +25,8 @@
         </xs:complexContent>
 
     </xs:complexType>
+
+    </xs:element>
 
 
 </xs:schema>

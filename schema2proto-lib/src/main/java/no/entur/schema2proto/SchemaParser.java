@@ -269,6 +269,10 @@ public class SchemaParser implements ErrorHandler {
 
 	}
 
+	private void addField(MessageType message, OneOf oneOf) {
+		message.oneOfs().add(oneOf);
+	}
+
 	private void navigateSubTypes(XSParticle parentParticle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
 			boolean isExtension) throws ConversionException {
 
@@ -280,11 +284,11 @@ public class SchemaParser implements ErrorHandler {
 				processedXmlObjects.add(currElementDecl);
 
 				XSType type = currElementDecl.getType();
+				Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
 
 				if (type != null && type.isComplexType() && type.getName() != null) {
 
 					// COMPLEX TYPE
-
 					String doc = resolveDocumentationAnnotation(currElementDecl);
 
 					Options options = getFieldOptions(parentParticle);
@@ -292,10 +296,23 @@ public class SchemaParser implements ErrorHandler {
 					Label label = getRange(parentParticle) ? Label.REPEATED : null;
 					Location location = getLocation(currElementDecl);
 
-					Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage),
-							location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
-					addField(messageType, field, isExtension);
+					if (substitutables.size() == 1) {
 
+						Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage),
+								location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
+						addField(messageType, field, isExtension);
+					} else {
+						List<Field> fields = new ArrayList<>();
+						for (XSElementDecl substitutable : substitutables) {
+							Field field = new Field(
+									NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
+											configuration.forceProtoPackage),
+									location, label, substitutable.getName(), doc, tag, null, substitutable.getType().getName(), options, false, true);
+							fields.add(field);
+						}
+						OneOf oneOf = new OneOf(currElementDecl.getName(), doc, fields);
+						addField(messageType, oneOf); // Repeated oneOf not allowed
+					}
 				} else {
 
 					if (type.isSimpleType()) {
@@ -422,7 +439,19 @@ public class SchemaParser implements ErrorHandler {
 		String typeName = type.getName();
 		if (typeName == null) {
 
-			if (type.asSimpleType().isPrimitive()) {
+			if (type.asSimpleType().isRestriction()) {
+
+				try {
+					return findFieldType(type.asSimpleType().asRestriction().getBaseType());
+
+				} catch (ClassCastException e) {
+					LOGGER.warn(
+							"Error getting base type for restriction " + type + ". Appears to be a bug in xsom. Fallback to string field type (best guess)");
+					return "string";
+				}
+
+				// findFieldType((findBaseType(restriction));
+			} else if (type.asSimpleType().isPrimitive()) {
 				typeName = type.asSimpleType().getName();
 			} else if (type.asSimpleType().isList()) {
 				XSListSimpleType asList = type.asSimpleType().asList();
@@ -521,7 +550,7 @@ public class SchemaParser implements ErrorHandler {
 
 		XSType parent = complexType.getBaseType();
 
-		if (configuration.inheritanceToComposition) {
+		if (configuration.inheritanceToComposition && complexType.getContentType().asParticle() != null) {
 
 			List<MessageType> parentTypes = new ArrayList<>();
 
@@ -535,7 +564,7 @@ public class SchemaParser implements ErrorHandler {
 				parent = parent.getBaseType();
 			}
 
-			if (!complexType.isAbstract()) {
+			if (!isAbstract(complexType)) {
 				Collections.reverse(parentTypes);
 				for (MessageType parentMessageType : parentTypes) {
 					String fieldDoc = parentMessageType.documentation();
@@ -546,8 +575,8 @@ public class SchemaParser implements ErrorHandler {
 					Label label = null;
 					Location fieldLocation = getLocation(complexType);
 
-					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, label, parentMessageType.getName(), fieldDoc, tag, null,
-							parentMessageType.getName(), fieldOptions, extension, true);
+					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, label, "_" + parentMessageType.getName(), fieldDoc, tag,
+							null, parentMessageType.getName(), fieldOptions, extension, true);
 
 					addField(messageType, field, false);
 				}
@@ -643,6 +672,22 @@ public class SchemaParser implements ErrorHandler {
 		nestlevel--;
 		return messageType;
 
+	}
+
+	private boolean isAbstract(XSComplexType complexType) {
+		if (complexType.isAbstract()) {
+			return true;
+		} else {
+			if (!complexType.isGlobal()) {
+				return false;
+			} else if (complexType.getElementDecls().size() > 0) {
+				long numAbstractElementDecls = complexType.getElementDecls().stream().map(e -> e.isAbstract()).count();
+				return complexType.getElementDecls().size() == numAbstractElementDecls;
+			} else {
+				return true;
+			}
+
+		}
 	}
 
 	private String findPackageNameForType(MessageType parentMessageType) {

@@ -73,6 +73,12 @@ public class SchemaParserTest {
 	}
 
 	@Test
+	public void testBasicInheritanceToComposition() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "inheritancetocomposition.proto", generatedRootFolder,
+				generateProtobuf("basic/inheritancetocomposition.xsd", null, null, null, true, "default", "default.proto"));
+	}
+
+	@Test
 	public void testBasicExtensionBase2() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "extensionbase2.proto", generatedRootFolder,
 				generateProtobuf("basic/extensionbase2.xsd", "default", "default.proto"));

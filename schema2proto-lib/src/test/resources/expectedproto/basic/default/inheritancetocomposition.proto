@@ -1,0 +1,37 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+
+message AbstractA {
+  string element_a = 1;
+}
+
+message AbstractB {
+  string element_b = 1;
+}
+
+message ConcreteCType {
+  AbstractA _abstract_a = 1;
+  AbstractB _abstract_b = 2;
+  string element_c = 41;
+}
+
+message SiteElementRefStructure {
+  string ref = 1;
+  // SimpleContent value of element
+  string value = 2;
+}
+
+message SiteComponentRefStructure {
+  string ref = 2;
+  // SimpleContent value of element
+  string value = 3;
+}
+
+message StopPlaceSpaceRefStructure {
+  string ref = 2;
+  // SimpleContent value of element
+  string value = 3;
+}
+

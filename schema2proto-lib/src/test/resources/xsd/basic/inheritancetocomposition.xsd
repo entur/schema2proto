@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+
+    <xsd:complexType name="AbstractA" abstract="true">
+        <xsd:sequence>
+           <xsd:element name="elementA" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="AbstractB" abstract="true">
+        <xsd:complexContent>
+            <xsd:extension base="AbstractA">
+                <xsd:sequence>
+                    <xsd:element name="elementB" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+
+    <xsd:element name="ConcreteC">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="AbstractB">
+                    <xsd:sequence>
+                        <xsd:element name="elementC" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+
+    <xsd:complexType name="StopPlaceSpaceRefStructure">
+        <xsd:simpleContent>
+            <xsd:extension base="SiteComponentRefStructure"/>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiteComponentRefStructure">
+        <xsd:simpleContent>
+            <xsd:restriction base="SiteElementRefStructure">
+                <xsd:attribute name="ref" type="xsd:string" use="required">
+
+                </xsd:attribute>
+            </xsd:restriction>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SiteElementRefStructure">
+        <xsd:simpleContent>
+            <xsd:restriction base="ObjectIdType">
+                <xsd:attribute name="ref" type="xsd:string" use="required">
+                </xsd:attribute>
+            </xsd:restriction>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ObjectIdType">
+        <xsd:restriction base="xsd:normalizedString"/>
+    </xsd:simpleType>
+
+
+
+</xsd:schema>
