@@ -89,6 +89,9 @@ public class ProtoSerializer {
 		// Add imports specified in config file
 		addConfigurationSpecifiedImports(packageToProtoFileMap);
 
+		// Find out if a file recursively imports itself
+		resolveRecursiveImports(packageToProtoFileMap);
+
 		// Handle cases where identical field name comes from both attribute and element (but with different case)
 		handleFieldNameCaseInsensitives(packageToProtoFileMap);
 
@@ -378,6 +381,55 @@ public class ProtoSerializer {
 				protoFile.getValue().options().add(optionElement);
 			}
 		}
+	}
+
+	private void resolveRecursiveImports(Map<String, ProtoFile> packageToProtoFileMap) {
+
+		Map<String, List<String>> imports = new HashMap<>();
+		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
+			ProtoFile protoFile = protoFileEntry.getValue();
+
+			List<String> fileImports = new ArrayList<>();
+			fileImports.addAll(protoFile.imports());
+			for (int i = 0; i < fileImports.size(); i++) {
+				// Removing path-info from fileimport
+				fileImports.set(i, fileImports.get(i).substring(fileImports.get(i).lastIndexOf("/") + 1));
+			}
+			imports.put(protoFile.toString(), fileImports);
+		}
+
+		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
+			ProtoFile protoFile = protoFileEntry.getValue();
+			String filename = protoFile.location().getPath();
+			if (hasRecursiveImports(imports, filename, filename)) {
+				LOGGER.error("File {} recursively imports itself.", filename);
+				// TODO: Extract affected types to a separate, common ProtoFile
+			}
+		}
+
+	}
+
+	/**
+	 * Checks imports recursively to resolve import-loops. E.g. A imports B, B imports C, C imports A
+	 *
+	 * @param imports
+	 * @param rootFilename
+	 * @param filename
+	 * @return
+	 */
+	private boolean hasRecursiveImports(Map<String, List<String>> imports, String rootFilename, String filename) {
+		if (imports.containsKey(filename)) {
+			List<String> currentImports = imports.get(filename);
+			if (currentImports.contains(rootFilename)) {
+				return true;
+			}
+			for (String currImport : currentImports) {
+				if (hasRecursiveImports(imports, rootFilename, currImport)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void addConfigurationSpecifiedImports(Map<String, ProtoFile> packageToProtoFileMap) {
