@@ -31,6 +31,7 @@ public class TypeAndNameMapper {
 	private Map<Pattern, String> typeMappings = new LinkedHashMap<>();
 	private Map<Pattern, String> nameMappings = new LinkedHashMap<>();
 	private Set<String> reservedJavaKeywords = new HashSet<>();
+	private List<FieldPath> ignoreFieldPaths;
 
 	public TypeAndNameMapper(Schema2ProtoConfiguration configuration) {
 		typeMappings.putAll(getStandardXsdTypeMappings());
@@ -42,6 +43,8 @@ public class TypeAndNameMapper {
 		updateMappings(nameMappings, configuration.customNameMappings);
 
 		reservedJavaKeywords.addAll(getReservedWords());
+
+		this.ignoreFieldPaths = configuration.ignoreOutputFields;
 
 	}
 
@@ -156,6 +159,16 @@ public class TypeAndNameMapper {
 		} else {
 			return fieldName;
 		}
+	}
+
+	public boolean ignoreOutputField(String packageName, String messageName, String fieldName) {
+		for (FieldPath f : ignoreFieldPaths) {
+			if (f.matches(packageName, messageName, fieldName)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private Set<String> getReservedWords() {

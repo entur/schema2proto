@@ -47,7 +47,7 @@ import com.squareup.wire.schema.internal.parser.OneOfElement;
 
 public final class OneOf {
 	private final String name;
-	private final String documentation;
+	private String documentation;
 	private final List<Field> fields;
 
 	public OneOf(String name, String documentation, List<Field> fields) {
@@ -106,5 +106,18 @@ public final class OneOf {
 			));
 		}
 		return elements.build();
+	}
+
+	public void updateDocumentation(String documentation) {
+		this.documentation = documentation;
+	}
+
+	@Override
+	public String toString() {
+		return "OneOf [" +
+				"name='" + name + '\'' +
+				", documentation='" + documentation + '\'' +
+				", fields=" + fields +
+				']';
 	}
 }

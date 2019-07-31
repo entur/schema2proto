@@ -51,7 +51,7 @@ public final class MessageType extends Type {
 	public static final int FIELD_NUM_INCREMENT = 10;
 	private ProtoType protoType;
 	private final Location location;
-	private final String documentation;
+	private String documentation;
 	private String name;
 	private final List<Field> declaredFields;
 	private final List<Field> extensionFields;
@@ -355,5 +355,13 @@ public final class MessageType extends Type {
 		return new MessageElement(location, name, documentation, Type.toElements(nestedTypes), options.toElements(), Reserved.toElements(reserveds),
 				Field.toElements(declaredFields), OneOf.toElements(oneOfs), Extensions.toElements(extensionsList), Collections.emptyList() // groups
 		);
+	}
+
+	public void updateDocumentation(String documentation) {
+		this.documentation = documentation;
+	}
+
+	public void removeOneOf(OneOf oneOfToRemove) {
+		oneOfs.remove(oneOfToRemove);
 	}
 }

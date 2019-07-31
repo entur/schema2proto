@@ -23,6 +23,7 @@ package no.entur.schema2proto;
  * #L%
  */
 
+import java.util.List;
 import java.util.Map;
 
 public class Schema2ProtoConfigFile {
@@ -34,8 +35,9 @@ public class Schema2ProtoConfigFile {
 	// public boolean splitBySchema = false;
 	public Map<String, String> customTypeMappings;
 	public Map<String, String> customNameMappings;
-	public String customImports;
-	public String customImportLocations;
+	public List<String> customImports;
+	public List<String> customImportLocations;
+	public List<String> ignoreOutputFields;
 
 	public Map<String, Object> options;
 	// public boolean nestEnums = false;

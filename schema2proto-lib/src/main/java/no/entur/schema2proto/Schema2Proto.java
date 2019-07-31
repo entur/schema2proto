@@ -40,6 +40,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -63,6 +64,7 @@ public class Schema2Proto {
 	private static final String OPTION_CUSTOM_IMPORT_LOCATIONS = "customImportLocations";
 	private static final String OPTION_CUSTOM_NAME_MAPPINGS = "customNameMappings";
 	private static final String OPTION_CUSTOM_TYPE_MAPPINGS = "customTypeMappings";
+	private static final String OPTION_IGNORE_OUTPUT_FIELDS = "ignoreOutputFields";
 	// private static final String OPTION_SPLIT_BY_SCHEMA = "splitBySchema";
 //	private static final String OPTION_NEST_ENUMS = "nestEnums";
 	private static final String OPTION_CONFIG_FILE = "configFile";
@@ -178,6 +180,13 @@ public class Schema2Proto {
 				.hasArg()
 				.argName("folder1,folder2,...")
 				.desc("root folder for additional imports")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_IGNORE_OUTPUT_FIELDS)
+				.hasArg()
+				.argName("packageName1/messageName1/fieldName1, packageName2/...")
+				.desc("output field names to ignore")
 				.required(false)
 				.build());
 		/*
@@ -305,16 +314,22 @@ public class Schema2Proto {
 			}
 
 			if (config.customImports != null) {
-				for (String importStatment : config.customImports.split(",")) {
+				for (String importStatment : config.customImports) {
 					configuration.customImports.add(importStatment);
 				}
 
 			}
 			if (config.customImportLocations != null) {
-				for (String importLocation : config.customImportLocations.split(",")) {
+				for (String importLocation : config.customImportLocations) {
 					configuration.customImportLocations.add(importLocation);
 				}
+			}
 
+			if (config.ignoreOutputFields != null) {
+				for (String ignoreOutputField : config.ignoreOutputFields) {
+					String[] split = StringUtils.split(ignoreOutputField, "/");
+					configuration.ignoreOutputFields.add(new FieldPath(split[0], split[1], split[2]));
+				}
 			}
 
 			return configuration;
@@ -409,6 +424,13 @@ public class Schema2Proto {
 			}
 		}
 		configuration.customImportLocations = importLocations;
+
+		if (cmd.hasOption(OPTION_IGNORE_OUTPUT_FIELDS)) {
+			for (String ignoreOutputField : cmd.getOptionValue(OPTION_IGNORE_OUTPUT_FIELDS).split(",")) {
+				String[] split = StringUtils.split(ignoreOutputField, "/");
+				configuration.ignoreOutputFields.add(new FieldPath(split[0], split[1], split[2]));
+			}
+		}
 
 //		if (cmd.hasOption(OPTION_NEST_ENUMS)) {
 //			configuration.nestEnums = Boolean.parseBoolean(cmd.getOptionValue(OPTION_NEST_ENUMS));

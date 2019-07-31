@@ -40,6 +40,7 @@ public class Schema2ProtoConfiguration {
 	public List<String> customImports = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
 	public Map<String, Object> options = new HashMap<>();
+	public List<FieldPath> ignoreOutputFields = new ArrayList<>();
 	// public boolean nestEnums = false;
 	// public boolean typeInEnums = true;
 	public boolean includeMessageDocs = true;

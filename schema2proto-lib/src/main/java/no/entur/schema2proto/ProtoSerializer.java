@@ -45,6 +45,7 @@ public class ProtoSerializer {
 
 	public static final String UNDERSCORE = "_";
 	public static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
+	public static final String DASH = "-";
 	private Schema2ProtoConfiguration configuration;
 
 	private TypeAndNameMapper typeAndFieldNameMapper;
@@ -70,6 +71,9 @@ public class ProtoSerializer {
 
 		// Remove temporary generated name suffix
 		replaceGeneratedSuffix(packageToProtoFileMap, SchemaParser.GENERATED_NAME_SUFFIX_UNIQUENESS, SchemaParser.TYPE_SUFFIX);
+
+		// Remove unwanted fields
+		removeUnwantedFields(packageToProtoFileMap);
 
 		// Uppercase message names
 		uppercaseMessageNames(packageToProtoFileMap);
@@ -153,6 +157,66 @@ public class ProtoSerializer {
 		// Parse and verify written proto files
 		parseWrittenFiles(writtenProtoFiles);
 
+	}
+
+	private void removeUnwantedFields(Map<String, ProtoFile> packageToProtoFileMap) {
+		for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
+			ProtoFile file = entry.getValue();
+			for (Type type : file.types()) {
+				if (type instanceof MessageType) {
+					MessageType mt = (MessageType) type;
+					List<Field> fieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), mt.fields());
+					for (Field f : fieldsToRemove) {
+						mt.removeDeclaredField(f);
+						String documentation = StringUtils.trimToEmpty(mt.documentation());
+						documentation += " NOTE: Removed field " + f;
+						mt.updateDocumentation(documentation);
+					}
+
+					List<OneOf> oneOfsToRemove = new ArrayList<>();
+
+					for (OneOf oneOf : mt.oneOfs()) {
+
+						List<Field> oneOfFieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), oneOf.fields());
+						for (Field f : oneOfFieldsToRemove) {
+							oneOf.fields().remove(f);
+
+							String documentation = StringUtils.trimToEmpty(mt.documentation());
+							documentation += " NOTE: Removed field " + f;
+							oneOf.updateDocumentation(documentation);
+						}
+
+						if (oneOf.fields().size() == 0) {
+							// remove oneof
+							oneOfsToRemove.add(oneOf);
+						}
+					}
+
+					// Remove empty oneOfs
+					for (OneOf oneOfToRemove : oneOfsToRemove) {
+
+						mt.removeOneOf(oneOfToRemove);
+						String documentation = StringUtils.trimToEmpty(mt.documentation());
+						documentation += " NOTE: Removed empty oneOf " + oneOfToRemove;
+						mt.updateDocumentation(documentation);
+					}
+
+				}
+			}
+		}
+	}
+
+	private List<Field> removeUnwantedFields(String packageName, String messageName, List<Field> fields) {
+
+		List<Field> fieldsToRemove = new ArrayList<>();
+
+		for (Field field : fields) {
+			if (typeAndFieldNameMapper.ignoreOutputField(packageName, messageName, field.name())) {
+				fieldsToRemove.add(field);
+			}
+		}
+
+		return fieldsToRemove;
 	}
 
 	private File createPackageFolderStructure(File outputDirectory, String packageName) {
@@ -289,8 +353,11 @@ public class ProtoSerializer {
 			if (enumValue.equalsIgnoreCase("UNSPECIFIED")) {
 				enumValue += "Value";
 			}
-			String escapedValue = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, enumValue);
-			ec.updateName(enumValuePrefix + escapedValue);
+			String uppercaseEnumValue = enumValue;
+			if (!StringUtils.isAllUpperCase(enumValue)) {
+				uppercaseEnumValue = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, enumValue);
+			}
+			ec.updateName(enumValuePrefix + uppercaseEnumValue);
 		}
 		EnumConstant unspecified = new EnumConstant(new Location("", "", 0, 0), enumValuePrefix + "UNSPECIFIED", 0, "Default",
 				new Options(Options.ENUM_VALUE_OPTIONS, optionElementsUnspecified));
@@ -451,26 +518,34 @@ public class ProtoSerializer {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
-						String packageName = StringUtils.trimToNull(field.packageName());
-						if (file.packageName() != null && file.packageName().equals(packageName)) {
-							field.clearPackageName();
-						} else if (packageName != null) {
-							// Add import
-							ProtoFile fileToImport = packageToProtoFileMap.get(packageName);
-							if (fileToImport != null) {
-								imports.add(getPathFromPackageName(packageName) + "/" + fileToImport.location().getPath());
-							} else {
-								LOGGER.error("Tried to create import for field packageName " + packageName + ", but no such protofile exist");
-							}
-						}
+					computeLocalImports(packageToProtoFileMap, file, imports, mt.fields());
+					for (OneOf oneOf : mt.oneOfs()) {
+						computeLocalImports(packageToProtoFileMap, file, imports, oneOf.fields());
 					}
+
 				}
 			}
 
 			file.imports().clear();
 			file.imports().addAll(imports);
 
+		}
+	}
+
+	private void computeLocalImports(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile file, SortedSet<String> imports, List<Field> fields) {
+		for (Field field : fields) {
+			String packageName = StringUtils.trimToNull(field.packageName());
+			if (file.packageName() != null && file.packageName().equals(packageName)) {
+				field.clearPackageName();
+			} else if (packageName != null) {
+				// Add import
+				ProtoFile fileToImport = packageToProtoFileMap.get(packageName);
+				if (fileToImport != null) {
+					imports.add(getPathFromPackageName(packageName) + "/" + fileToImport.location().getPath());
+				} else {
+					LOGGER.error("Tried to create import for field packageName " + packageName + ", but no such protofile exist");
+				}
+			}
 		}
 	}
 
@@ -481,15 +556,23 @@ public class ProtoSerializer {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
+					moveFieldPackageNameToFieldTypeName(mt.fields());
 
-						String fieldPackageName = StringUtils.trimToNull(field.packageName());
-						if (fieldPackageName != null) {
-							field.clearPackageName();
-							field.updateElementType(fieldPackageName + "." + field.getElementType());
-						}
+					for (OneOf oneOf : mt.oneOfs()) {
+						moveFieldPackageNameToFieldTypeName(oneOf.fields());
 					}
+
 				}
+			}
+		}
+	}
+
+	private void moveFieldPackageNameToFieldTypeName(List<Field> fields) {
+		for (Field field : fields) {
+			String fieldPackageName = StringUtils.trimToNull(field.packageName());
+			if (fieldPackageName != null) {
+				field.clearPackageName();
+				field.updateElementType(fieldPackageName + "." + field.getElementType());
 			}
 		}
 	}
@@ -543,8 +626,6 @@ public class ProtoSerializer {
 
 					String messageName = mt.getName();
 					String newMessageName = typeAndFieldNameMapper.translateType(messageName);
-					if (newMessageName.contains("_"))
-						LOGGER.info(messageName + "  <--->  " + newMessageName);
 
 					if (!messageName.equals(newMessageName)) {
 						if (!usedNames.contains(newMessageName)) {
@@ -720,6 +801,9 @@ public class ProtoSerializer {
 			String strippedFieldName = StringUtils.removeEnd(StringUtils.removeStart(fieldName, UNDERSCORE), UNDERSCORE);
 
 			String newFieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, strippedFieldName);
+
+			// Remove all dashes
+			newFieldName = StringUtils.remove(newFieldName, DASH);
 
 			if (endsWithUnderscore) {
 				newFieldName += "u"; // Trailing underscore not accepted by protoc for java
