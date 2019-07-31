@@ -7,6 +7,7 @@
             <xs:element type="xs:string" name="repeatedElement"/>
         </xs:sequence>
         <xs:attribute name="abstractTopLevelComplexTypeAttribute" type="xs:string"/>
+        <xs:attribute name="shouldBePrefixed" type="xs:string"/>
     </xs:complexType>
 
     <xs:complexType name="concreteTopLevelComplexType">
@@ -14,7 +15,8 @@
         <xs:complexContent>
             <xs:extension base="abstractTopLevelComplexType">
                 <xs:sequence>
-                    <xs:element type="xs:string" name="repeatedElement"/>
+                    <xs:element type="xs:string" name="repeatedElement" minOccurs="2"/>
+                    <xs:element type="xs:string" name="shouldBePrefixed"/>
                 </xs:sequence>
                 <xs:attribute name="concreteTopLevelComplexTypeAttribute" type="xs:string"/>
 

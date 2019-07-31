@@ -40,7 +40,6 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Extensions;
@@ -250,34 +249,39 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private void addField(MessageType message, Field field, boolean acceptDuplicate) {
+	private void addField(MessageType message, Field newField) {
+		addField(message, null, newField);
+	}
 
-		ImmutableList<Field> fields = message.fields();
+	private void addField(MessageType message, OneOf oneOf, Field newField) {
+		// Remove old fields of same type (element or attribute)
 		Field existingField = null;
-		for (Field f : fields) {
-			if (field.name().equals(f.name())) {
+		for (Field f : message.fieldsAndOneOfFields()) {
+			if (newField.name().equals(f.name())) {
 				existingField = f;
 				break;
 			}
 		}
-
 		if (existingField != null) {
-			message.removeDeclaredField(existingField);
-			if (acceptDuplicate) {
-				field.setLabel(Label.REPEATED);
+			// Override should happen
+			if (existingField.isFromAttribute() && !newField.isFromAttribute()) {
+				existingField.updateName("attr_" + existingField.name());
+			} else if (!existingField.isFromAttribute() && newField.isFromAttribute()) {
+				newField.updateName("attr_" + newField.name());
+			} else {
+				message.removeDeclaredField(existingField);
 			}
 		}
 
-		message.addField(field);
-
+		if (oneOf != null) {
+			oneOf.addField(newField);
+		} else {
+			message.addField(newField);
+		}
 	}
 
-	private void addField(MessageType message, OneOf oneOf) {
-		message.oneOfs().add(oneOf);
-	}
-
-	private void navigateSubTypes(XSParticle parentParticle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
-			boolean isExtension) throws ConversionException {
+	private void navigateSubTypes(XSParticle parentParticle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet)
+			throws ConversionException {
 
 		XSTerm currTerm = parentParticle.getTerm();
 		if (currTerm.isElementDecl()) {
@@ -303,9 +307,11 @@ public class SchemaParser implements ErrorHandler {
 						int tag = messageType.getNextFieldNum();
 						Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage),
 								location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
-						addField(messageType, field, isExtension);
+						addField(messageType, field);
 					} else {
 						List<Field> fields = new ArrayList<>();
+						OneOf oneOf = new OneOf(currElementDecl.getType().getName(), doc, fields);
+						messageType.oneOfs().add(oneOf);
 						for (XSElementDecl substitutable : substitutables) {
 							if (substitutable.isAbstract()) {
 
@@ -323,11 +329,9 @@ public class SchemaParser implements ErrorHandler {
 										NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
 												configuration.forceProtoPackage),
 										location, null, substitutable.getName(), substDoc, tag, null, typeName, options, false, true);
-								fields.add(field);
+								addField(messageType, oneOf, field); // Repeated oneOf not allowed
 							}
 						}
-						OneOf oneOf = new OneOf(currElementDecl.getType().getName(), doc, fields);
-						addField(messageType, oneOf); // Repeated oneOf not allowed
 					}
 				} else {
 
@@ -348,7 +352,7 @@ public class SchemaParser implements ErrorHandler {
 							Field field = new Field(
 									NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage), location,
 									label, currElementDecl.getName(), doc, tag, null, enumName, options, extension, true);
-							addField(messageType, field, isExtension);
+							addField(messageType, field);
 
 							XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
 							// checkType(restriction.getBaseType());
@@ -372,7 +376,7 @@ public class SchemaParser implements ErrorHandler {
 							// as
 							// validation
 							// parameters
-							addField(messageType, field, isExtension);
+							addField(messageType, field);
 						}
 					} else if (type.isComplexType()) {
 						XSComplexType complexType = type.asComplexType();
@@ -403,7 +407,7 @@ public class SchemaParser implements ErrorHandler {
 										NamespaceHelper.xmlNamespaceToProtoFieldPackagename(complexType.getTargetNamespace(), configuration.forceProtoPackage),
 										fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), options, false,
 										true);
-								addField(messageType, field, isExtension);
+								addField(messageType, field);
 
 							}
 						}
@@ -417,7 +421,7 @@ public class SchemaParser implements ErrorHandler {
 
 			if (modelGroup != null) {
 
-				groupProcessing(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet, isExtension);
+				groupProcessing(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet);
 			}
 
 		}
@@ -492,12 +496,17 @@ public class SchemaParser implements ErrorHandler {
 
 	private boolean getRange(XSParticle part) {
 		int max = 1;
+		int min = 1;
+
+		if (part.getMinOccurs() != null) {
+			min = part.getMinOccurs().intValue();
+		}
 
 		if (part.getMaxOccurs() != null) {
 			max = part.getMaxOccurs().intValue();
 		}
 
-		return max > 1 || max == -1;
+		return max > 1 || max == -1 || min > 1;
 	}
 
 	/**
@@ -594,7 +603,7 @@ public class SchemaParser implements ErrorHandler {
 					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, label, "_" + parentMessageType.getName(), fieldDoc, tag,
 							null, parentMessageType.getName(), fieldOptions, extension, true);
 
-					addField(messageType, field, false);
+					addField(messageType, field);
 				}
 				if (parentTypes.size() > 0) {
 					messageType.advanceFieldNum();
@@ -611,8 +620,6 @@ public class SchemaParser implements ErrorHandler {
 			processAttributes(complexType, messageType, processedXmlObjects);
 		}
 
-		boolean isExtension = complexType.getExplicitContent() == null ? false : true;
-
 		if (complexType.getContentType().asParticle() != null) {
 			XSParticle particle = complexType.getContentType().asParticle();
 
@@ -622,7 +629,7 @@ public class SchemaParser implements ErrorHandler {
 			modelGroup = getModelGroup(modelGroupDecl, term);
 
 			if (modelGroup != null) {
-				groupProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, isExtension);
+				groupProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet);
 			}
 
 		} else if (complexType.getContentType().asSimpleType() != null) {
@@ -648,7 +655,7 @@ public class SchemaParser implements ErrorHandler {
 
 					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, null, "value",
 							"SimpleContent value of element", tag, null, simpleTypeName, options, extension, true);
-					addField(messageType, field, false);
+					addField(messageType, field);
 
 				} else if (basicTypes.contains(xsSimpleType.getName())) {
 
@@ -661,7 +668,7 @@ public class SchemaParser implements ErrorHandler {
 
 					Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(), options,
 							extension, true);
-					addField(messageType, field, false);
+					addField(messageType, field);
 
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
@@ -678,7 +685,7 @@ public class SchemaParser implements ErrorHandler {
 
 						Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, primitiveType.getName(),
 								fieldOptions, extension, true);
-						addField(messageType, field, false);
+						addField(messageType, field);
 
 					}
 				}
@@ -725,14 +732,14 @@ public class SchemaParser implements ErrorHandler {
 		return new Location("", l.getSystemId(), l.getLineNumber(), l.getColumnNumber());
 	}
 
-	private void processAttributes(XSAttContainer complexType, MessageType messageType, Set<Object> processedXmlObjects) {
-		Iterator<? extends XSAttributeUse> iterator = complexType.iterateDeclaredAttributeUses();
+	private void processAttributes(XSAttContainer xsAttContainer, MessageType messageType, Set<Object> processedXmlObjects) {
+		Iterator<? extends XSAttributeUse> iterator = xsAttContainer.iterateDeclaredAttributeUses();
 		while (iterator.hasNext()) {
 			XSAttributeUse attr = iterator.next();
 			processAttribute(messageType, processedXmlObjects, attr);
 		}
 
-		Iterator<? extends XSAttGroupDecl> iterateAttGroups = complexType.iterateAttGroups();
+		Iterator<? extends XSAttGroupDecl> iterateAttGroups = xsAttContainer.iterateAttGroups();
 		while (iterateAttGroups.hasNext()) {
 			// Recursive
 			processAttributes(iterateAttGroups.next(), messageType, processedXmlObjects);
@@ -764,7 +771,8 @@ public class SchemaParser implements ErrorHandler {
 					Field field = new Field(
 							NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(), configuration.forceProtoPackage),
 							fieldLocation, null, fieldName, doc, tag, null, enumName, fieldOptions, extension, false);
-					addField(messageType, field, false);
+					field.setFromAttribute(true);
+					addField(messageType, field);
 
 				} else {
 
@@ -780,7 +788,8 @@ public class SchemaParser implements ErrorHandler {
 
 					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, null, fieldName, doc, tag, null, typeName,
 							options, false, false);
-					addField(messageType, field, false);
+					field.setFromAttribute(true);
+					addField(messageType, field);
 
 				}
 			}
@@ -797,8 +806,8 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private void groupProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
-			boolean isExtension) throws ConversionException {
+	private void groupProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet)
+			throws ConversionException {
 		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
 
 		// We handle "all" and "sequence", but not "choice"
@@ -809,10 +818,10 @@ public class SchemaParser implements ErrorHandler {
 		for (int i = 0; i < children.length; i++) {
 			XSTerm currTerm = children[i].getTerm();
 			if (currTerm.isModelGroup()) {
-				groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, isExtension);
+				groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet);
 			} else {
 				// Create the new complex type for root types
-				navigateSubTypes(children[i], messageType, processedXmlObjects, schemaSet, isExtension);
+				navigateSubTypes(children[i], messageType, processedXmlObjects, schemaSet);
 			}
 		}
 //		} else if (compositor.equals(XSModelGroup.CHOICE)) {

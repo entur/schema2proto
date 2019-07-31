@@ -65,6 +65,16 @@ public final class Field {
 	private Object packed;
 	private boolean redacted;
 
+	public boolean isFromAttribute() {
+		return fromAttribute;
+	}
+
+	public void setFromAttribute(boolean fromAttribute) {
+		this.fromAttribute = fromAttribute;
+	}
+
+	private boolean fromAttribute = false;
+
 	public boolean isFromElement() {
 		return fromElement;
 	}

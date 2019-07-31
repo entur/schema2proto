@@ -114,10 +114,10 @@ public final class OneOf {
 
 	@Override
 	public String toString() {
-		return "OneOf [" +
-				"name='" + name + '\'' +
-				", documentation='" + documentation + '\'' +
-				", fields=" + fields +
-				']';
+		return "OneOf [" + "name='" + name + '\'' + ", documentation='" + documentation + '\'' + ", fields=" + fields + ']';
+	}
+
+	public void addField(Field newField) {
+		fields.add(newField);
 	}
 }
