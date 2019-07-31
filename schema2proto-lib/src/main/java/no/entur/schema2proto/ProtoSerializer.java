@@ -765,11 +765,11 @@ public class ProtoSerializer {
 
 					Set<String> fieldNamesUppercase = new HashSet<>();
 
-					for (Field field : mt.fields()) {
+					for (Field field : mt.fieldsAndOneOfFields()) {
 						String fieldName = field.name();
 						boolean existedBefore = fieldNamesUppercase.add(fieldName.toUpperCase());
 						if (!existedBefore) {
-							fieldName = fieldName + UNDERSCORE + "v";
+							fieldName = fieldName + UNDERSCORE + "v"; // TODO handles only one duplicate, many can exist
 							field.updateName(fieldName);
 						}
 					}
