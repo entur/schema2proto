@@ -140,6 +140,24 @@ public class TestHelper {
 		return outputFile.getPath();
 	}
 
+	public static File reduce(File sourceProtoFolder, List<String> includes, List<String> excludes) throws IOException {
+		File dir = new File("target/generated-proto/");
+		FileUtils.deleteDirectory(dir);
+		dir.mkdirs();
+
+		ReduceProtoConfiguration configuration = new ReduceProtoConfiguration();
+		configuration.excludes = excludes;
+		configuration.includes = includes;
+		configuration.outputDirectory = dir;
+		configuration.inputDirectory = sourceProtoFolder;
+
+		ReduceProto processor = new ReduceProto();
+		processor.reduceProto(configuration);
+
+		return dir;
+
+	}
+
 	private static List<String> linesFromFile(File folder, String file) throws IOException {
 		List<String> lines = new ArrayList<String>();
 		BufferedReader reader = new BufferedReader(new FileReader(new File(folder, file)));

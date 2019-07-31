@@ -1,0 +1,17 @@
+// default.proto at 0:0
+syntax = "proto3";
+
+// Type for Status of termination response.
+message A {
+    // Time individual response element was created.
+    uint64 response_timestamp = 1;
+}
+
+message B {
+
+    // SimpleContent value of element
+    string value = 2;
+
+}
+
+
