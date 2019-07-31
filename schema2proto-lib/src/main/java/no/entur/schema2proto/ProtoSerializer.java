@@ -633,7 +633,7 @@ public class ProtoSerializer {
 							usedNames.add(newMessageName);
 							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 						} else {
-							LOGGER.error("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+							LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 						}
 
 					}
@@ -652,7 +652,7 @@ public class ProtoSerializer {
 							usedNames.add(newMessageName);
 							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 						} else {
-							LOGGER.error("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+							LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 						}
 					}
 				}
