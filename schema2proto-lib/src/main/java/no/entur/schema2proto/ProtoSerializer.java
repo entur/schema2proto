@@ -90,7 +90,7 @@ public class ProtoSerializer {
 		// Compute imports
 		computeLocalImports(packageToProtoFileMap);
 
-		// Add imports specified in config file
+		// Add imports specified in config file - IF they are actually in use
 		addConfigurationSpecifiedImports(packageToProtoFileMap);
 
 		// Find out if a file recursively imports itself
@@ -232,6 +232,12 @@ public class ProtoSerializer {
 	@NotNull
 	private String getPathFromPackageName(String packageName) {
 		return packageName.replace('.', '/');
+	}
+
+	// converts e.g. google/protobuf/timestamp.proto => google.protobuf.timestamp
+	@NotNull
+	private String getPackageFromPathName(String pathName) {
+		return pathName.replace(".proto", "").replace('/', '.');
 	}
 
 	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix) {
@@ -501,10 +507,27 @@ public class ProtoSerializer {
 
 	private void addConfigurationSpecifiedImports(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			protoFile.getValue().imports().addAll(configuration.customImports);
+			ProtoFile protoFileValue = protoFile.getValue();
+			for (String customImport : configuration.customImports) {
+				boolean customImportInUse = false;
+
+				String importPackage = getPackageFromPathName(customImport);
+				for (Type type : protoFileValue.types()) {
+					if (type instanceof MessageType) {
+						for (Field field : ((MessageType) type).fields()) {
+							if (field.getElementType() != null && field.getElementType().equalsIgnoreCase(importPackage)) {
+								customImportInUse = true;
+							}
+						}
+					}
+				}
+				if (customImportInUse) {
+					protoFileValue.imports().add(customImport);
+				}
+			}
 
 			if (configuration.includeValidationRules) {
-				protoFile.getValue().imports().add(VALIDATION_PROTO_IMPORT);
+				protoFileValue.imports().add(VALIDATION_PROTO_IMPORT);
 			}
 		}
 	}
