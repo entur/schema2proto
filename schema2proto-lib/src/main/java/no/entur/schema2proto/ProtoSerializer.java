@@ -357,7 +357,7 @@ public class ProtoSerializer {
 		for (EnumConstant ec : e.constants()) {
 			String enumValue = escapeEnumValue(ec.getName());
 			if (enumValue.equalsIgnoreCase("UNSPECIFIED")) {
-				enumValue += "Value";
+				enumValue += "EnumValue";
 			}
 			String uppercaseEnumValue = enumValue;
 			if (!StringUtils.isAllUpperCase(enumValue)) {
