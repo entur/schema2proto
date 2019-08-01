@@ -95,4 +95,20 @@ public class ReduceProtoTest {
 
 	}
 
+	@Test
+	public void testInsidePackage() throws IOException {
+
+		File expected = new File("src/test/resources/reduce/simple/expected").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/simple/source").getCanonicalFile();
+
+		List<String> excludes = new ArrayList<>();
+
+		List<String> includes = new ArrayList<>();
+		includes.add("package.B");
+		File actual = TestHelper.reduce(source, includes, excludes);
+
+		TestHelper.compareExpectedAndGenerated(expected, "package/insidepackage.proto", actual, "package/simple.proto");
+
+	}
+
 }

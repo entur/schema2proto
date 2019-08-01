@@ -44,31 +44,20 @@ public class ReduceProtoMojo extends AbstractMojo {
 	@Parameter(required = true)
 	private File configFile;
 
-	/**
-	 * XSD file to convert
-	 */
-	@Parameter(required = true)
-	private File xsdFile;
-
 	public void execute() throws MojoExecutionException {
 
+		if (configFile == null || !configFile.exists()) {
+			throw new MojoExecutionException("Config file not found");
+		}
+
+		getLog().info(String.format("Reducing proto files from using config file %s. Output is defined in config file", configFile));
+
 		try {
-			if (configFile == null || !configFile.exists()) {
-				throw new MojoExecutionException("Config file not found");
-			}
-
-			getLog().info(String.format("Generating proto files from %s using config file %s. Output is defined in config file", xsdFile, configFile));
-
-			try {
-				new ReduceProto().reduceProto(configFile);
-			} catch (IOException e) {
-				throw new MojoExecutionException("Error reducing proto files", e);
-			} catch (InvalidConfigurationException e) {
-				throw new MojoExecutionException("Invalid reduce configuration file", e);
-			}
-
-		} catch (MojoExecutionException e) {
-			throw new MojoExecutionException("Error generating proto files", e);
+			new ReduceProto().reduceProto(configFile);
+		} catch (IOException e) {
+			throw new MojoExecutionException("Error reducing proto files", e);
+		} catch (InvalidConfigurationException e) {
+			throw new MojoExecutionException("Invalid reduce configuration file", e);
 		}
 
 	}

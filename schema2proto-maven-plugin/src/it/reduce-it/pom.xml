@@ -28,17 +28,23 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.entur.it</groupId>
-    <artifactId>generate-it</artifactId>
+    <artifactId>reduce-it</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <description>A simple IT verifying the reduce goal.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <build>
         <plugins>
             <plugin>
-                <artifactId>schema2proto-maven-plugin</artifactId>
+                <groupId>@project.groupId@</groupId>
+                <artifactId>@project.artifactId@</artifactId>
+                <version>@project.version@</version>
                 <configuration>
-                    <configFile>simple.yml</configFile>
-                    <xsdFile>simple.xsd</xsdFile>
+                    <configFile>reduceconfig.yml</configFile>
                 </configuration>
             </plugin>
         </plugins>

@@ -25,12 +25,9 @@ package no.entur.schema2proto;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -54,9 +51,10 @@ public class ReduceProto {
 			ReduceProtoConfigFile config = yaml.loadAs(in, ReduceProtoConfigFile.class);
 
 			if (config.outputDirectory == null) {
-				throw new InvalidConfigurationException("no outpug directory");
+				throw new InvalidConfigurationException("No output directory");
 			} else {
 				configuration.outputDirectory = new File(config.outputDirectory);
+				configuration.outputDirectory.mkdirs();
 			}
 
 			if (config.inputDirectory == null) {
@@ -66,13 +64,15 @@ public class ReduceProto {
 			}
 
 			if (config.includes == null || config.includes.size() == 0 || config.excludes == null || config.excludes.size() == 0) {
-				throw new InvalidConfigurationException("no includes/excludes - why are you running this tool?");
+				throw new InvalidConfigurationException("No includes/excludes - why are you running this tool?");
 			} else {
 				configuration.includes = config.includes;
 				configuration.excludes = config.excludes;
 			}
 
-			configuration.customImportLocations = new ArrayList<>(config.customImportLocations);
+			if (config.customImportLocations != null) {
+				configuration.customImportLocations = new ArrayList<>(config.customImportLocations);
+			}
 
 			reduceProto(configuration);
 
@@ -104,65 +104,14 @@ public class ReduceProto {
 				continue;
 			}
 
-			File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
-			File outputFile = new File(destFolder, protoFile.location().getPath().toLowerCase());
+			File outputFile = new File(configuration.outputDirectory, protoFile.location().getPath());
+			outputFile.getParentFile().mkdirs();
 			Writer writer = new FileWriter(outputFile);
 			writer.write(protoFile.toSchema());
 			writer.close();
 
 			writtenProtoFiles.add(outputFile);
 		}
-
-		// Parse and verify written proto files
-		parseWrittenFiles(writtenProtoFiles, configuration);
-
-	}
-
-	private File createPackageFolderStructure(File outputDirectory, String packageName) {
-
-		if (StringUtils.trimToNull(packageName) == null) {
-			return outputDirectory;
-		}
-
-		String folderSubstructure = getPathFromPackageName(packageName);
-		File dstFolder = new File(outputDirectory, folderSubstructure);
-		dstFolder.mkdirs();
-
-		return dstFolder;
-
-	}
-
-	@NotNull
-	private String getPathFromPackageName(String packageName) {
-		return packageName.replace('.', '/');
-	}
-
-	private void parseWrittenFiles(List<File> writtenProtoFiles, ReduceProtoConfiguration configuration) throws IOException {
-		SchemaLoader schemaLoader = new SchemaLoader();
-
-		try {
-
-			// schemaLoader.addProto("validate/validate.proto");
-
-			for (String importRootFolder : configuration.customImportLocations) {
-				schemaLoader.addSource(new File(importRootFolder).toPath());
-			}
-
-			schemaLoader.addSource(configuration.outputDirectory);
-
-			for (Path s : schemaLoader.sources()) {
-				LOGGER.debug("Linking proto from path " + s);
-			}
-			for (String s : schemaLoader.protos()) {
-				LOGGER.debug("Linking proto " + s);
-			}
-
-			Schema schema = schemaLoader.load();
-		} catch (IOException e) {
-			LOGGER.error("Parsing of written output failed, the proto files are not valid", e);
-			throw e;
-		}
-
 	}
 
 }
