@@ -2,10 +2,12 @@
 
 ## Usage
 
+### Generate proto from xsd
+
 In your `build` section add:
 
 2 mandatory parameters:
-* `configFile` path to conversion config file. See [../schema2proto-lib/example_config/config.yml] for example
+* `configFile` path to conversion config file. See [../schema2proto-lib/example_config/generateproto.yml] for example
 * `xsdFile` path to xsd file to convert
 
 ```
@@ -22,6 +24,33 @@ In your `build` section add:
                 <id>generate-resources</id>
                 <goals>
                     <goal>generate</goal>
+                </goals>
+            </execution>
+        </executions>
+
+    </plugin>
+```
+
+### Reduce proto / prune unwanted messages
+
+In your `build` section add:
+
+2 mandatory parameters:
+* `configFile` path to reduce config file. See [../schema2proto-lib/example_config/reduceproto.yml] for example
+
+```
+    <plugin>
+        <groupId>no.entur</groupId>
+        <artifactId>schema2proto-maven-plugin</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <configuration>
+            <configFile>netex_to_protobuf_config.yaml</configFile>
+        </configuration>
+        <executions>
+            <execution>
+                <id>generate-resources</id>
+                <goals>
+                    <goal>reduce</goal>
                 </goals>
             </execution>
         </executions>
