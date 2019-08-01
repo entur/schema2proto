@@ -13,6 +13,9 @@ includeFieldDocs: true
 # Add XSD file location as message/field comment as well. Useful when debugging where a particular field/message arised
 includeSourceLocationInDoc: false
 
+# Parse schema validation rules (minOccurs, maxOccurs, minLenght etc) from xsd and include them as proto validation rules using https://github.com/envoyproxy/protoc-gen-validate
+includeValidationRules: false
+
 # If true, each xsd extension base is treated as a field member of the parent type.
 # Ie if structure is C extends B extends A, the resulting structure will be a message C with fields a and b referring respectively to message a and b.
 #  Any elements or attributes declared in message a or be will be contained there.

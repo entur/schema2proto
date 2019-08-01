@@ -25,9 +25,13 @@ package no.entur.schema2proto;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -41,7 +45,7 @@ public class ReduceProto {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
-	public void reduceProto(File configFile) throws IOException, InvalidConfigurationException {
+	public void reduceProto(File configFile, File basedir) throws IOException, InvalidConfigurationException {
 
 		ReduceProtoConfiguration configuration = new ReduceProtoConfiguration();
 
@@ -53,26 +57,37 @@ public class ReduceProto {
 			if (config.outputDirectory == null) {
 				throw new InvalidConfigurationException("No output directory");
 			} else {
-				configuration.outputDirectory = new File(config.outputDirectory);
+				configuration.outputDirectory = new File(basedir, config.outputDirectory);
 				configuration.outputDirectory.mkdirs();
 			}
 
 			if (config.inputDirectory == null) {
 				throw new InvalidConfigurationException("no input directory");
 			} else {
-				configuration.inputDirectory = new File(config.inputDirectory);
+				configuration.inputDirectory = new File(basedir, config.inputDirectory);
 			}
 
-			if (config.includes == null || config.includes.size() == 0 || config.excludes == null || config.excludes.size() == 0) {
+			if ((config.includes == null) && config.excludes == null) {
 				throw new InvalidConfigurationException("No includes/excludes - why are you running this tool?");
 			} else {
-				configuration.includes = config.includes;
-				configuration.excludes = config.excludes;
+
+				if (config.includes != null) {
+					configuration.includes.addAll(config.includes);
+				}
+
+				if (config.excludes != null) {
+					configuration.excludes.addAll(config.excludes);
+				}
+
 			}
 
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(config.customImportLocations);
 			}
+
+			configuration.includeValidationRules = config.includeValidationRules;
+
+			configuration.basedir = basedir;
 
 			reduceProto(configuration);
 
@@ -82,11 +97,28 @@ public class ReduceProto {
 	public void reduceProto(ReduceProtoConfiguration configuration) throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
 
-		for (String importRootFolder : configuration.customImportLocations) {
-			schemaLoader.addSource(new File(importRootFolder).toPath());
+		Collection<File> protoFiles = FileUtils.listFiles(configuration.inputDirectory, new String[] { "proto" }, true);
+		List<String> protosLoaded = protoFiles.stream()
+				.map(e -> configuration.inputDirectory.toURI().relativize(e.toURI()).getPath())
+				.collect(Collectors.toList());
+
+		if (configuration.includeValidationRules) {
+			schemaLoader.addProto("validate/validate.proto");
 		}
 
-		schemaLoader.addSource(configuration.inputDirectory.toPath());
+		for (String importRootFolder : configuration.customImportLocations) {
+			schemaLoader.addSource(new File(configuration.basedir, importRootFolder).toPath());
+		}
+
+		schemaLoader.addSource(configuration.inputDirectory);
+
+		for (Path s : schemaLoader.sources()) {
+			LOGGER.debug("Linking proto from path " + s);
+		}
+		for (String s : schemaLoader.protos()) {
+			LOGGER.debug("Linking proto " + s);
+		}
+
 		Schema schema = schemaLoader.load();
 
 		IdentifierSet.Builder b = new IdentifierSet.Builder();
@@ -95,22 +127,16 @@ public class ReduceProto {
 
 		Schema prunedSchema = schema.prune(b.build());
 
-		List<File> writtenProtoFiles = new ArrayList<>();
-
-		for (ProtoFile protoFile : prunedSchema.protoFiles()) {
-
-			if ("google.protobuf".equals(protoFile.packageName())) {
-				// Ignore dependencies and descriptor
-				continue;
-			}
-
+		for (String protoPathLoaded : protosLoaded) {
+			ProtoFile protoFile = prunedSchema.protoFile(protoPathLoaded);
 			File outputFile = new File(configuration.outputDirectory, protoFile.location().getPath());
 			outputFile.getParentFile().mkdirs();
 			Writer writer = new FileWriter(outputFile);
 			writer.write(protoFile.toSchema());
 			writer.close();
 
-			writtenProtoFiles.add(outputFile);
+			LOGGER.info("Wrote file " + outputFile.getPath());
+
 		}
 	}
 

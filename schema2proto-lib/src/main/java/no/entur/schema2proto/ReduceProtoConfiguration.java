@@ -30,8 +30,9 @@ import java.util.List;
 public class ReduceProtoConfiguration {
 	public File inputDirectory;
 	public File outputDirectory;
+	public File basedir;
 	public List<String> includes = new ArrayList<>();
 	public List<String> excludes = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
-
+	public boolean includeValidationRules = false;
 }

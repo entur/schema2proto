@@ -31,5 +31,5 @@ public class ReduceProtoConfigFile {
 	public List<String> includes;
 	public List<String> excludes;
 	public List<String> customImportLocations;
-
+	public boolean includeValidationRules = false;
 }

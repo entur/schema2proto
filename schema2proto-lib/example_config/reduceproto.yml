@@ -9,11 +9,32 @@ customImportLocations:
   - pathToRootFolder1OfProtobufImport
   - pathToRootFolder2OfProtobufImport
 
-# Explicit packages, types and fields that must be included in the resulting protos
+
+# A heterogeneous set of rules to include and exclude types and members. If a member is included in the set, its type is implicitly also included. A type that
+# is included without a specific member implicitly includes all of that type's members, but not its nested types.
+#
+#
+# Rules in this set may be in the following forms:
+#
+# -Package names, followed by {@code .*}, like {@code squareup.protos.person.*}. This matches types and services defined in the package and its descendant
+# packages.
+# -Fully qualified type and service names, like {@code squareup.protos.person.Person}.
+# -Fully qualified member names, which are type names followed by a '#', followed by a member name, like {@code squareup.protos.person.Person#address}.
+# Members may be fields, enum constants or RPCs.
+#
+# An identifier set populated with {@code Movie} and {@code Actor#name} contains all members of {@code Movie} (such as {@code Movie#name} and
+# {@code Movie#release_date}). It contains the type {@code Actor} and one member {@code Actor#name}, but not {@code Actor#birth_date} or {@code
+# Actor#oscar_count}.
+#
+# This set has <i>included identifiers</i> and <i>excluded identifiers</i>, with excludes taking precedence over includes. That is, if a type {@code Movie} is
+# in both the includes and the excludes, it is not contained in the set.
+#
+# If the includes set is empty, that implies that all elements should be included. Use this to exclude unwanted types and members without also including
+# everything else.
 includes:
   - A
   - B
 
-# Explicit packages, types and fields that must be excluded from the resulting protos
+# See doc for includes field
 excludes:
   - LangType

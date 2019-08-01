@@ -35,8 +35,8 @@ public class ReduceProtoTest {
 	@Test
 	public void testRemoveIndependentMessageType() throws IOException {
 
-		File expected = new File("src/test/resources/reduce/simple/expected").getCanonicalFile();
-		File source = new File("src/test/resources/reduce/simple/source").getCanonicalFile();
+		File expected = new File("src/test/resources/reduce/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/input/nopackagename").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 		excludes.add("A");
@@ -50,8 +50,8 @@ public class ReduceProtoTest {
 	@Test
 	public void testWhitelistMessageType() throws IOException {
 
-		File expected = new File("src/test/resources/reduce/simple/expected").getCanonicalFile();
-		File source = new File("src/test/resources/reduce/simple/source").getCanonicalFile();
+		File expected = new File("src/test/resources/reduce/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/input/nopackagename").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 
@@ -66,8 +66,8 @@ public class ReduceProtoTest {
 	@Test
 	public void testRemoveFieldAndType() throws IOException {
 
-		File expected = new File("src/test/resources/reduce/simple/expected").getCanonicalFile();
-		File source = new File("src/test/resources/reduce/simple/source").getCanonicalFile();
+		File expected = new File("src/test/resources/reduce/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/input/nopackagename").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 		excludes.add("LangType");
@@ -82,8 +82,8 @@ public class ReduceProtoTest {
 	@Test
 	public void testWhitelistMessageTypeAndDependency() throws IOException {
 
-		File expected = new File("src/test/resources/reduce/simple/expected").getCanonicalFile();
-		File source = new File("src/test/resources/reduce/simple/source").getCanonicalFile();
+		File expected = new File("src/test/resources/reduce/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/input/nopackagename").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 
@@ -98,8 +98,8 @@ public class ReduceProtoTest {
 	@Test
 	public void testInsidePackage() throws IOException {
 
-		File expected = new File("src/test/resources/reduce/simple/expected").getCanonicalFile();
-		File source = new File("src/test/resources/reduce/simple/source").getCanonicalFile();
+		File expected = new File("src/test/resources/reduce/expected/withpackagename").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/input/withpackagename").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 

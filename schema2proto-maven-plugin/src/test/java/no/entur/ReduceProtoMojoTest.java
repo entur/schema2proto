@@ -29,6 +29,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import org.apache.maven.plugin.testing.MojoRule;
+import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -57,6 +58,7 @@ public class ReduceProtoMojoTest {
 
 		// Set properties on goal
 		rule.setVariableValueToObject(myMojo, "configFile", new File("src/test/resources/reduce/reduce.yml"));
+		rule.setVariableValueToObject(myMojo, "project", new MavenProjectStub());
 
 		// Execute
 		myMojo.execute();

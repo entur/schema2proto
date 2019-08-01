@@ -31,6 +31,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.ReduceProto;
@@ -44,6 +45,9 @@ public class ReduceProtoMojo extends AbstractMojo {
 	@Parameter(required = true)
 	private File configFile;
 
+	@Parameter(readonly = true, defaultValue = "${project}")
+	private MavenProject project;
+
 	public void execute() throws MojoExecutionException {
 
 		if (configFile == null || !configFile.exists()) {
@@ -53,7 +57,7 @@ public class ReduceProtoMojo extends AbstractMojo {
 		getLog().info(String.format("Reducing proto files from using config file %s. Output is defined in config file", configFile));
 
 		try {
-			new ReduceProto().reduceProto(configFile);
+			new ReduceProto().reduceProto(configFile, project.getBasedir());
 		} catch (IOException e) {
 			throw new MojoExecutionException("Error reducing proto files", e);
 		} catch (InvalidConfigurationException e) {
