@@ -341,7 +341,7 @@ public class SchemaParser implements ErrorHandler {
 
 						if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
 
-							String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), messageType);
+							String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
 
 							boolean extension = false;
 							Options options = getFieldOptions(parentParticle);
@@ -880,7 +880,11 @@ public class SchemaParser implements ErrorHandler {
 			typeNameToUse = type.getName();
 			enclosingType = null;
 		} else {
-			if (enclosingType != null) {
+
+			String baseTypeName = type.getBaseType().getName();
+			if (baseTypeName != null && !basicTypes.contains(baseTypeName)) {
+				typeNameToUse = baseTypeName;
+			} else if (enclosingType != null) {
 				typeNameToUse = elementName + TYPE_SUFFIX;
 			} else {
 				typeNameToUse = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
