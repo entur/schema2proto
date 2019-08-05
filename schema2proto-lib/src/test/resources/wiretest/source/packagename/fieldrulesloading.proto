@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+import "validate/validate.proto";
+
+package packagename;
+
+message PriceUnit {
+    SubMessage m = 1 [(validate.rules).message.required = true];
+}
+
+message SubMessage {
+    string x = 1;
+}

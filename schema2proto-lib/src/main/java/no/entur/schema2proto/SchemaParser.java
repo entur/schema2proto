@@ -181,7 +181,12 @@ public class SchemaParser implements ErrorHandler {
 				}
 				final Iterator<XSElementDecl> elementDeclarations = schema.iterateElementDecls();
 				while (elementDeclarations.hasNext()) {
-					processElement(elementDeclarations.next(), schemaSet);
+					XSElementDecl rootElement = elementDeclarations.next();
+					if (rootElement.getType().isLocal()) {
+						processElement(rootElement, schemaSet);
+					} else {
+						LOGGER.info("Skipping global element " + rootElement.getName() + " declaration with global type " + rootElement.getType().getName());
+					}
 				}
 			}
 		}
@@ -291,126 +296,110 @@ public class SchemaParser implements ErrorHandler {
 				processedXmlObjects.add(currElementDecl);
 
 				XSType type = currElementDecl.getType();
-				Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
 
-				if (type != null && type.isComplexType() && type.getName() != null) {
-
-					// COMPLEX TYPE
+				if (type.isSimpleType()) {
 					String doc = resolveDocumentationAnnotation(currElementDecl);
 
-					Options options = getFieldOptions(parentParticle);
+					if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
 
-					if (substitutables.size() <= 1) {
+						String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
 
+						boolean extension = false;
+						Options options = getFieldOptions(parentParticle);
+						int tag = messageType.getNextFieldNum();
 						Label label = getRange(parentParticle) ? Label.REPEATED : null;
 						Location location = getLocation(currElementDecl);
-						int tag = messageType.getNextFieldNum();
+
 						Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage),
-								location, label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
+								location, label, currElementDecl.getName(), doc, tag, null, enumName, options, extension, true);
 						addField(messageType, field);
+
+						XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
+						// checkType(restriction.getBaseType());
+						// TODO ENUM
+
 					} else {
-						List<Field> fields = new ArrayList<>();
-						OneOf oneOf = new OneOf(currElementDecl.getType().getName(), doc, fields);
-						messageType.oneOfs().add(oneOf);
-						for (XSElementDecl substitutable : substitutables) {
-							if (substitutable.isAbstract()) {
+						//
+						Options options = getFieldOptions(parentParticle);
+						int tag = messageType.getNextFieldNum();
+						Label label = getRange(parentParticle) ? Label.REPEATED : null;
+						Location location = getLocation(currElementDecl);
 
-							} else {
-								String substDoc = resolveDocumentationAnnotation(substitutable);
+						String typeName = findFieldType(type);
 
-								String typeName = substitutable.getType().getName();
-								if (typeName == null) {
-									typeName = processElement(substitutable, schemaSet);
-								}
+						String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 
-								int tag = messageType.getNextFieldNum();
-								Location location = getLocation(substitutable);
-								Field field = new Field(
-										NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
-												configuration.forceProtoPackage),
-										location, null, substitutable.getName(), substDoc, tag, null, typeName, options, false, true);
-								addField(messageType, oneOf, field); // Repeated oneOf not allowed
-							}
-						}
+						Field field = new Field(basicTypes.contains(typeName) ? null : packageName, location, label, currElementDecl.getName(), doc, tag, null,
+								typeName, options, false, true); // TODO add
+						// restriction
+						// as
+						// validation
+						// parameters
+						addField(messageType, field);
 					}
+
 				} else {
+					// Complex type
 
-					if (type.isSimpleType()) {
+					if (type.isGlobal()) {
 
+						// COMPLEX TYPE
+						Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
 						String doc = resolveDocumentationAnnotation(currElementDecl);
 
-						if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
+						Options options = getFieldOptions(parentParticle);
 
-							String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
+						if (substitutables.size() <= 1) {
 
-							boolean extension = false;
-							Options options = getFieldOptions(parentParticle);
-							int tag = messageType.getNextFieldNum();
 							Label label = getRange(parentParticle) ? Label.REPEATED : null;
 							Location location = getLocation(currElementDecl);
-
+							int tag = messageType.getNextFieldNum();
 							Field field = new Field(
 									NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage), location,
-									label, currElementDecl.getName(), doc, tag, null, enumName, options, extension, true);
+									label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
 							addField(messageType, field);
-
-							XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
-							// checkType(restriction.getBaseType());
-							// TODO ENUM
-
 						} else {
-							//
-							Options options = getFieldOptions(parentParticle);
-							int tag = messageType.getNextFieldNum();
-							Label label = getRange(parentParticle) ? Label.REPEATED : null;
-							Location location = getLocation(currElementDecl);
+							List<Field> fields = new ArrayList<>();
+							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), doc, fields);
+							messageType.oneOfs().add(oneOf);
+							for (XSElementDecl substitutable : substitutables) {
+								if (substitutable.isAbstract()) {
 
-							String typeName = findFieldType(type);
+								} else {
+									String substDoc = resolveDocumentationAnnotation(substitutable);
 
-							String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(),
-									configuration.forceProtoPackage);
+									String typeName = substitutable.getType().getName();
+									if (typeName == null) {
+										typeName = processElement(substitutable, schemaSet);
+									}
 
-							Field field = new Field(basicTypes.contains(typeName) ? null : packageName, location, label, currElementDecl.getName(), doc, tag,
-									null, typeName, options, false, true); // TODO add
-							// restriction
-							// as
-							// validation
-							// parameters
-							addField(messageType, field);
-						}
-					} else if (type.isComplexType()) {
-						XSComplexType complexType = type.asComplexType();
-						XSParticle particle;
-						XSContentType contentType;
-						contentType = complexType.getContentType();
-						if ((particle = contentType.asParticle()) == null) {
-							// jolieType.putSubType( createAnyOrUndefined( currElementDecl.getName(), complexType ) );
-						}
-						if (contentType.asSimpleType() != null) {
-							// checkStrictModeForSimpleType(contentType);
-						} else if ((particle = contentType.asParticle()) != null) {
-							XSTerm term = particle.getTerm();
-							XSModelGroupDecl modelGroupDecl = null;
-							XSModelGroup modelGroup = null;
-							modelGroup = getModelGroup(modelGroupDecl, term);
-							if (modelGroup != null) {
-								MessageType referencedMessageType = processComplexType(complexType, currElementDecl.getName(), schemaSet, null, null);
-
-								String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
-
-								Options options = getFieldOptions(parentParticle);
-								int tag = messageType.getNextFieldNum();
-								Label label = getRange(parentParticle) ? Label.REPEATED : null;
-								Location fieldLocation = getLocation(currElementDecl);
-
-								Field field = new Field(
-										NamespaceHelper.xmlNamespaceToProtoFieldPackagename(complexType.getTargetNamespace(), configuration.forceProtoPackage),
-										fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), options, false,
-										true);
-								addField(messageType, field);
-
+									int tag = messageType.getNextFieldNum();
+									Location location = getLocation(substitutable);
+									Field field = new Field(
+											NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
+													configuration.forceProtoPackage),
+											location, null, substitutable.getName(), substDoc, tag, null, typeName, options, false, true);
+									addField(messageType, oneOf, field); // Repeated oneOf not allowed
+								}
 							}
 						}
+					} else {
+						// Local
+
+						MessageType referencedMessageType = processComplexType(type.asComplexType(), currElementDecl.getName(), schemaSet, null, null);
+
+						String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
+
+						Options options = getFieldOptions(parentParticle);
+						int tag = messageType.getNextFieldNum();
+						Label label = getRange(parentParticle) ? Label.REPEATED : null;
+						Location fieldLocation = getLocation(currElementDecl);
+
+						Field field = new Field(
+								NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.asComplexType().getTargetNamespace(), configuration.forceProtoPackage),
+								fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), options, false, true);
+						addField(messageType, field);
+
 					}
 				}
 			}

@@ -41,7 +41,10 @@ public class ReduceProtoTest {
 		List<String> excludes = new ArrayList<>();
 		excludes.add("A");
 		List<String> includes = new ArrayList<>();
-		File actual = TestHelper.reduce(source, includes, excludes);
+
+		List<NewField> newFields = new ArrayList<>();
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		File actual = TestHelper.reduce(source, includes, excludes, newFields, mergeFrom);
 
 		TestHelper.compareExpectedAndGenerated(expected, "missing_a.proto", actual, "simple.proto");
 
@@ -57,7 +60,9 @@ public class ReduceProtoTest {
 
 		List<String> includes = new ArrayList<>();
 		includes.add("A");
-		File actual = TestHelper.reduce(source, includes, excludes);
+		List<NewField> newFields = new ArrayList<>();
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		File actual = TestHelper.reduce(source, includes, excludes, newFields, mergeFrom);
 
 		TestHelper.compareExpectedAndGenerated(expected, "only_a.proto", actual, "simple.proto");
 
@@ -73,7 +78,9 @@ public class ReduceProtoTest {
 		excludes.add("LangType");
 		List<String> includes = new ArrayList<>();
 
-		File actual = TestHelper.reduce(source, includes, excludes);
+		List<NewField> newFields = new ArrayList<>();
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		File actual = TestHelper.reduce(source, includes, excludes, newFields, mergeFrom);
 
 		TestHelper.compareExpectedAndGenerated(expected, "no_langtype.proto", actual, "simple.proto");
 
@@ -89,7 +96,9 @@ public class ReduceProtoTest {
 
 		List<String> includes = new ArrayList<>();
 		includes.add("B");
-		File actual = TestHelper.reduce(source, includes, excludes);
+		List<NewField> newFields = new ArrayList<>();
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		File actual = TestHelper.reduce(source, includes, excludes, newFields, mergeFrom);
 
 		TestHelper.compareExpectedAndGenerated(expected, "missing_a.proto", actual, "simple.proto");
 
@@ -105,9 +114,60 @@ public class ReduceProtoTest {
 
 		List<String> includes = new ArrayList<>();
 		includes.add("package.B");
-		File actual = TestHelper.reduce(source, includes, excludes);
+		List<NewField> newFields = new ArrayList<>();
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		File actual = TestHelper.reduce(source, includes, excludes, newFields, mergeFrom);
 
 		TestHelper.compareExpectedAndGenerated(expected, "package/insidepackage.proto", actual, "package/simple.proto");
+
+	}
+
+	@Test
+	public void testAddField() throws IOException {
+
+		File expected = new File("src/test/resources/reduce/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/input/nopackagename").getCanonicalFile();
+
+		List<String> excludes = new ArrayList<>();
+		List<String> includes = new ArrayList<>();
+		List<NewField> newFields = new ArrayList<>();
+
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		// newField.importProto = "importpackage/p.proto";
+		newField.label = "repeated";
+		newField.fieldNumber = 100;
+		newField.name = "new_field";
+		newField.type = "B";
+		newFields.add(newField);
+
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		File actual = TestHelper.reduce(source, includes, excludes, newFields, mergeFrom);
+
+		TestHelper.compareExpectedAndGenerated(expected, "extrafield.proto", actual, "simple.proto");
+
+	}
+
+	@Test
+	public void testMergeProto() throws IOException {
+
+		File expected = new File("src/test/resources/reduce/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/reduce/input/nopackagename").getCanonicalFile();
+		File mergefrom = new File("src/test/resources/reduce/mergefrom/nopackagename").getCanonicalFile();
+
+		List<String> excludes = new ArrayList<>();
+		List<String> includes = new ArrayList<>();
+		List<NewField> newFields = new ArrayList<>();
+
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		MergeFrom m = new MergeFrom();
+		m.sourceFolder = mergefrom;
+		m.protoFile = "mergefrom.proto";
+
+		mergeFrom.add(m);
+		File actual = TestHelper.reduce(source, includes, excludes, newFields, mergeFrom);
+
+		TestHelper.compareExpectedAndGenerated(expected, "mergefrom.proto", actual, "simple.proto");
 
 	}
 

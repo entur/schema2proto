@@ -42,6 +42,8 @@ import static com.squareup.wire.schema.Options.FILE_OPTIONS;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.internal.parser.OptionElement;
@@ -80,6 +82,37 @@ public final class ProtoFile {
 		this.options = new Options(ProtoType.BOOL, new ArrayList<OptionElement>());
 		this.location = new Location("path", "base", 1, 1);
 
+	}
+
+	public void mergeFrom(ProtoFile source) {
+		if (this.syntax != source.syntax) {
+			throw new IllegalArgumentException("Source and destination protos must follow the same syntax level (proto2/proto3)");
+		}
+
+		mergeImports(source);
+		mergePublicImports(source);
+		types.addAll(source.types);
+		services.addAll(source.services);
+	}
+
+	private void mergeImports(ProtoFile source) {
+		Set<String> mergedImports = new TreeSet<>();
+		mergedImports.addAll(imports);
+		mergedImports.addAll(source.imports);
+
+		mergedImports.remove(location.getPath()); // Remove any imports to one self
+
+		imports.clear();
+		imports.addAll(mergedImports);
+	}
+
+	private void mergePublicImports(ProtoFile source) {
+		Set<String> mergedImports = new TreeSet<>();
+		mergedImports.addAll(publicImports);
+		mergedImports.addAll(source.publicImports);
+
+		publicImports.clear();
+		publicImports.addAll(mergedImports);
 	}
 
 	static ProtoFile get(ProtoFileElement protoFileElement) {

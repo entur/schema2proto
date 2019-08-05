@@ -32,14 +32,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
+import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.IdentifierSet;
+import com.squareup.wire.schema.Location;
+import com.squareup.wire.schema.MessageType;
+import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
+import com.squareup.wire.schema.internal.parser.OptionElement;
 
 public class ReduceProto {
 
@@ -50,9 +58,17 @@ public class ReduceProto {
 		ReduceProtoConfiguration configuration = new ReduceProtoConfiguration();
 
 		try (InputStream in = Files.newInputStream(configFile.toPath())) {
+
+			Constructor constructor = new Constructor(ReduceProtoConfigFile.class);
+			TypeDescription customTypeDescription = new TypeDescription(ReduceProtoConfigFile.class);
+			customTypeDescription.addPropertyParameters("newFields", NewField.class);
+			customTypeDescription.addPropertyParameters("mergeFrom", MergeFrom.class);
+			constructor.addTypeDescription(customTypeDescription);
+			Yaml yaml = new Yaml(constructor);
+
 			LOGGER.info("Using configFile {}", configFile);
-			Yaml yaml = new Yaml();
-			ReduceProtoConfigFile config = yaml.loadAs(in, ReduceProtoConfigFile.class);
+
+			ReduceProtoConfigFile config = yaml.load(in);
 
 			if (config.outputDirectory == null) {
 				throw new InvalidConfigurationException("No output directory");
@@ -81,6 +97,14 @@ public class ReduceProto {
 
 			}
 
+			if (config.mergeFrom != null) {
+				configuration.mergeFrom = new ArrayList<>(config.mergeFrom);
+			}
+
+			if (config.newFields != null) {
+				configuration.newFields = new ArrayList<>(config.newFields);
+			}
+
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(config.customImportLocations);
 			}
@@ -102,9 +126,9 @@ public class ReduceProto {
 				.map(e -> configuration.inputDirectory.toURI().relativize(e.toURI()).getPath())
 				.collect(Collectors.toList());
 
-		if (configuration.includeValidationRules) {
-			schemaLoader.addProto("validate/validate.proto");
-		}
+		/*
+		 * if (configuration.includeValidationRules) { schemaLoader.addProto("validate/validate.proto"); }
+		 */
 
 		for (String importRootFolder : configuration.customImportLocations) {
 			schemaLoader.addSource(new File(configuration.basedir, importRootFolder).toPath());
@@ -113,10 +137,10 @@ public class ReduceProto {
 		schemaLoader.addSource(configuration.inputDirectory);
 
 		for (Path s : schemaLoader.sources()) {
-			LOGGER.debug("Linking proto from path " + s);
+			LOGGER.info("Linking proto from path " + s);
 		}
 		for (String s : schemaLoader.protos()) {
-			LOGGER.debug("Linking proto " + s);
+			LOGGER.info("Linking proto " + s);
 		}
 
 		Schema schema = schemaLoader.load();
@@ -126,6 +150,14 @@ public class ReduceProto {
 		b.include(configuration.includes);
 
 		Schema prunedSchema = schema.prune(b.build());
+
+		for (NewField newField : configuration.newFields) {
+			addField(newField, prunedSchema);
+		}
+
+		for (MergeFrom mergeFrom : configuration.mergeFrom) {
+			mergeFromFile(mergeFrom, prunedSchema, configuration);
+		}
 
 		for (String protoPathLoaded : protosLoaded) {
 			ProtoFile protoFile = prunedSchema.protoFile(protoPathLoaded);
@@ -138,6 +170,94 @@ public class ReduceProto {
 			LOGGER.info("Wrote file " + outputFile.getPath());
 
 		}
+
+	}
+
+	private void mergeFromFile(MergeFrom mergeFrom, Schema prunedSchema, ReduceProtoConfiguration configuration) throws IOException {
+
+		SchemaLoader schemaLoader = new SchemaLoader();
+		if (configuration.includeValidationRules) {
+			schemaLoader.addProto("validate/validate.proto");
+		}
+
+		for (String importRootFolder : configuration.customImportLocations) {
+			schemaLoader.addSource(new File(configuration.basedir, importRootFolder).toPath());
+		}
+
+		if (mergeFrom.sourceFolder.isAbsolute()) {
+			schemaLoader.addSource(mergeFrom.sourceFolder);
+		} else {
+			schemaLoader.addSource(new File(configuration.basedir, mergeFrom.sourceFolder.getPath()));
+		}
+
+		if (configuration.inputDirectory.isAbsolute()) {
+			schemaLoader.addSource(configuration.inputDirectory);
+		} else {
+			schemaLoader.addSource(new File(configuration.basedir, configuration.inputDirectory.getPath()));
+		}
+
+		schemaLoader.addProto(mergeFrom.protoFile);
+
+		Schema schema = schemaLoader.load();
+
+		ProtoFile source = schema.protoFile(mergeFrom.protoFile);
+		ProtoFile destination = prunedSchema.protoFileForPackage(source.packageName());
+
+		if (destination == null) {
+			throw new IllegalArgumentException("Destination protofile not found");
+		} else {
+			destination.mergeFrom(source);
+		}
+
+	}
+
+	private void addField(NewField newField, Schema prunedSchema) {
+
+		MessageType type = (MessageType) prunedSchema.getType(newField.targetMessageType);
+		if (type == null) {
+			LOGGER.error("Did not find existing type " + newField.targetMessageType);
+		} else {
+
+			List<OptionElement> optionElements = new ArrayList<OptionElement>();
+
+			Options options = new Options(Options.FIELD_OPTIONS, optionElements);
+			int tag = newField.fieldNumber;
+
+			String fieldPackage = StringUtils.substringBeforeLast(newField.type, ".");
+			String fieldType = StringUtils.substringAfterLast(newField.type, ".");
+
+			if (fieldPackage.equals(newField.type)) {
+				// no package
+				fieldType = fieldPackage;
+				fieldPackage = null;
+			}
+
+			Field.Label label = null;
+			if (StringUtils.trimToNull(newField.label) != null) {
+				label = Field.Label.valueOf(newField.label.toUpperCase());
+			}
+			Location location = new Location("", "", -1, -1);
+
+			Field field = new Field(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null, fieldType,
+					options, false, false);
+			List<Field> updatedFields = new ArrayList<>(type.fields());
+			updatedFields.add(field);
+			type.setDeclaredFields(updatedFields);
+
+			String importStatement = StringUtils.trimToNull(newField.importProto);
+
+			if (importStatement != null) {
+				String targetPackageName = StringUtils.trimToNull(StringUtils.substringBeforeLast(newField.targetMessageType, "."));
+				ProtoFile targetFile = prunedSchema.protoFileForPackage(targetPackageName);
+				if (newField.targetMessageType.equals(targetPackageName)) {
+					// no package name on target
+					targetFile = prunedSchema.protoFileForPackage(null);
+				}
+				targetFile.imports().add(importStatement);
+			}
+
+		}
+
 	}
 
 }

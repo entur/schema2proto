@@ -85,6 +85,19 @@ public final class Schema {
 		return null;
 	}
 
+	public ProtoFile protoFileForPackage(String packageName) {
+		for (ProtoFile protoFile : protoFiles) {
+			if (packageName == null && protoFile.packageName() == null) {
+				return protoFile;
+			} else if (packageName == null || protoFile.packageName() == null) {
+				continue;
+			} else if (packageName.equals(protoFile.packageName())) {
+				return protoFile;
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Returns a copy of this schema that retains only the types and services selected by {@code
 	 * identifierSet}, plus their transitive dependencies.

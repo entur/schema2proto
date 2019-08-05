@@ -38,3 +38,11 @@ includes:
 # See doc for includes field
 excludes:
   - LangType
+
+# Add new field to given type. Note: All on same line (snake yaml)
+newFields:
+  - {    targetMessageType: existingPackageName.ExistingMessageType, name: field_name,  type: packageName.FieldType, importProto: packageName/file.proto, label: repeated, fieldNumber: 12 }
+  - { targetMessageType: existingPackageName.ExistingMessageType, name: field_name_2, type: FieldTypeCommon, importProto: packageName/file2.proto, fieldNumber: 13}
+
+mergeFrom:
+  - { sourceFolder: pathToSourceFolder, protoFile: protoPackage/protofile.proto}

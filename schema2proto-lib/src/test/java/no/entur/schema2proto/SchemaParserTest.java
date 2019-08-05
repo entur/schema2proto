@@ -91,6 +91,12 @@ public class SchemaParserTest {
 	}
 
 	@Test
+	public void testElementExtensions() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "extendedelement.proto", generatedRootFolder,
+				generateProtobuf("basic/extendedelement.xsd", "default", "default.proto"));
+	}
+
+	@Test
 	public void testAttributeGroups() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "attributegroups.proto", generatedRootFolder,
 				generateProtobuf("basic/attributegroups.xsd", "default", "default.proto"));

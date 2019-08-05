@@ -140,7 +140,8 @@ public class TestHelper {
 		return outputFile.getPath();
 	}
 
-	public static File reduce(File sourceProtoFolder, List<String> includes, List<String> excludes) throws IOException {
+	public static File reduce(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom)
+			throws IOException {
 		File dir = new File("target/generated-proto/");
 		FileUtils.deleteDirectory(dir);
 		dir.mkdirs();
@@ -150,6 +151,8 @@ public class TestHelper {
 		configuration.includes = includes;
 		configuration.outputDirectory = dir;
 		configuration.inputDirectory = sourceProtoFolder;
+		configuration.newFields = newFields;
+		configuration.mergeFrom = mergeFrom;
 
 		ReduceProto processor = new ReduceProto();
 		processor.reduceProto(configuration);

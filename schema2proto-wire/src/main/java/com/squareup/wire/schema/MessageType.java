@@ -53,7 +53,7 @@ public final class MessageType extends Type {
 	private final Location location;
 	private String documentation;
 	private String name;
-	private final List<Field> declaredFields;
+	private List<Field> declaredFields;
 	private final List<Field> extensionFields;
 	private final List<OneOf> oneOfs;
 	private final List<Type> nestedTypes;
@@ -144,26 +144,19 @@ public final class MessageType extends Type {
 		declaredFields.add(f);
 	}
 
-	public ImmutableList<Field> fields() {
-		return ImmutableList.<Field>builder().addAll(declaredFields).addAll(extensionFields).build();
+	public void setDeclaredFields(List<Field> newFields) {
+		this.declaredFields = newFields;
+	}
+
+	public List<Field> fields() {
+		List<Field> allFields = new ArrayList<>(declaredFields);
+		allFields.addAll(extensionFields);
+
+		return allFields;
 	}
 
 	public void removeDeclaredField(Field f) {
 		declaredFields.remove(f);
-	}
-
-	public ImmutableList<Field> extensionFields() {
-		return ImmutableList.copyOf(extensionFields);
-	}
-
-	public ImmutableList<Field> getRequiredFields() {
-		ImmutableList.Builder<Field> required = ImmutableList.builder();
-		for (Field field : fieldsAndOneOfFields()) {
-			if (field.isRequired()) {
-				required.add(field);
-			}
-		}
-		return required.build();
 	}
 
 	public ImmutableList<Field> fieldsAndOneOfFields() {
@@ -178,6 +171,7 @@ public final class MessageType extends Type {
 
 	/** Returns the field named {@code name}, or null if this type has no such field. */
 	public Field field(String name) {
+
 		for (Field field : declaredFields) {
 			if (field.name().equals(name)) {
 				return field;
@@ -329,7 +323,7 @@ public final class MessageType extends Type {
 			throw new IllegalStateException(group.getLocation() + ": 'group' is not supported");
 		}
 
-		ImmutableList<Field> declaredFields = Field.fromElements(packageName, messageElement.getFields(), false);
+		List<Field> declaredFields = Field.fromElements(packageName, messageElement.getFields(), false);
 
 		// Extension fields be populated during linking.
 		List<Field> extensionFields = new ArrayList<>();

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:element name="TariffZoneRef">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="TariffZoneRefStructure"/>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="TariffZoneRefStructure">
+        <xsd:simpleContent>
+            <xsd:restriction base="xsd:string"/>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:group name="NetworkValidityParametersGroup">
+        <xsd:sequence>
+            <xsd:element ref="TariffZoneRef" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:group name="ScopingValidityParametersGroup">
+        <xsd:sequence>
+            <xsd:group ref="NetworkValidityParametersGroup">
+            </xsd:group>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:complexType name="validityParameters_RelStructure">
+        <xsd:complexContent>
+            <xsd:extension base="oneToManyRelationshipStructure">
+                <xsd:sequence maxOccurs="unbounded">
+                    <xsd:group ref="ScopingValidityParametersGroup"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="relationshipStructure">
+        <xsd:attribute name="id" type="xsd:string">
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="oneToManyRelationshipStructure">
+        <xsd:complexContent>
+            <xsd:extension base="relationshipStructure">
+                <xsd:attribute name="modificationSet" type="xsd:string" default="all">
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+
+</xsd:schema>

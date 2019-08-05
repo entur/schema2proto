@@ -1,0 +1,31 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+
+message TariffZoneRefType {
+    // SimpleContent value of element
+    string value = 1;
+}
+
+message TariffZoneRefStructure {
+    // SimpleContent value of element
+    string value = 1;
+}
+
+message ValidityParameters_RelStructure {
+    string id = 1;
+    string modification_set = 2;
+
+    TariffZoneRefType tariff_zone_ref = 3;
+}
+
+message RelationshipStructure {
+    string id = 1;
+}
+
+message OneToManyRelationshipStructure {
+    string id = 1;
+    string modification_set = 2;
+}
+

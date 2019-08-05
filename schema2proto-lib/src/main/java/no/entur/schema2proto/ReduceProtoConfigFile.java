@@ -30,6 +30,8 @@ public class ReduceProtoConfigFile {
 	public String outputDirectory;
 	public List<String> includes;
 	public List<String> excludes;
+	public List<NewField> newFields;
+	public List<MergeFrom> mergeFrom;
 	public List<String> customImportLocations;
 	public boolean includeValidationRules = false;
 }

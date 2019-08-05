@@ -40,6 +40,7 @@ package com.squareup.wire.schema;
 
 import static com.squareup.wire.schema.Options.FIELD_OPTIONS;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -100,14 +101,14 @@ public final class Field {
 		this.fromElement = fromElement;
 	}
 
-	static ImmutableList<Field> fromElements(String packageName, List<FieldElement> fieldElements, boolean extension) {
-		ImmutableList.Builder<Field> fields = ImmutableList.builder();
+	static List<Field> fromElements(String packageName, List<FieldElement> fieldElements, boolean extension) {
+		List<Field> fields = new ArrayList<>();
 		for (FieldElement field : fieldElements) {
 			fields.add(new Field(packageName, field.getLocation(), field.getLabel(), field.getName(), field.getDocumentation(), field.getTag(),
 					field.getDefaultValue(), field.getType(), new Options(Options.FIELD_OPTIONS, field.getOptions()), extension, false));
 
 		}
-		return fields.build();
+		return fields;
 	}
 
 	static ImmutableList<FieldElement> toElements(List<Field> fields) {
