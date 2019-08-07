@@ -29,12 +29,15 @@ import java.util.regex.Pattern;
 
 public class TypeAndNameMapper {
 	private Map<Pattern, String> typeMappings = new LinkedHashMap<>();
+	private Map<Pattern, String> typeReplacing = new LinkedHashMap<>();
 	private Map<Pattern, String> nameMappings = new LinkedHashMap<>();
 	private Set<String> reservedJavaKeywords = new HashSet<>();
 	private List<FieldPath> ignoreFieldPaths;
 
 	public TypeAndNameMapper(Schema2ProtoConfiguration configuration) {
-		typeMappings.putAll(getStandardXsdTypeMappings());
+		typeReplacing.putAll(getStandardXsdTypeMappings());
+		// From external
+		updateMappings(typeReplacing, configuration.customTypeReplacements);
 
 		// From external configuration
 		updateMappings(typeMappings, configuration.customTypeMappings);
@@ -235,4 +238,16 @@ public class TypeAndNameMapper {
 		return reservedJavaKeywords;
 	}
 
+	public String replaceType(String type) {
+		for (Map.Entry<Pattern, String> p : typeReplacing.entrySet()) {
+			Matcher m = p.getKey().matcher(type);
+			if (m.matches()) {
+				type = m.replaceAll(p.getValue());
+				break;
+			}
+		}
+
+		return type;
+
+	}
 }

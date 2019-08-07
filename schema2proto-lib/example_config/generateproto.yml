@@ -54,4 +54,8 @@ customTypeMappings:
 customNameMappings:
   a: b
   x: y
-  
+
+# Replace given type with the new type. The new type must exist. Does not change message names, but only changes references to given message type
+customTypeReplacings:
+  MessageTypeX: MessageTypeY
+  x: y

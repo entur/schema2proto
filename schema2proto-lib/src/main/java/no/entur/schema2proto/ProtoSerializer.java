@@ -87,6 +87,9 @@ public class ProtoSerializer {
 		// Rewrite type information (replace xsd types with protobuf types/messages)
 		translateTypes(packageToProtoFileMap);
 
+		// Replace types with other. Opposed to translateTypes this method does not change MessageTypes, but only references from Fields
+		replaceTypes(packageToProtoFileMap);
+
 		// Compute imports
 		computeLocalImports(packageToProtoFileMap);
 
@@ -694,6 +697,35 @@ public class ProtoSerializer {
 				}
 			}
 
+		}
+	}
+
+	private void replaceTypes(Map<String, ProtoFile> packageToProtoFileMap) {
+		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			replaceTypes_(protoFile.getValue().types());
+		}
+	}
+
+	private void replaceTypes_(List<Type> types) {
+		if (types.size() > 0) {
+			for (Type type : types) {
+				if (type instanceof MessageType) {
+					MessageType mt = (MessageType) type;
+
+					replaceTypes_(type.nestedTypes());
+					replaceTypes(mt.fields());
+					for (OneOf oneOf : mt.oneOfs()) {
+						replaceTypes(oneOf.fields());
+					}
+				}
+			}
+		}
+	}
+
+	private void replaceTypes(List<Field> fields) {
+		for (Field field : fields) {
+			String newFieldType = typeAndFieldNameMapper.replaceType(field.getElementType());
+			field.updateElementType(newFieldType);
 		}
 	}
 

@@ -35,6 +35,7 @@ public class Schema2ProtoConfigFile {
 	// public boolean splitBySchema = false;
 	public Map<String, String> customTypeMappings;
 	public Map<String, String> customNameMappings;
+	public Map<String, String> customTypeReplacements;
 	public List<String> customImports;
 	public List<String> customImportLocations;
 	public List<String> ignoreOutputFields;

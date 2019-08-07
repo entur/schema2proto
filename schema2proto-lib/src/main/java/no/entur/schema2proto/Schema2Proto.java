@@ -64,6 +64,7 @@ public class Schema2Proto {
 	private static final String OPTION_CUSTOM_IMPORT_LOCATIONS = "customImportLocations";
 	private static final String OPTION_CUSTOM_NAME_MAPPINGS = "customNameMappings";
 	private static final String OPTION_CUSTOM_TYPE_MAPPINGS = "customTypeMappings";
+	private static final String OPTION_CUSTOM_TYPE_REPLACINGS = "customTypeReplacements";
 	private static final String OPTION_IGNORE_OUTPUT_FIELDS = "ignoreOutputFields";
 	// private static final String OPTION_SPLIT_BY_SCHEMA = "splitBySchema";
 //	private static final String OPTION_NEST_ENUMS = "nestEnums";
@@ -288,6 +289,14 @@ public class Schema2Proto {
 				}
 			}
 
+			Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();
+			if (config.customTypeReplacements != null) {
+				for (Entry<String, String> kv : config.customTypeReplacements.entrySet()) {
+					Pattern p = Pattern.compile(kv.getKey());
+					customTypeReplacements.put(p, kv.getValue());
+				}
+			}
+
 			Map<Pattern, String> customNameMappings = new LinkedHashMap<>();
 			if (config.customNameMappings != null) {
 				for (Entry<String, String> kv : config.customNameMappings.entrySet()) {
@@ -296,6 +305,7 @@ public class Schema2Proto {
 				}
 			}
 			configuration.customTypeMappings.putAll(customTypeMappings);
+			configuration.customTypeReplacements.putAll(customTypeReplacements);
 			configuration.customNameMappings.putAll(customNameMappings);
 			configuration.defaultProtoPackage = config.defaultProtoPackage;
 			configuration.forceProtoPackage = config.forceProtoPackage;
@@ -382,6 +392,19 @@ public class Schema2Proto {
 			}
 		}
 		configuration.customTypeMappings = customTypeMappings;
+
+		HashMap<Pattern, String> customTypeReplacings = new LinkedHashMap<>();
+		if (cmd.hasOption(OPTION_CUSTOM_TYPE_REPLACINGS)) {
+			for (String mapping : cmd.getOptionValue(OPTION_CUSTOM_TYPE_REPLACINGS).split(",")) {
+				int colon = mapping.indexOf(':');
+				if (colon > -1) {
+					customTypeReplacings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
+				} else {
+					LOGGER.error(mapping + " is not a valid custom type mapping - use schematype:outputtype");
+				}
+			}
+		}
+		configuration.customTypeReplacements = customTypeReplacings;
 
 		HashMap<Pattern, String> customNameMappings = new LinkedHashMap<>();
 		if (cmd.hasOption(OPTION_CUSTOM_NAME_MAPPINGS)) {

@@ -36,6 +36,7 @@ public class Schema2ProtoConfiguration {
 	public boolean inheritanceToComposition = false;
 	// public boolean splitBySchema = false;
 	public Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();;
+	public Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();;
 	public Map<Pattern, String> customNameMappings = new LinkedHashMap<>();;
 	public List<String> customImports = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
