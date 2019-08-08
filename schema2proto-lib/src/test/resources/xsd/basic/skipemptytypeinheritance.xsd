@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+    <xsd:element name="ClassOfUseRef">
+
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="ClassOfUseRefStructure"/>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="ClassOfUseRefStructure">
+
+        <xsd:simpleContent>
+            <xsd:restriction base="xsd:string">
+
+            </xsd:restriction>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="A">
+        <xsd:sequence>
+            <xsd:element ref="ClassOfUseRef"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

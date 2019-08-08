@@ -1,0 +1,12 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message ClassOfUseRefStructure {
+  // SimpleContent value of element
+  string value = 1;
+}
+
+message A {
+  ClassOfUseRefStructure class_of_use_ref = 1;
+}

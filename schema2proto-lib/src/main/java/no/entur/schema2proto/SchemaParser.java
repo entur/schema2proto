@@ -519,7 +519,13 @@ public class SchemaParser implements ErrorHandler {
 		}
 
 		if (messageType == null) {
+			if (configuration.skipEmptyTypeInheritance) {
 
+				while (complexType.getContentType().asParticle() == null && complexType.getBaseType().isComplexType()) {
+					// Empty complex type
+					complexType = complexType.getBaseType().asComplexType();
+				}
+			}
 			typeName = complexType.getName();
 			String nameSpace = complexType.getTargetNamespace();
 

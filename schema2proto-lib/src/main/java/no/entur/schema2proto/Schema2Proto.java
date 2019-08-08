@@ -72,6 +72,7 @@ public class Schema2Proto {
 	private static final String OPTION_INCLUDE_VALIDATION_RULES = "includeValidationRules";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
+	private static final String OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE = "skipEmptyTypeInheritance";
 
 	public Schema2Proto(String[] args) throws IOException {
 		Options commandLineOptions = createCommandLineOptions();
@@ -125,7 +126,7 @@ public class Schema2Proto {
 				.desc("name of configfile specifying these parameters (instead of supplying them on the command line)")
 				.required(false)
 				.hasArg()
-				.argName("<outputFilename>")
+				.argName("outputFilename")
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_PACKAGE)
@@ -229,6 +230,13 @@ public class Schema2Proto {
 				.desc("generate envoypropxy/protoc-gen-validate validation rules from xsd rules")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE)
+				.hasArg()
+				.argName("true|false")
+				.desc("skip types just redefining other types with a different name")
+				.required(false)
+				.build());
 		return commandLineOptions;
 	}
 
@@ -317,6 +325,7 @@ public class Schema2Proto {
 			configuration.includeSourceLocationInDoc = config.includeSourceLocationInDoc;
 			configuration.inheritanceToComposition = config.inheritanceToComposition;
 			configuration.includeValidationRules = config.includeValidationRules;
+			configuration.skipEmptyTypeInheritance = config.skipEmptyTypeInheritance;
 
 			Map<String, Object> options = config.options;
 			if (config.options != null) {
@@ -475,6 +484,9 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_INCLUDE_VALIDATION_RULES)) {
 			configuration.includeValidationRules = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_VALIDATION_RULES));
+		}
+		if (cmd.hasOption(OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE)) {
+			configuration.skipEmptyTypeInheritance = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE));
 		}
 
 		return configuration;

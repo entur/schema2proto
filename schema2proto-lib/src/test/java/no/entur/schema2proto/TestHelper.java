@@ -96,15 +96,15 @@ public class TestHelper {
 
 	public static String generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
 			String expectedFolder, String expectedFilename) throws IOException {
-		return generate(xsdFile, typeMappings, nameMappings, forcePackageName, inheritanceToComposition, expectedFolder, expectedFilename);
+		return generate(xsdFile, typeMappings, nameMappings, forcePackageName, inheritanceToComposition, expectedFolder, expectedFilename, false);
 	}
 
-	public static String generateProtobuf(String xsdFile, String expectedFolder, String expectedFilename) throws IOException {
-		return generate(xsdFile, null, null, "default", false, expectedFolder, expectedFilename);
+	public static String generateProtobuf(String xsdFile, String expectedFolder, String expectedFilename, boolean skipEmptyTypeInheritance) throws IOException {
+		return generate(xsdFile, null, null, "default", false, expectedFolder, expectedFilename, skipEmptyTypeInheritance);
 	}
 
 	private static String generate(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
-			String expectedFolder, String expectedFilename) throws IOException {
+			String expectedFolder, String expectedFilename, boolean skipEmptyTypeInheritance) throws IOException {
 		File dir = new File("target/generated-proto/");
 		FileUtils.deleteDirectory(dir);
 		dir.mkdirs();
@@ -124,6 +124,7 @@ public class TestHelper {
 		}
 
 		args.add("--inheritanceToComposition=" + inheritanceToComposition);
+		args.add("--skipEmptyTypeInheritance=" + skipEmptyTypeInheritance);
 
 		args.add("src/test/resources/xsd/" + xsdFile);
 

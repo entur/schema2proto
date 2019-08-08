@@ -39,31 +39,31 @@ public class SchemaParserTest {
 	@Test
 	public void testNestedTopLevelElement() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "nestedtoplevelelement.proto", generatedRootFolder,
-				generateProtobuf("basic/nestedtoplevelelement.xsd", "default", "default.proto"));
+				generateProtobuf("basic/nestedtoplevelelement.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testBasicTopLevelEnum() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "toplevelenum.proto", generatedRootFolder,
-				generateProtobuf("basic/toplevelenum.xsd", "default", "default.proto"));
+				generateProtobuf("basic/toplevelenum.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testBasicTopLevelComplexType() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "toplevelcomplextype.proto", generatedRootFolder,
-				generateProtobuf("basic/toplevelcomplextype.xsd", "default", "default.proto"));
+				generateProtobuf("basic/toplevelcomplextype.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testBasicTopLevelSimpleType() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "toplevelsimpletype.proto", generatedRootFolder,
-				generateProtobuf("basic/toplevelsimpletype.xsd", "default", "default.proto"));
+				generateProtobuf("basic/toplevelsimpletype.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testBasicExtensionBase() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "extensionbase.proto", generatedRootFolder,
-				generateProtobuf("basic/extensionbase.xsd", "default", "default.proto"));
+				generateProtobuf("basic/extensionbase.xsd", "default", "default.proto", false));
 	}
 
 	@Test
@@ -81,43 +81,49 @@ public class SchemaParserTest {
 	@Test
 	public void testBasicExtensionBase2() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "extensionbase2.proto", generatedRootFolder,
-				generateProtobuf("basic/extensionbase2.xsd", "default", "default.proto"));
+				generateProtobuf("basic/extensionbase2.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testExtensionBaseDuplicateElements() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "extensionbaseduplicateelements.proto", generatedRootFolder,
-				generateProtobuf("basic/extensionbaseduplicateelements.xsd", "default", "default.proto"));
+				generateProtobuf("basic/extensionbaseduplicateelements.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testElementExtensions() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "extendedelement.proto", generatedRootFolder,
-				generateProtobuf("basic/extendedelement.xsd", "default", "default.proto"));
+				generateProtobuf("basic/extendedelement.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testAttributeGroups() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "attributegroups.proto", generatedRootFolder,
-				generateProtobuf("basic/attributegroups.xsd", "default", "default.proto"));
+				generateProtobuf("basic/attributegroups.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testElementRef() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "elementref.proto", generatedRootFolder,
-				generateProtobuf("basic/elementref.xsd", "default", "default.proto"));
+				generateProtobuf("basic/elementref.xsd", "default", "default.proto", false));
+	}
+
+	@Test
+	public void testSkipEmptyTypeInheritance() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "skipemptytypeinheritance.proto", generatedRootFolder,
+				generateProtobuf("basic/skipemptytypeinheritance.xsd", "default", "default.proto", true));
 	}
 
 	// Disabled for now @Test
 	public void testValidationRules() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "validationrules.proto", generatedRootFolder,
-				generateProtobuf("basic/validationrules.xsd", "default", "default.proto"));
+				generateProtobuf("basic/validationrules.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void testRestrictionBase() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "restrictionbaseduplicateelements.proto", generatedRootFolder,
-				generateProtobuf("basic/restrictionbaseduplicateelements.xsd", "default", "default.proto"));
+				generateProtobuf("basic/restrictionbaseduplicateelements.xsd", "default", "default.proto", false));
 	}
 
 }

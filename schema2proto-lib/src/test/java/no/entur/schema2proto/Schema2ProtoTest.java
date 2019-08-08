@@ -38,61 +38,62 @@ public class Schema2ProtoTest {
 
 	@Test
 	public void compareAtomProtobuf() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "default/atom.proto", generatedRootFolder, generateProtobuf("atom.xsd", "default", "default.proto"));
+		compareExpectedAndGenerated(expectedRootFolder, "default/atom.proto", generatedRootFolder,
+				generateProtobuf("atom.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void compareRecipeProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/recipe.proto", generatedRootFolder,
-				generateProtobuf("recipe.xsd", "default", "default.proto"));
+				generateProtobuf("recipe.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void compareShiporderProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/shiporder.proto", generatedRootFolder,
-				generateProtobuf("shiporder.xsd", "default", "default.proto"));
+				generateProtobuf("shiporder.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void compareTestChoiceProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/test-choice.proto", generatedRootFolder,
-				generateProtobuf("test-choice.xsd", "default", "default.proto"));
+				generateProtobuf("test-choice.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void compareTestDatatypesProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/test-datatypes.proto", generatedRootFolder,
-				generateProtobuf("test-datatypes.xsd", "default", "default.proto"));
+				generateProtobuf("test-datatypes.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void compareTestExtensionProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/test-extension.proto", generatedRootFolder,
-				generateProtobuf("test-extension.xsd", "default", "default.proto"));
+				generateProtobuf("test-extension.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void compareTestExtensionAttributesProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/test-extension-attributes.proto", generatedRootFolder,
-				generateProtobuf("test-extension-attributes.xsd", "default", "default.proto"));
+				generateProtobuf("test-extension-attributes.xsd", "default", "default.proto", false));
 	}
 
 	@Test
 	public void compareTestRangeProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/test-range.proto", generatedRootFolder,
-				generateProtobuf("test-range.xsd", "default", "default.proto"));
+				generateProtobuf("test-range.xsd", "default", "default.proto", false));
 	}
 
 	// @Test
 	public void compareXmlRecipemlProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/xml-recipeml.proto", generatedRootFolder,
-				generateProtobuf("xml-recipeml.xsd", "default", "default.proto"));
+				generateProtobuf("xml-recipeml.xsd", "default", "default.proto", false));
 	}
 
 	// @Test
 	public void compareRecipemlProtobuf() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "default/recipeml.proto", generatedRootFolder,
-				generateProtobuf("recipeml.xsd", "default", "default.proto"));
+				generateProtobuf("recipeml.xsd", "default", "default.proto", false));
 	}
 
 	@Test

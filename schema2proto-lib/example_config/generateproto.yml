@@ -59,3 +59,6 @@ customNameMappings:
 customTypeReplacings:
   MessageTypeX: MessageTypeY
   x: y
+
+# If a type extends another type without adding any new fields, skip this type and
+skipEmptyTypeInheritance: false

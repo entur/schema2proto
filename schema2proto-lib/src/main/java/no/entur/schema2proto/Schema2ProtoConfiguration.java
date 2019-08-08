@@ -48,4 +48,5 @@ public class Schema2ProtoConfiguration {
 	public boolean includeFieldDocs = true;
 	public boolean includeSourceLocationInDoc = false;
 	public boolean includeValidationRules = false;
+	public boolean skipEmptyTypeInheritance = false;
 }
