@@ -2,13 +2,23 @@
 
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
     <xsd:element name="ClassOfUseRef">
-
         <xsd:complexType>
             <xsd:complexContent>
                 <xsd:extension base="ClassOfUseRefStructure"/>
             </xsd:complexContent>
         </xsd:complexType>
     </xsd:element>
+
+    <xsd:element name="ClassOfUseRefWithAttributes">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="ClassOfUseRefStructure">
+                        <xsd:attribute name="attribute" type="xsd:string"/>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
     <xsd:complexType name="ClassOfUseRefStructure">
 
         <xsd:simpleContent>
@@ -21,6 +31,7 @@
     <xsd:complexType name="A">
         <xsd:sequence>
             <xsd:element ref="ClassOfUseRef"/>
+            <xsd:element ref="ClassOfUseRefWithAttributes"/>
         </xsd:sequence>
     </xsd:complexType>
 

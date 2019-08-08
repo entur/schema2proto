@@ -521,7 +521,8 @@ public class SchemaParser implements ErrorHandler {
 		if (messageType == null) {
 			if (configuration.skipEmptyTypeInheritance) {
 
-				while (complexType.getContentType().asParticle() == null && complexType.getBaseType().isComplexType()) {
+				while (complexType.getContentType().asParticle() == null && complexType.getAttributeUses().size() == 0
+						&& complexType.getBaseType().isComplexType()) {
 					// Empty complex type
 					complexType = complexType.getBaseType().asComplexType();
 				}
