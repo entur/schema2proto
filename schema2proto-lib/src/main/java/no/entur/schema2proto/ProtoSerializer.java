@@ -163,49 +163,53 @@ public class ProtoSerializer {
 	}
 
 	private void removeUnwantedFields(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
-			ProtoFile file = entry.getValue();
+		for (ProtoFile file : packageToProtoFileMap.values()) {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					List<Field> fieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), mt.fields());
-					for (Field f : fieldsToRemove) {
-						mt.removeDeclaredField(f);
-						String documentation = StringUtils.trimToEmpty(mt.documentation());
-						documentation += " NOTE: Removed field " + f;
-						mt.updateDocumentation(documentation);
-					}
-
-					List<OneOf> oneOfsToRemove = new ArrayList<>();
-
-					for (OneOf oneOf : mt.oneOfs()) {
-
-						List<Field> oneOfFieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), oneOf.fields());
-						for (Field f : oneOfFieldsToRemove) {
-							oneOf.fields().remove(f);
-
-							String documentation = StringUtils.trimToEmpty(mt.documentation());
-							documentation += " NOTE: Removed field " + f;
-							oneOf.updateDocumentation(documentation);
-						}
-
-						if (oneOf.fields().size() == 0) {
-							// remove oneof
-							oneOfsToRemove.add(oneOf);
-						}
-					}
-
-					// Remove empty oneOfs
-					for (OneOf oneOfToRemove : oneOfsToRemove) {
-
-						mt.removeOneOf(oneOfToRemove);
-						String documentation = StringUtils.trimToEmpty(mt.documentation());
-						documentation += " NOTE: Removed empty oneOf " + oneOfToRemove;
-						mt.updateDocumentation(documentation);
-					}
-
+					// Nested types
+					mt.nestedTypes().stream().filter(e -> e instanceof MessageType).forEach(e -> removeUnwantedFields(file, (MessageType) e));
+					removeUnwantedFields(file, mt);
 				}
 			}
+		}
+	}
+
+	private void removeUnwantedFields(ProtoFile file, MessageType mt) {
+		List<Field> fieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), mt.fields());
+		for (Field f : fieldsToRemove) {
+			mt.removeDeclaredField(f);
+			String documentation = StringUtils.trimToEmpty(mt.documentation());
+			documentation += " NOTE: Removed field " + f;
+			mt.updateDocumentation(documentation);
+		}
+
+		List<OneOf> oneOfsToRemove = new ArrayList<>();
+
+		for (OneOf oneOf : mt.oneOfs()) {
+
+			List<Field> oneOfFieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), oneOf.fields());
+			for (Field f : oneOfFieldsToRemove) {
+				oneOf.fields().remove(f);
+
+				String documentation = StringUtils.trimToEmpty(mt.documentation());
+				documentation += " NOTE: Removed field " + f;
+				oneOf.updateDocumentation(documentation);
+			}
+
+			if (oneOf.fields().size() == 0) {
+				// remove oneof
+				oneOfsToRemove.add(oneOf);
+			}
+		}
+
+		// Remove empty oneOfs
+		for (OneOf oneOfToRemove : oneOfsToRemove) {
+
+			mt.removeOneOf(oneOfToRemove);
+			String documentation = StringUtils.trimToEmpty(mt.documentation());
+			documentation += " NOTE: Removed empty oneOf " + oneOfToRemove;
+			mt.updateDocumentation(documentation);
 		}
 	}
 
@@ -261,17 +265,14 @@ public class ProtoSerializer {
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
 
-				String messageName = mt.getName();
-				if (messageName.endsWith(generatedRandomTypeSuffix)) {
-					String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
-					if (!usedNames.contains(newMessageName)) {
-						mt.updateName(newMessageName);
-						usedNames.add(newMessageName);
-						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
-					} else {
-						LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
-					}
-				}
+				mt.nestedTypes()
+						.stream()
+						.filter(e -> e instanceof MessageType)
+						.forEach(e -> replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, packageName, usedNames,
+								(MessageType) e));
+
+				replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, packageName, usedNames, mt);
+
 			} else if (type instanceof EnumType) {
 				EnumType et = (EnumType) type;
 				String messageName = et.name();
@@ -289,9 +290,24 @@ public class ProtoSerializer {
 		}
 	}
 
+	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix,
+			String packageName, Set<String> usedNames, MessageType mt) {
+		String messageName = mt.getName();
+		if (messageName.endsWith(generatedRandomTypeSuffix)) {
+			String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
+			if (!usedNames.contains(newMessageName)) {
+				mt.updateName(newMessageName);
+				usedNames.add(newMessageName);
+				updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+			} else {
+				LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+			}
+		}
+	}
+
 	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			uppercaseMessageNames(packageToProtoFileMap, protoFile.getValue().types(), protoFile.getValue().packageName());
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			uppercaseMessageNames(packageToProtoFileMap, file.types(), file.packageName());
 		}
 
 	}
@@ -305,17 +321,7 @@ public class ProtoSerializer {
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
 
-				String messageName = mt.getName();
-				if (!Character.isUpperCase(messageName.charAt(0))) {
-					String newMessageName = StringUtils.capitalize(messageName);
-					if (!usedNames.contains(newMessageName)) {
-						mt.updateName(newMessageName);
-						usedNames.add(newMessageName);
-						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
-					} else {
-						LOGGER.warn("Cannot uppercase message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
-					}
-				}
+				uppercaseMessageNames(packageToProtoFileMap, packageName, usedNames, mt);
 			} else if (type instanceof EnumType) {
 				EnumType et = (EnumType) type;
 				String messageName = et.name();
@@ -333,9 +339,22 @@ public class ProtoSerializer {
 		}
 	}
 
+	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap, String packageName, Set<String> usedNames, MessageType mt) {
+		String messageName = mt.getName();
+		if (!Character.isUpperCase(messageName.charAt(0))) {
+			String newMessageName = StringUtils.capitalize(messageName);
+			if (!usedNames.contains(newMessageName)) {
+				mt.updateName(newMessageName);
+				usedNames.add(newMessageName);
+				updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
+			} else {
+				LOGGER.warn("Cannot uppercase message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+			}
+		}
+	}
+
 	private void updateEnumValues(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			ProtoFile file = protoFile.getValue();
+		for (ProtoFile file : packageToProtoFileMap.values()) {
 			List<Type> types = file.types();
 			updateEnumValues(types);
 		}
@@ -462,16 +481,15 @@ public class ProtoSerializer {
 	private void resolveRecursiveImports(Map<String, ProtoFile> packageToProtoFileMap) {
 
 		Map<String, List<String>> imports = new HashMap<>();
-		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
-			ProtoFile protoFile = protoFileEntry.getValue();
+		for (ProtoFile file : packageToProtoFileMap.values()) {
 
 			List<String> fileImports = new ArrayList<>();
-			fileImports.addAll(protoFile.imports());
+			fileImports.addAll(file.imports());
 			for (int i = 0; i < fileImports.size(); i++) {
 				// Removing path-info from fileimport
 				fileImports.set(i, fileImports.get(i).substring(fileImports.get(i).lastIndexOf("/") + 1));
 			}
-			imports.put(protoFile.toString(), fileImports);
+			imports.put(file.toString(), fileImports);
 		}
 
 		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
@@ -509,15 +527,14 @@ public class ProtoSerializer {
 	}
 
 	private void addConfigurationSpecifiedImports(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			ProtoFile protoFileValue = protoFile.getValue();
+		for (ProtoFile file : packageToProtoFileMap.values()) {
 			for (String customImport : configuration.customImports) {
 				boolean customImportInUse = false;
 
 				String importPackage = getPackageFromPathName(customImport);
-				for (Type type : protoFileValue.types()) {
+				for (Type type : file.types()) {
 					if (type instanceof MessageType) {
-						for (Field field : ((MessageType) type).fields()) {
+						for (Field field : ((MessageType) type).fieldsAndOneOfFields()) {
 							if (field.getElementType() != null && field.getElementType().equalsIgnoreCase(importPackage)) {
 								customImportInUse = true;
 							}
@@ -525,30 +542,28 @@ public class ProtoSerializer {
 					}
 				}
 				if (customImportInUse) {
-					protoFileValue.imports().add(customImport);
+					file.imports().add(customImport);
 				}
 			}
 
 			if (configuration.includeValidationRules) {
-				protoFileValue.imports().add(VALIDATION_PROTO_IMPORT);
+				file.imports().add(VALIDATION_PROTO_IMPORT);
 			}
 		}
 	}
 
 	private void computeLocalImports(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
-
-			ProtoFile file = entry.getValue();
+		for (ProtoFile file : packageToProtoFileMap.values()) {
 			SortedSet<String> imports = new TreeSet<>(file.imports());
 
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					computeLocalImports(packageToProtoFileMap, file, imports, mt.fields());
-					for (OneOf oneOf : mt.oneOfs()) {
-						computeLocalImports(packageToProtoFileMap, file, imports, oneOf.fields());
-					}
-
+					mt.nestedTypes()
+							.stream()
+							.filter(e -> e instanceof MessageType)
+							.forEach(e -> computeLocalImports(packageToProtoFileMap, file, imports, ((MessageType) e).fieldsAndOneOfFields()));
+					computeLocalImports(packageToProtoFileMap, file, imports, mt.fieldsAndOneOfFields());
 				}
 			}
 
@@ -576,18 +591,15 @@ public class ProtoSerializer {
 	}
 
 	private void moveFieldPackageNameToFieldTypeName(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
-
-			ProtoFile file = entry.getValue();
+		for (ProtoFile file : packageToProtoFileMap.values()) {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					moveFieldPackageNameToFieldTypeName(mt.fields());
-
-					for (OneOf oneOf : mt.oneOfs()) {
-						moveFieldPackageNameToFieldTypeName(oneOf.fields());
-					}
-
+					mt.nestedTypes()
+							.stream()
+							.filter(e -> e instanceof MessageType)
+							.forEach(e -> moveFieldPackageNameToFieldTypeName(((MessageType) e).fieldsAndOneOfFields()));
+					moveFieldPackageNameToFieldTypeName(mt.fieldsAndOneOfFields());
 				}
 			}
 		}
@@ -607,13 +619,12 @@ public class ProtoSerializer {
 	 * Adds leading '.' to field.elementType when needed. Ref.: https://developers.google.com/protocol-buffers/docs/proto3#packages-and-name-resolution
 	 */
 	private void addLeadingPeriodToElementType(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
-
-			ProtoFile file = entry.getValue();
+		for (ProtoFile file : packageToProtoFileMap.values()) {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
+					// TODO must this be done for nested types as well or handled differently?
+					for (Field field : mt.fieldsAndOneOfFields()) {
 
 						String fieldElementType = StringUtils.trimToNull(field.getElementType());
 						if (fieldElementType != null) {
@@ -636,8 +647,8 @@ public class ProtoSerializer {
 	}
 
 	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			translateTypes(packageToProtoFileMap, protoFile.getValue().types(), protoFile.getValue().packageName());
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			translateTypes(packageToProtoFileMap, file.types(), file.packageName());
 		}
 	}
 
@@ -663,10 +674,8 @@ public class ProtoSerializer {
 						}
 
 					}
-					translateTypes(mt.fields());
-					for (OneOf oneOf : mt.oneOfs()) {
-						translateTypes(oneOf.fields());
-					}
+					translateTypes(mt.fieldsAndOneOfFields());
+
 				} else if (type instanceof EnumType) {
 					EnumType et = (EnumType) type;
 					String messageName = et.name();
@@ -701,8 +710,8 @@ public class ProtoSerializer {
 	}
 
 	private void replaceTypes(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			replaceTypes_(protoFile.getValue().types());
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			replaceTypes_(file.types());
 		}
 	}
 
@@ -713,10 +722,8 @@ public class ProtoSerializer {
 					MessageType mt = (MessageType) type;
 
 					replaceTypes_(type.nestedTypes());
-					replaceTypes(mt.fields());
-					for (OneOf oneOf : mt.oneOfs()) {
-						replaceTypes(oneOf.fields());
-					}
+					replaceTypes(mt.fieldsAndOneOfFields());
+
 				}
 			}
 		}
@@ -730,8 +737,8 @@ public class ProtoSerializer {
 	}
 
 	private void updateTypeReferences(Map<String, ProtoFile> packageToProtoFileMap, String packageNameOfType, String oldName, String newName) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			updateTypeReferences(packageNameOfType, oldName, newName, protoFile.getValue().types());
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			updateTypeReferences(packageNameOfType, oldName, newName, file.types());
 		}
 
 	}
@@ -743,11 +750,12 @@ public class ProtoSerializer {
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
 
-				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fields());
+				mt.nestedTypes()
+						.stream()
+						.filter(e -> e instanceof MessageType)
+						.forEach(e -> updateTypeReferences(packageNameOfType, oldName, newName, (MessageType) e, ((MessageType) e).fieldsAndOneOfFields()));
+				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fieldsAndOneOfFields());
 
-				for (OneOf oneOf : mt.oneOfs()) {
-					updateTypeReferences(packageNameOfType, oldName, newName, mt, oneOf.fields());
-				}
 			}
 		}
 	}
@@ -790,15 +798,15 @@ public class ProtoSerializer {
 	}
 
 	private void translateFieldNames(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			for (Type type : protoFile.getValue().types()) {
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					translateFieldNames(mt.fields());
 
-					for (OneOf oneOf : mt.oneOfs()) {
-						translateFieldNames(oneOf.fields());
-					}
+					mt.nestedTypes().stream().filter(e -> e instanceof MessageType).forEach(e -> translateFieldNames(((MessageType) e).fieldsAndOneOfFields()));
+
+					translateFieldNames(mt.fieldsAndOneOfFields());
+
 				}
 			}
 		}
@@ -813,35 +821,45 @@ public class ProtoSerializer {
 	}
 
 	private void handleFieldNameCaseInsensitives(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			for (Type type : protoFile.getValue().types()) {
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
 
-					Set<String> fieldNamesUppercase = new HashSet<>();
+					mt.nestedTypes()
+							.stream()
+							.filter(e -> e instanceof MessageType)
+							.forEach(e -> handleFieldNameCaseInsensitives(((MessageType) e).fieldsAndOneOfFields()));
 
-					for (Field field : mt.fieldsAndOneOfFields()) {
-						String fieldName = field.name();
-						boolean existedBefore = fieldNamesUppercase.add(fieldName.toUpperCase());
-						if (!existedBefore) {
-							fieldName = fieldName + UNDERSCORE + "v"; // TODO handles only one duplicate, many can exist
-							field.updateName(fieldName);
-						}
-					}
+					handleFieldNameCaseInsensitives(mt.fieldsAndOneOfFields());
 				}
 			}
 		}
 	}
 
+	private void handleFieldNameCaseInsensitives(List<Field> fields) {
+		Set<String> fieldNamesUppercase = new HashSet<>();
+
+		for (Field field : fields) {
+			String fieldName = field.name();
+			boolean existedBefore = fieldNamesUppercase.add(fieldName.toUpperCase());
+			if (!existedBefore) {
+				fieldName = fieldName + UNDERSCORE + "v"; // TODO handles only one duplicate, many can exist
+				field.updateName(fieldName);
+			}
+		}
+	}
+
 	private void underscoreFieldNames(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			for (Type type : protoFile.getValue().types()) {
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					underscoreFieldNames(mt.fields());
-					for (OneOf oneOf : mt.oneOfs()) {
-						underscoreFieldNames(oneOf.fields());
-					}
+					mt.nestedTypes()
+							.stream()
+							.filter(e -> e instanceof MessageType)
+							.forEach(e -> underscoreFieldNames(((MessageType) e).fieldsAndOneOfFields()));
+					underscoreFieldNames(mt.fieldsAndOneOfFields());
 				}
 			}
 		}
@@ -873,17 +891,23 @@ public class ProtoSerializer {
 	}
 
 	private void escapeReservedJavaKeywords(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			for (Type type : protoFile.getValue().types()) {
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					for (Field field : mt.fields()) {
-						String fieldName = field.name();
-						String newFieldName = typeAndFieldNameMapper.escapeFieldName(fieldName);
-						field.updateName(newFieldName);
-					}
+					mt.nestedTypes().stream().filter(e -> e instanceof MessageType).forEach(e -> escapeReservedJavaKeywords(((MessageType) e)));
+
+					escapeReservedJavaKeywords(mt);
 				}
 			}
+		}
+	}
+
+	private void escapeReservedJavaKeywords(MessageType mt) {
+		for (Field field : mt.fieldsAndOneOfFields()) {
+			String fieldName = field.name();
+			String newFieldName = typeAndFieldNameMapper.escapeFieldName(fieldName);
+			field.updateName(newFieldName);
 		}
 	}
 

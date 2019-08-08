@@ -67,6 +67,7 @@ public class SchemaParser implements ErrorHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
 	private static final String DEFAULT_PROTO_PACKAGE = "default";
+	private static final String WRAPPER_PREFIX = "ChoiceWrapper";
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
@@ -802,15 +803,74 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
+	private String createWrapperName(MessageType enclosingType) {
+		long numExistingWrappers = enclosingType.nestedTypes()
+				.stream()
+				.filter(e -> e instanceof MessageType)
+				.map(e -> (MessageType) e)
+				.filter(e -> e.getName().startsWith(WRAPPER_PREFIX))
+				.count();
+		if (numExistingWrappers == 0) {
+			return WRAPPER_PREFIX;
+		} else {
+			return WRAPPER_PREFIX + (numExistingWrappers + 1);
+		}
+
+	}
+
 	private void groupProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet)
 			throws ConversionException {
 		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
 
-		// We handle "all" and "sequence", but not "choice"
-		// if (compositor.equals(XSModelGroup.ALL) || compositor.equals(XSModelGroup.SEQUENCE)) {
-
 		XSParticle[] children = modelGroup.getChildren();
 
+		if (compositor.equals(XSModelGroup.ALL) || compositor.equals(XSModelGroup.SEQUENCE)) {
+			processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children);
+		} else if (compositor.equals(XSModelGroup.CHOICE)) {
+			// Check if choice is unbounded, if so create repeated wrapper class and then continue
+			boolean repeated = getRange(particle);
+			if (repeated) {
+
+				String typeName = createWrapperName(messageType);
+				String fieldName = typeName; // Identical for now
+				// Create new message type enclosed in existing
+				// Add repeated field
+				String doc = resolveDocumentationAnnotation(modelGroup);
+
+				List<OptionElement> messageOptions = new ArrayList<>();
+				Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
+				Location location = getLocation(modelGroup);
+				List<Field> fields = new ArrayList<>();
+				List<Field> extensions = new ArrayList<>();
+				List<OneOf> oneofs = new ArrayList<>();
+				List<Type> nestedTypes = new ArrayList<>();
+				List<Extensions> extendsions = new ArrayList<>();
+				List<Reserved> reserved = new ArrayList<>();
+				// Add message type to file
+				MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes,
+						extendsions, reserved, options);
+				wrapperType.setWrapperMessageType(true);
+				messageType.nestedTypes().add(wrapperType);
+
+				Options fieldOptions = getFieldOptions(particle);
+				int tag = messageType.getNextFieldNum();
+
+				Field field = new Field(null, location, Label.REPEATED, fieldName, doc, tag, null, typeName, fieldOptions, false, false);
+
+				messageType.addField(field);
+
+				processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children);
+
+			} else {
+				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children);
+			}
+		}
+		messageType.advanceFieldNum();
+
+	}
+
+	private void processGroupAsSequence(XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
+			XSParticle[] children) {
 		for (int i = 0; i < children.length; i++) {
 			XSTerm currTerm = children[i].getTerm();
 			if (currTerm.isModelGroup()) {
@@ -820,11 +880,6 @@ public class SchemaParser implements ErrorHandler {
 				navigateSubTypes(children[i], messageType, processedXmlObjects, schemaSet);
 			}
 		}
-//		} else if (compositor.equals(XSModelGroup.CHOICE)) {
-//			throw new ConversionException("no choice support");
-//		}
-		messageType.advanceFieldNum();
-
 	}
 
 	private String resolveDocumentationAnnotation(XSComponent xsComponent) {

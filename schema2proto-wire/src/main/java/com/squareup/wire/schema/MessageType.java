@@ -62,6 +62,16 @@ public final class MessageType extends Type {
 	private final Options options;
 	private int fieldNum = 0;
 
+	public boolean isWrapperMessageType() {
+		return wrapperMessageType;
+	}
+
+	public void setWrapperMessageType(boolean wrapperMessageType) {
+		this.wrapperMessageType = wrapperMessageType;
+	}
+
+	private boolean wrapperMessageType = false;
+
 	public MessageType(ProtoType protoType, Location location, String documentation, String name, List<Field> declaredFields, List<Field> extensionFields,
 			List<OneOf> oneOfs, List<Type> nestedTypes, List<Extensions> extensionsList, List<Reserved> reserveds, Options options) {
 		this.protoType = protoType;

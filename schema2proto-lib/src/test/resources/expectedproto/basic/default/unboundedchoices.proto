@@ -1,0 +1,14 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message Outer {
+
+    repeated ChoiceWrapper choice_wrapper = 1;
+
+    message ChoiceWrapper {
+        string option1 = 1;
+        string option2 = 2;
+    }
+
+}

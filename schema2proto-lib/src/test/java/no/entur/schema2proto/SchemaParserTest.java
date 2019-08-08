@@ -114,6 +114,12 @@ public class SchemaParserTest {
 				generateProtobuf("basic/skipemptytypeinheritance.xsd", "default", "default.proto", true));
 	}
 
+	@Test
+	public void testUnboundedChoice() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "unboundedchoices.proto", generatedRootFolder,
+				generateProtobuf("basic/unboundedchoices.xsd", "default", "default.proto", false));
+	}
+
 	// Disabled for now @Test
 	public void testValidationRules() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "validationrules.proto", generatedRootFolder,

@@ -8,18 +8,22 @@ message EntryType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  repeated PersonType author = 3;
-  repeated CategoryType category = 4;
-  ContentType content = 5;
-  repeated PersonType contributor = 6;
-  IdType id = 7;
-  repeated LinkType link = 8;
-  DateTimeType published = 9;
-  TextType rights = 10;
-  TextType source = 11;
-  TextType summary = 12;
-  TextType title = 13;
-  DateTimeType updated = 14;
+  repeated ChoiceWrapper choice_wrapper = 3;
+
+  message ChoiceWrapper {
+    repeated PersonType author = 1;
+    repeated CategoryType category = 2;
+    ContentType content = 3;
+    repeated PersonType contributor = 4;
+    IdType id = 5;
+    repeated LinkType link = 6;
+    DateTimeType published = 7;
+    TextType rights = 8;
+    TextType source = 9;
+    TextType summary = 10;
+    TextType title = 11;
+    DateTimeType updated = 12;
+  }
 }
 // The Atom id construct is defined in section 4.2.6 of the format spec.
 message IdType {
@@ -81,18 +85,22 @@ message SourceType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  repeated PersonType author = 3;
-  repeated CategoryType category = 4;
-  repeated PersonType contributor = 5;
-  GeneratorType generator = 6;
-  IconType icon = 7;
-  IdType id = 8;
-  repeated LinkType link = 9;
-  LogoType logo = 10;
-  TextType rights = 11;
-  TextType subtitle = 12;
-  TextType title = 13;
-  DateTimeType updated = 14;
+  repeated ChoiceWrapper choice_wrapper = 3;
+
+  message ChoiceWrapper {
+    repeated PersonType author = 1;
+    repeated CategoryType category = 2;
+    repeated PersonType contributor = 3;
+    GeneratorType generator = 4;
+    IconType icon = 5;
+    IdType id = 6;
+    repeated LinkType link = 7;
+    LogoType logo = 8;
+    TextType rights = 9;
+    TextType subtitle = 10;
+    TextType title = 11;
+    DateTimeType updated = 12;
+  }
 }
 // The Atom feed construct is defined in section 4.1.1 of the format spec.
 message FeedType {
@@ -100,19 +108,23 @@ message FeedType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  repeated PersonType author = 3;
-  repeated CategoryType category = 4;
-  repeated PersonType contributor = 5;
-  GeneratorType generator = 6;
-  IconType icon = 7;
-  IdType id = 8;
-  repeated LinkType link = 9;
-  LogoType logo = 10;
-  TextType rights = 11;
-  TextType subtitle = 12;
-  TextType title = 13;
-  DateTimeType updated = 14;
-  repeated EntryType entry = 15;
+  repeated ChoiceWrapper choice_wrapper = 3;
+
+  message ChoiceWrapper {
+    repeated PersonType author = 1;
+    repeated CategoryType category = 2;
+    repeated PersonType contributor = 3;
+    GeneratorType generator = 4;
+    IconType icon = 5;
+    IdType id = 6;
+    repeated LinkType link = 7;
+    LogoType logo = 8;
+    TextType rights = 9;
+    TextType subtitle = 10;
+    TextType title = 11;
+    DateTimeType updated = 12;
+    repeated EntryType entry = 13;
+  }
 }
 // The Atom icon construct is defined in section 4.2.5 of the format spec.
 message IconType {
@@ -150,9 +162,13 @@ message PersonType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  string name = 3;
-  UriType uri = 4;
-  string email = 5;
+  repeated ChoiceWrapper choice_wrapper = 3;
+
+  message ChoiceWrapper {
+    string name = 1;
+    UriType uri = 2;
+    string email = 3;
+  }
 }
 // The Atom logo construct is defined in section 4.2.8 of the format spec.
 message LogoType {

@@ -22,8 +22,12 @@ message IngredientsType {
   repeated string item = 1;
 }
 message DirectionsType {
-  ParaType para = 1;
-  BulletType bullet = 2;
+  repeated ChoiceWrapper choice_wrapper = 1;
+
+  message ChoiceWrapper {
+    ParaType para = 1;
+    BulletType bullet = 2;
+  }
 }
 message ParaType {
   repeated string strong = 1;
