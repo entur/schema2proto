@@ -803,17 +803,27 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private String createWrapperName(MessageType enclosingType) {
+	private String createWrapperName(MessageType enclosingType, XSModelGroup.Compositor compositor) {
+
+		final String wrapperPrefix;
+		if (XSModelGroup.SEQUENCE.equals(compositor)) {
+			wrapperPrefix = "SequenceWrapper";
+		} else if (XSModelGroup.CHOICE.equals(compositor)) {
+			wrapperPrefix = "ChoiceWrapper";
+		} else {
+			throw new ConversionException("Cannot wrap message with compositor?" + compositor);
+		}
+
 		long numExistingWrappers = enclosingType.nestedTypes()
 				.stream()
 				.filter(e -> e instanceof MessageType)
 				.map(e -> (MessageType) e)
-				.filter(e -> e.getName().startsWith(WRAPPER_PREFIX))
+				.filter(e -> e.getName().startsWith(wrapperPrefix))
 				.count();
 		if (numExistingWrappers == 0) {
-			return WRAPPER_PREFIX;
+			return wrapperPrefix;
 		} else {
-			return WRAPPER_PREFIX + (numExistingWrappers + 1);
+			return wrapperPrefix + (numExistingWrappers + 1);
 		}
 
 	}
@@ -824,42 +834,26 @@ public class SchemaParser implements ErrorHandler {
 
 		XSParticle[] children = modelGroup.getChildren();
 
-		if (compositor.equals(XSModelGroup.ALL) || compositor.equals(XSModelGroup.SEQUENCE)) {
+		if (compositor.equals(XSModelGroup.ALL)) {
 			processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children);
+		} else if (compositor.equals(XSModelGroup.SEQUENCE)) {
+			boolean repeated = getRange(particle);
+			if (repeated) {
+
+				String typeName = createWrapperName(messageType, XSModelGroup.SEQUENCE);
+				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName);
+
+			} else {
+				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children);
+			}
+
 		} else if (compositor.equals(XSModelGroup.CHOICE)) {
 			// Check if choice is unbounded, if so create repeated wrapper class and then continue
 			boolean repeated = getRange(particle);
 			if (repeated) {
 
-				String typeName = createWrapperName(messageType);
-				String fieldName = typeName; // Identical for now
-				// Create new message type enclosed in existing
-				// Add repeated field
-				String doc = resolveDocumentationAnnotation(modelGroup);
-
-				List<OptionElement> messageOptions = new ArrayList<>();
-				Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
-				Location location = getLocation(modelGroup);
-				List<Field> fields = new ArrayList<>();
-				List<Field> extensions = new ArrayList<>();
-				List<OneOf> oneofs = new ArrayList<>();
-				List<Type> nestedTypes = new ArrayList<>();
-				List<Extensions> extendsions = new ArrayList<>();
-				List<Reserved> reserved = new ArrayList<>();
-				// Add message type to file
-				MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes,
-						extendsions, reserved, options);
-				wrapperType.setWrapperMessageType(true);
-				messageType.nestedTypes().add(wrapperType);
-
-				Options fieldOptions = getFieldOptions(particle);
-				int tag = messageType.getNextFieldNum();
-
-				Field field = new Field(null, location, Label.REPEATED, fieldName, doc, tag, null, typeName, fieldOptions, false, false);
-
-				messageType.addField(field);
-
-				processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children);
+				String typeName = createWrapperName(messageType, XSModelGroup.CHOICE);
+				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName);
 
 			} else {
 				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children);
@@ -867,6 +861,38 @@ public class SchemaParser implements ErrorHandler {
 		}
 		messageType.advanceFieldNum();
 
+	}
+
+	private void createWrapperAndContinueProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects,
+			XSSchemaSet schemaSet, XSParticle[] children, String typeName) {
+		String fieldName = typeName; // Identical for now
+		// Create new message type enclosed in existing
+		// Add repeated field
+		String doc = resolveDocumentationAnnotation(modelGroup);
+
+		List<OptionElement> messageOptions = new ArrayList<>();
+		Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
+		Location location = getLocation(modelGroup);
+		List<Field> fields = new ArrayList<>();
+		List<Field> extensions = new ArrayList<>();
+		List<OneOf> oneofs = new ArrayList<>();
+		List<Type> nestedTypes = new ArrayList<>();
+		List<Extensions> extendsions = new ArrayList<>();
+		List<Reserved> reserved = new ArrayList<>();
+		// Add message type to file
+		MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions,
+				reserved, options);
+		wrapperType.setWrapperMessageType(true);
+		messageType.nestedTypes().add(wrapperType);
+
+		Options fieldOptions = getFieldOptions(particle);
+		int tag = messageType.getNextFieldNum();
+
+		Field field = new Field(null, location, Label.REPEATED, fieldName, doc, tag, null, typeName, fieldOptions, false, false);
+
+		messageType.addField(field);
+
+		processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children);
 	}
 
 	private void processGroupAsSequence(XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
