@@ -83,18 +83,12 @@ public class ReduceProto {
 				configuration.inputDirectory = new File(basedir, config.inputDirectory);
 			}
 
-			if ((config.includes == null) && config.excludes == null) {
-				throw new InvalidConfigurationException("No includes/excludes - why are you running this tool?");
-			} else {
+			if (config.includes != null) {
+				configuration.includes.addAll(config.includes);
+			}
 
-				if (config.includes != null) {
-					configuration.includes.addAll(config.includes);
-				}
-
-				if (config.excludes != null) {
-					configuration.excludes.addAll(config.excludes);
-				}
-
+			if (config.excludes != null) {
+				configuration.excludes.addAll(config.excludes);
 			}
 
 			if (config.mergeFrom != null) {
