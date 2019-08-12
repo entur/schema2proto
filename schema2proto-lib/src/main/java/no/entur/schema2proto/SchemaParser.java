@@ -636,6 +636,12 @@ public class SchemaParser implements ErrorHandler {
 				/*
 				 * if(!processedXmlObjects.contains(xsSimpleType)) processedXmlObjects.add(xsSimpleType);
 				 */
+
+				boolean isList = xsSimpleType.isList();
+				if (isList) {
+					xsSimpleType = xsSimpleType.asList().getItemType();
+				}
+
 				String name = xsSimpleType.getName();
 				if (name == null) {
 					// Add simple field
@@ -649,8 +655,8 @@ public class SchemaParser implements ErrorHandler {
 
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
-
-					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, null, "value",
+					Label label = isList ? Label.REPEATED : null;
+					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, "value",
 							"SimpleContent value of element", tag, null, simpleTypeName, options, extension, true);
 					addField(messageType, field);
 
@@ -660,10 +666,10 @@ public class SchemaParser implements ErrorHandler {
 					boolean extension = false;
 					Options options = getFieldOptions(xsSimpleType);
 					int tag = messageType.getNextFieldNum();
-					// Label label = attr. ? Label.REPEATED : null;
+					Label label = isList ? Label.REPEATED : null;
 					Location fieldLocation = getLocation(xsSimpleType);
 
-					Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(), options,
+					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(), options,
 							extension, true);
 					addField(messageType, field);
 
@@ -676,11 +682,11 @@ public class SchemaParser implements ErrorHandler {
 						List<OptionElement> optionElements = new ArrayList<>();
 						Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
 						int tag = messageType.getNextFieldNum();
-						// Label label = attr. ? Label.REPEATED : null;
+						Label label = isList ? Label.REPEATED : null;
 
 						Location fieldLocation = getLocation(xsSimpleType);
 
-						Field field = new Field(null, fieldLocation, null, "value", "SimpleContent value of element", tag, null, primitiveType.getName(),
+						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", tag, null, primitiveType.getName(),
 								fieldOptions, extension, true);
 						addField(messageType, field);
 

@@ -126,6 +126,12 @@ public class SchemaParserTest {
 				generateProtobuf("basic/unboundedsequences.xsd", "default", "default.proto", false));
 	}
 
+	@Test
+	public void testList() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "list.proto", generatedRootFolder,
+				generateProtobuf("basic/list.xsd", "default", "default.proto", false));
+	}
+
 	// Disabled for now @Test
 	public void testValidationRules() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "validationrules.proto", generatedRootFolder,

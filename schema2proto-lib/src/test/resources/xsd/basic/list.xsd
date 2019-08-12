@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:simpleType name="doubleList">
+        <xsd:list itemType="xsd:double"/>
+    </xsd:simpleType>
+
+    <xsd:complexType name="DirectPositionList">
+        <xsd:simpleContent>
+            <xsd:extension base="doubleList">
+                <xsd:attribute name="count" type="xsd:positiveInteger"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+</xsd:schema>
