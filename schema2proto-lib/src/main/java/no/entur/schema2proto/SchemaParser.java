@@ -404,6 +404,22 @@ public class SchemaParser implements ErrorHandler {
 					}
 				}
 			}
+		} else if (currTerm.isWildcard()) {
+
+			Options options = getFieldOptions(parentParticle);
+			int tag = messageType.getNextFieldNum();
+			Label label = getRange(parentParticle) ? Label.REPEATED : null;
+			Location fieldLocation;
+			if (currTerm.getLocator() != null) {
+				fieldLocation = getLocation(currTerm.asWildcard());
+			} else {
+				fieldLocation = messageType.location();
+			}
+
+			Field field = new Field(null, fieldLocation, label, "any", resolveDocumentationAnnotation(currTerm.asWildcard()), tag, null, "anyType", options,
+					false, true);
+			addField(messageType, field);
+
 		} else {
 			XSModelGroupDecl modelGroupDecl = null;
 			XSModelGroup modelGroup = null;

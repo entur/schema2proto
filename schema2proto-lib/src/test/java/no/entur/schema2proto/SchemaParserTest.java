@@ -37,6 +37,12 @@ public class SchemaParserTest {
 	private File generatedRootFolder = new File(".");
 
 	@Test
+	public void testAnyTypeElement() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "anytype.proto", generatedRootFolder,
+				generateProtobuf("basic/anyType.xsd", "default", "default.proto", false));
+	}
+
+	@Test
 	public void testNestedTopLevelElement() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "nestedtoplevelelement.proto", generatedRootFolder,
 				generateProtobuf("basic/nestedtoplevelelement.xsd", "default", "default.proto", false));

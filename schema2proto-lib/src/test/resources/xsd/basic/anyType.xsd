@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="Extensions" type="ExtensionsStructure">
+        <xs:annotation>
+            <xs:documentation>Extensions to schema. (Wrapper tag used to avoid problems with handling of optional 'any' by some validators).</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:complexType name="ExtensionsStructure">
+        <xs:annotation>
+            <xs:documentation>Type for Extensions to schema. Wraps an 'any' tag to ensure decidability.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Placeholder for user extensions.</xs:documentation>
+                </xs:annotation>
+            </xs:any>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

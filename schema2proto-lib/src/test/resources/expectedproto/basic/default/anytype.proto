@@ -1,0 +1,9 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+// Type for Extensions to schema. Wraps an 'any' tag to ensure decidability.
+message ExtensionsStructure {
+    // Placeholder for user extensions.
+    repeated string any = 1;
+}
