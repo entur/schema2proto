@@ -467,6 +467,8 @@ public class SchemaParser implements ErrorHandler {
 				XSListSimpleType asList = type.asSimpleType().asList();
 				XSSimpleType itemType = asList.getItemType();
 				typeName = itemType.getName();
+			} else if (type.asSimpleType().isUnion()) {
+				typeName = "string"; // Union always resolves to string
 			} else {
 				typeName = type.asSimpleType().getBaseType().getName();
 			}
@@ -642,7 +644,13 @@ public class SchemaParser implements ErrorHandler {
 					xsSimpleType = xsSimpleType.asList().getItemType();
 				}
 
-				String name = xsSimpleType.getName();
+				String name = null;
+				if (xsSimpleType.isUnion()) {
+					name = "string";
+				} else {
+					name = xsSimpleType.getName();
+				}
+
 				if (name == null) {
 					// Add simple field
 					boolean extension = false;
@@ -660,7 +668,7 @@ public class SchemaParser implements ErrorHandler {
 							"SimpleContent value of element", tag, null, simpleTypeName, options, extension, true);
 					addField(messageType, field);
 
-				} else if (basicTypes.contains(xsSimpleType.getName())) {
+				} else if (basicTypes.contains(name)) {
 
 					// Add simple field
 					boolean extension = false;
@@ -669,8 +677,7 @@ public class SchemaParser implements ErrorHandler {
 					Label label = isList ? Label.REPEATED : null;
 					Location fieldLocation = getLocation(xsSimpleType);
 
-					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", tag, null, xsSimpleType.getName(), options,
-							extension, true);
+					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", tag, null, name, options, extension, true);
 					addField(messageType, field);
 
 				} else {

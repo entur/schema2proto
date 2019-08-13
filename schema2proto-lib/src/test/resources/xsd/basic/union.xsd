@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:simpleType name="NilReasonEnumeration">
+        <xsd:union>
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="inapplicable"/>
+                    <xsd:enumeration value="missing"/>
+                    <xsd:enumeration value="template"/>
+                    <xsd:enumeration value="unknown"/>
+                    <xsd:enumeration value="withheld"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:pattern value="other:\w{2,}"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:union>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="booleanOrNilReason">
+        <xsd:union memberTypes="NilReasonEnumeration xsd:boolean xsd:anyURI"/>
+    </xsd:simpleType>
+
+
+    <xsd:complexType name="DirectPositionList">
+        <xsd:simpleContent>
+            <xsd:extension base="booleanOrNilReason">
+                <xsd:attribute name="count" type="xsd:positiveInteger"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+</xsd:schema>

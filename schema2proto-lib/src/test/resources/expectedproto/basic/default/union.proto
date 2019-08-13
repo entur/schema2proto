@@ -1,0 +1,10 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+
+message DirectPositionList {
+  uint32 count = 1;
+  // SimpleContent value of element
+  string value = 2;
+}

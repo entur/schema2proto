@@ -132,6 +132,12 @@ public class SchemaParserTest {
 				generateProtobuf("basic/list.xsd", "default", "default.proto", false));
 	}
 
+	@Test
+	public void testUnion() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "union.proto", generatedRootFolder,
+				generateProtobuf("basic/union.xsd", "default", "default.proto", false));
+	}
+
 	// Disabled for now @Test
 	public void testValidationRules() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "validationrules.proto", generatedRootFolder,
