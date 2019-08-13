@@ -26,8 +26,11 @@ package no.entur.schema2proto.wiretest;
 import java.io.File;
 import java.io.IOException;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.squareup.wire.schema.IdentifierSet;
+import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 
@@ -40,6 +43,19 @@ public class ParserTest {
 		schemaLoader.addSource(new File("src/test/resources/wiretest/include"));
 		schemaLoader.addProto("packagename/fieldrulesloading.proto");
 		Schema schema = schemaLoader.load();
+
+		IdentifierSet.Builder b = new IdentifierSet.Builder();
+		b.exclude("packagename.PruneMessage");
+		Schema prunedSchema = schema.prune(b.build());
+
+		ProtoFile protoFile = prunedSchema.protoFile("packagename/fieldrulesloading.proto");
+		String prunedFile = protoFile.toSchema();
+
+		Assertions.assertEquals("// src/test/resources/wiretest/source/packagename/fieldrulesloading.proto\n" + "syntax = \"proto3\";\n"
+				+ "package packagename;\n" + "\n" + "import \"validate/validate.proto\";\n" + "\n" + "message PriceUnit {\n"
+				+ "  SubMessage with_options_map_style = 1 [\n" + "    (validate.rules).message = {\n" + "      required: \"true\"\n" + "    }\n" + "  ];\n"
+				+ "  SubMessage with_options_nested_style = 2 [\n" + "    (validate.rules).message.required = true\n" + "  ];\n" + "}\n"
+				+ "message SubMessage {\n" + "  string x = 1;\n" + "}\n", prunedFile);
 
 	}
 }

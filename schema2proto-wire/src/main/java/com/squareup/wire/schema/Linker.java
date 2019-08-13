@@ -266,19 +266,6 @@ public final class Linker {
 		Type type = protoTypeNames.get(self.type().toString());
 		if (type instanceof MessageType) {
 			MessageType messageType = (MessageType) type;
-			while (field.contains(".")) {
-				// Try to follow nesting
-				String enclosingFieldName = field.substring(0, field.indexOf("."));
-				String remainingParts = field.substring(field.indexOf(".") + 1);
-				Field messageField = messageType.field(enclosingFieldName);
-				if (messageField != null) {
-					messageType = (MessageType) protoTypeNames.get(messageField.type().toString());
-					field = remainingParts;
-				} else {
-					break;
-				}
-
-			}
 
 			Field messageField = messageType.field(field);
 			if (messageField != null)

@@ -205,7 +205,13 @@ public final class Options {
 		if (value instanceof OptionElement) {
 			ImmutableMap.Builder<ProtoMember, Object> result = ImmutableMap.builder();
 			OptionElement option = (OptionElement) value;
-			Field field = linker.dereference(context, option.getName());
+
+			String optionname = option.getName();
+			if (optionname.contains(".")) {
+				optionname = optionname.substring(0, optionname.indexOf("."));
+			}
+
+			Field field = linker.dereference(context, optionname);
 			if (field == null) {
 				linker.addError("unable to resolve option %s on %s", option.getName(), context.type());
 			} else {
