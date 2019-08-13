@@ -103,8 +103,6 @@ public class ReduceProto {
 				configuration.customImportLocations = new ArrayList<>(config.customImportLocations);
 			}
 
-			configuration.includeValidationRules = config.includeValidationRules;
-
 			configuration.basedir = basedir;
 
 			reduceProto(configuration);
@@ -119,10 +117,6 @@ public class ReduceProto {
 		List<String> protosLoaded = protoFiles.stream()
 				.map(e -> configuration.inputDirectory.toURI().relativize(e.toURI()).getPath())
 				.collect(Collectors.toList());
-
-		/*
-		 * if (configuration.includeValidationRules) { schemaLoader.addProto("validate/validate.proto"); }
-		 */
 
 		for (String importRootFolder : configuration.customImportLocations) {
 			schemaLoader.addSource(new File(configuration.basedir, importRootFolder).toPath());
@@ -170,9 +164,6 @@ public class ReduceProto {
 	private void mergeFromFile(MergeFrom mergeFrom, Schema prunedSchema, ReduceProtoConfiguration configuration) throws IOException {
 
 		SchemaLoader schemaLoader = new SchemaLoader();
-		if (configuration.includeValidationRules) {
-			schemaLoader.addProto("validate/validate.proto");
-		}
 
 		for (String importRootFolder : configuration.customImportLocations) {
 			schemaLoader.addSource(new File(configuration.basedir, importRootFolder).toPath());

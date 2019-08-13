@@ -33,5 +33,4 @@ public class ReduceProtoConfigFile {
 	public List<NewField> newFields;
 	public List<MergeFrom> mergeFrom;
 	public List<String> customImportLocations;
-	public boolean includeValidationRules = false;
 }

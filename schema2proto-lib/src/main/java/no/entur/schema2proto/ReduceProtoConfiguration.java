@@ -36,5 +36,4 @@ public class ReduceProtoConfiguration {
 	public List<NewField> newFields = new ArrayList<>();
 	public List<MergeFrom> mergeFrom = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
-	public boolean includeValidationRules = false;
 }
