@@ -31,6 +31,7 @@ options:
 customImports:
   - google/protobuf/timestamp.proto
   - google/protobuf/duration.proto
+  - google/protobuf/any.proto
 
 # Any extra import locations to use when the linker is trying to validate the generated proto files.
 # Used in conjunction with customImports
