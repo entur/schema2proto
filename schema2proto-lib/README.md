@@ -25,6 +25,8 @@ Generate proto files from xsd file. Either --configFile or --outputDirectory mus
     --outputFilename <FILENAME>                     name of output file
 ```
 
+TODO update
+
 ## Config parameters
 
 Each parameter is explained in the example config file. The parameters have identical name on the command line as well as in the config file.
