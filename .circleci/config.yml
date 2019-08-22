@@ -3,10 +3,8 @@ aliases:
   - &post_build
     name: Trigger downstream builds
     command: |
-      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
-      echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
-      echo 'export GITHUB_TOKEN="$GITHUB_TOKEN"' >> $BASH_ENV
-      /tools/trigger_build.sh "entur/netex-protobuf.git" "master" "$(git log -1 --pretty=%B)"
+      echo 'export CIRCLE_API_TOKEN="$CIRCLE_API_TOKEN"' >> $BASH_ENV
+      /tools/downstream_single_trigger.sh "github/entur/netex-protobuf" "master"
 
 jobs:
   test:
