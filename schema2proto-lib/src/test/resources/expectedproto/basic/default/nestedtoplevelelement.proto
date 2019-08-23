@@ -12,26 +12,27 @@ message TopLevelElementType {
   // nestedElement field doc
   NestedElementType nested_element = 4;
   repeated NestedRepeatedElementType nested_repeated_element = 5;
-}
-// nestedElement type doc
-message NestedElementType {
-  string name = 1;
-}
-// nestedRepeatedElement type doc
-message NestedRepeatedElementType {
-  string mandatory_string = 1;
-  string optional_string = 2;
-  uint32 quantity = 3;
-  double val = 4;
-  // embeddedEnum field doc
-  repeated EmbeddedEnumType embedded_enum = 5;
 
-  // embeddedEnum type doc
-  enum EmbeddedEnumType {
-    // Default
-    EMBEDDED_ENUM_TYPE_UNSPECIFIED = 0;
-    // embeddedEnumValue1 doc
-    EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE1 = 1;
-    EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE2 = 2;
+  // nestedElement type doc
+  message NestedElementType {
+    string name = 1;
+  }
+  // nestedRepeatedElement type doc
+  message NestedRepeatedElementType {
+    string mandatory_string = 1;
+    string optional_string = 2;
+    uint32 quantity = 3;
+    double val = 4;
+    // embeddedEnum field doc
+    repeated EmbeddedEnumType embedded_enum = 5;
+
+    // embeddedEnum type doc
+    enum EmbeddedEnumType {
+      // Default
+      EMBEDDED_ENUM_TYPE_UNSPECIFIED = 0;
+      // embeddedEnumValue1 doc
+      EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE1 = 1;
+      EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE2 = 2;
+    }
   }
 }

@@ -1,0 +1,23 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message SituationExchangeServiceCapabilitiesStructure {
+    string general_interaction = 1;
+    ResponseFeaturesType response_features = 21;
+
+    message ResponseFeaturesType {
+        bool has_situations = 1;
+    }
+}
+message VehicleMonitoringServiceCapabilitiesStructure {
+    string general_interaction = 1;
+    ResponseFeaturesType response_features = 21;
+
+    message ResponseFeaturesType {
+        bool has_location = 1;
+    }
+}
+message AbstractCapabilitiesStructure {
+    string general_interaction = 1;
+}

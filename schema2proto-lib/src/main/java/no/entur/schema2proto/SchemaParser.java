@@ -118,7 +118,9 @@ public class SchemaParser implements ErrorHandler {
 
 	private void addType(String namespace, Type type) {
 		ProtoFile file = getProtoFileForNamespace(namespace);
-		file.types().add(type);
+		if (!file.types().contains(type)) {
+			file.types().add(type);
+		}
 
 		// Type auto generated collision avoidance
 		String typeName = null;
@@ -200,6 +202,9 @@ public class SchemaParser implements ErrorHandler {
 		if (el.getType() instanceof XSComplexType && el.getType() != schemaSet.getAnyType()) {
 			cType = (XSComplexType) el.getType();
 			MessageType t = processComplexType(cType, el.getName(), schemaSet, null, null);
+			if (el.isGlobal()) {
+				addType(el.getTargetNamespace(), t);
+			}
 			return t.getName();
 		} else if (el.getType() instanceof XSSimpleType && el.getType() != schemaSet.getAnySimpleType()) {
 			xs = el.getType().asSimpleType();
@@ -401,6 +406,9 @@ public class SchemaParser implements ErrorHandler {
 								fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), options, false, true);
 						addField(messageType, field);
 
+						if (!currElementDecl.isGlobal()) {
+							messageType.nestedTypes().add(referencedMessageType);
+						}
 					}
 				}
 			}
@@ -575,7 +583,9 @@ public class SchemaParser implements ErrorHandler {
 				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved,
 						options);
 
-				addType(nameSpace, messageType);
+				if (complexType.isGlobal()) {
+					addType(nameSpace, messageType);
+				}
 
 				processedXmlObjects = new HashSet<>();
 

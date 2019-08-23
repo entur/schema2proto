@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:complexType name="VehicleMonitoringServiceCapabilitiesStructure">
+        <xsd:complexContent>
+            <xsd:extension base="AbstractCapabilitiesStructure">
+                <xsd:sequence>
+                    <xsd:element name="ResponseFeatures" minOccurs="0">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="HasLocation" type="xsd:boolean" default="true" minOccurs="0">
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="SituationExchangeServiceCapabilitiesStructure">
+        <xsd:complexContent>
+            <xsd:extension base="AbstractCapabilitiesStructure">
+                <xsd:sequence>
+                    <xsd:element name="ResponseFeatures" minOccurs="0">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="HasSituations" type="xsd:boolean" default="false" minOccurs="0">
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractCapabilitiesStructure">
+        <xsd:sequence>
+            <xsd:element name="GeneralInteraction" minOccurs="0">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

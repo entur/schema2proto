@@ -10,7 +10,8 @@ message AddressType {
   string city = 2;
   string post_code = 3;
   com.schemas.domain.common.Country country = 4;
-}
-message AddressLinesType {
-  repeated string line = 1;
+
+  message AddressLinesType {
+    repeated string line = 1;
+  }
 }

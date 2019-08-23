@@ -103,6 +103,12 @@ public class SchemaParserTest {
 	}
 
 	@Test
+	public void testDifferentInnerClassesWithSameName() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "differentinnerclasseswithsamename.proto", generatedRootFolder,
+				generateProtobuf("basic/differentinnerclasseswithsamename.xsd", "default", "default.proto", false));
+	}
+
+	@Test
 	public void testAttributeGroups() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "attributegroups.proto", generatedRootFolder,
 				generateProtobuf("basic/attributegroups.xsd", "default", "default.proto", false));

@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Field;
@@ -543,12 +544,9 @@ public class ProtoSerializer {
 
 				String importPackage = getPackageFromPathName(customImport);
 				for (Type type : file.types()) {
-					if (type instanceof MessageType) {
-						for (Field field : ((MessageType) type).fieldsAndOneOfFields()) {
-							if (field.getElementType() != null && field.getElementType().equalsIgnoreCase(importPackage)) {
-								customImportInUse = true;
-							}
-						}
+					customImportInUse = isCustomImportInUseInNestedTypes(importPackage, type);
+					if (customImportInUse) {
+						break;
 					}
 				}
 				if (customImportInUse) {
@@ -562,6 +560,34 @@ public class ProtoSerializer {
 		}
 	}
 
+	private boolean isCustomImportInUseInNestedTypes(String importPackage, Type type) {
+		boolean customImportInUse = false;
+
+		if (type instanceof MessageType) {
+			for (Field field : ((MessageType) type).fieldsAndOneOfFields()) {
+				if (field.getElementType() != null && field.getElementType().equalsIgnoreCase(importPackage)) {
+					customImportInUse = true;
+				}
+			}
+			if (!customImportInUse) {
+				for (Type nestedType : type.nestedTypes()) {
+					if (nestedType instanceof MessageType) {
+						for (Field field : ((MessageType) type).fieldsAndOneOfFields()) {
+							if (field.getElementType() != null && field.getElementType().equalsIgnoreCase(importPackage)) {
+								customImportInUse = true;
+							}
+						}
+						if (!customImportInUse) {
+							customImportInUse = isCustomImportInUseInNestedTypes(importPackage, nestedType);
+						}
+					}
+				}
+			}
+		}
+
+		return customImportInUse;
+	}
+
 	private void computeLocalImports(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (ProtoFile file : packageToProtoFileMap.values()) {
 			SortedSet<String> imports = new TreeSet<>(file.imports());
@@ -569,11 +595,8 @@ public class ProtoSerializer {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					mt.nestedTypes()
-							.stream()
-							.filter(e -> e instanceof MessageType)
-							.forEach(e -> computeLocalImports(packageToProtoFileMap, file, imports, ((MessageType) e).fieldsAndOneOfFields()));
-					computeLocalImports(packageToProtoFileMap, file, imports, mt.fieldsAndOneOfFields());
+
+					computeLocalImports(packageToProtoFileMap, file, imports, mt);
 				}
 			}
 
@@ -583,7 +606,14 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void computeLocalImports(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile file, SortedSet<String> imports, List<Field> fields) {
+	private void computeLocalImports(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile file, SortedSet<String> imports, MessageType messageType) {
+		messageType.nestedTypes()
+				.stream()
+				.filter(e -> e instanceof MessageType)
+				.forEach(e -> computeLocalImports(packageToProtoFileMap, file, imports, ((MessageType) e)));
+
+		ImmutableList<Field> fields = messageType.fieldsAndOneOfFields();
+
 		for (Field field : fields) {
 			String packageName = StringUtils.trimToNull(field.packageName());
 			if (file.packageName() != null && file.packageName().equals(packageName)) {
@@ -604,18 +634,18 @@ public class ProtoSerializer {
 		for (ProtoFile file : packageToProtoFileMap.values()) {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
-					MessageType mt = (MessageType) type;
-					mt.nestedTypes()
-							.stream()
-							.filter(e -> e instanceof MessageType)
-							.forEach(e -> moveFieldPackageNameToFieldTypeName(((MessageType) e).fieldsAndOneOfFields()));
-					moveFieldPackageNameToFieldTypeName(mt.fieldsAndOneOfFields());
+					moveFieldPackageNameToFieldTypeName((MessageType) type);
 				}
 			}
 		}
 	}
 
-	private void moveFieldPackageNameToFieldTypeName(List<Field> fields) {
+	// Recursively loops through all fields for all nested types
+	private void moveFieldPackageNameToFieldTypeName(MessageType messageType) {
+		messageType.nestedTypes().stream().filter(e -> e instanceof MessageType).forEach(e -> moveFieldPackageNameToFieldTypeName(((MessageType) e)));
+
+		List<Field> fields = messageType.fieldsAndOneOfFields();
+
 		for (Field field : fields) {
 			String fieldPackageName = StringUtils.trimToNull(field.packageName());
 			if (fieldPackageName != null) {
