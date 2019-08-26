@@ -118,9 +118,7 @@ public class SchemaParser implements ErrorHandler {
 
 	private void addType(String namespace, Type type) {
 		ProtoFile file = getProtoFileForNamespace(namespace);
-		if (!file.types().contains(type)) {
-			file.types().add(type);
-		}
+		file.types().add(type);
 
 		// Type auto generated collision avoidance
 		String typeName = null;
@@ -202,7 +200,12 @@ public class SchemaParser implements ErrorHandler {
 		if (el.getType() instanceof XSComplexType && el.getType() != schemaSet.getAnyType()) {
 			cType = (XSComplexType) el.getType();
 			MessageType t = processComplexType(cType, el.getName(), schemaSet, null, null);
-			if (el.isGlobal()) {
+			if (cType.isGlobal() | (cType.getBaseType() != null && cType.getBaseType().isComplexType()
+					&& cType.getBaseType().getTargetNamespace().endsWith("/XMLSchema"))) {
+				/*
+				 * Type is global, or extends "anyType"
+				 */
+
 				addType(el.getTargetNamespace(), t);
 			}
 			return t.getName();
@@ -583,7 +586,12 @@ public class SchemaParser implements ErrorHandler {
 				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved,
 						options);
 
-				if (complexType.isGlobal()) {
+				if (complexType.isGlobal() | (complexType.getBaseType() != null && complexType.getBaseType().isComplexType()
+						&& !complexType.getBaseType().getTargetNamespace().endsWith("/XMLSchema") && complexType.getBaseType().asComplexType().isGlobal())) {
+					/*
+					 * Type is global, or extends a type that is global, but not "anyType"
+					 */
+
 					addType(nameSpace, messageType);
 				}
 
