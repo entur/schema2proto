@@ -200,8 +200,8 @@ public class SchemaParser implements ErrorHandler {
 		if (el.getType() instanceof XSComplexType && el.getType() != schemaSet.getAnyType()) {
 			cType = (XSComplexType) el.getType();
 			MessageType t = processComplexType(cType, el.getName(), schemaSet, null, null);
-			if (cType.isGlobal() | (cType.getBaseType() != null && cType.getBaseType().isComplexType()
-					&& cType.getBaseType().getTargetNamespace().endsWith("/XMLSchema"))) {
+			if (cType.isGlobal()
+					| (cType.getBaseType() != null && cType.getBaseType().isComplexType() && cType.getBaseType().getTargetNamespace().endsWith("/XMLSchema"))) {
 				/*
 				 * Type is global, or extends "anyType"
 				 */
