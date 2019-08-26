@@ -57,7 +57,7 @@ jobs:
         paths:
         - ~/.m2
         key: cache-dependencies-static
-    # Cannot use -o because of snapshot dependencies.
+    # Cannot use -o because of snapshot dependencies..
     - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
     - run: *post_build
 
