@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:complexType name="PointInJourneyPattern_VersionedChildStructure" abstract="false">
+        <xsd:complexContent>
+            <xsd:extension base="PointInLinkSequence_VersionedChildStructure">
+                <xsd:sequence>
+                    <xsd:group ref="PointInJourneyPatternGroup"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:group name="PointInJourneyPatternGroup">
+        <xsd:sequence>
+            <xsd:group ref="PointInPatternPropertiesGroup"/>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:group name="PointInPatternPropertiesGroup">
+        <xsd:sequence>
+            <xsd:element name="noticeAssignments" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="noticeAssignments_RelStructure"/>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:complexType name="noticeAssignments_RelStructure">
+        <xsd:complexContent>
+            <xsd:extension base="containmentAggregationStructure">
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element ref="NoticeAssignment_" maxOccurs="1"/>
+                </xsd:choice>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="NoticeAssignment_" type="xsd:string" abstract="true" >
+        <xsd:annotation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="PointInLinkSequence_VersionedChildStructure" abstract="true">
+        <xsd:complexContent>
+            <xsd:extension base="VersionedChildStructure">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="containmentAggregationStructure">
+        <xsd:attribute name="aggregation" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="VersionedChildStructure">
+        <xsd:attribute name="version" type="xsd:string" />
+    </xsd:complexType>
+</xsd:schema>

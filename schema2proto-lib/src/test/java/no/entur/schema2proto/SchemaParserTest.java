@@ -55,6 +55,12 @@ public class SchemaParserTest {
 	}
 
 	@Test
+	public void testAvoidDuplicateChoiceWrapper() throws IOException {
+		compareExpectedAndGenerated(expectedRootFolder, "duplicatechoicewrapper.proto", generatedRootFolder,
+				generateProtobuf("basic/duplicatechoicewrapper.xsd", "default", "default.proto", false));
+	}
+
+	@Test
 	public void testBasicTopLevelComplexType() throws IOException {
 		compareExpectedAndGenerated(expectedRootFolder, "toplevelcomplextype.proto", generatedRootFolder,
 				generateProtobuf("basic/toplevelcomplextype.xsd", "default", "default.proto", false));

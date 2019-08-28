@@ -200,10 +200,9 @@ public class SchemaParser implements ErrorHandler {
 		if (el.getType() instanceof XSComplexType && el.getType() != schemaSet.getAnyType()) {
 			cType = (XSComplexType) el.getType();
 			MessageType t = processComplexType(cType, el.getName(), schemaSet, null, null);
-			if (cType.isGlobal()
-					| (cType.getBaseType() != null && cType.getBaseType().isComplexType() && cType.getBaseType().getTargetNamespace().endsWith("/XMLSchema"))) {
+			if (cType.isGlobal()) {
 				/*
-				 * Type is global, or extends "anyType"
+				 * Type is global
 				 */
 
 				addType(el.getTargetNamespace(), t);
@@ -586,10 +585,9 @@ public class SchemaParser implements ErrorHandler {
 				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved,
 						options);
 
-				if (complexType.isGlobal() | (complexType.getBaseType() != null && complexType.getBaseType().isComplexType()
-						&& !complexType.getBaseType().getTargetNamespace().endsWith("/XMLSchema") && complexType.getBaseType().asComplexType().isGlobal())) {
+				if (complexType.isGlobal() | (complexType.getScope() != null && complexType.getScope().isGlobal())) {
 					/*
-					 * Type is global, or extends a type that is global, but not "anyType"
+					 * Type is global OR scope is global
 					 */
 
 					addType(nameSpace, messageType);
@@ -912,34 +910,39 @@ public class SchemaParser implements ErrorHandler {
 
 	private void createWrapperAndContinueProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects,
 			XSSchemaSet schemaSet, XSParticle[] children, String typeName) {
-		String fieldName = typeName; // Identical for now
-		// Create new message type enclosed in existing
-		// Add repeated field
-		String doc = resolveDocumentationAnnotation(modelGroup);
 
-		List<OptionElement> messageOptions = new ArrayList<>();
-		Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
-		Location location = getLocation(modelGroup);
-		List<Field> fields = new ArrayList<>();
-		List<Field> extensions = new ArrayList<>();
-		List<OneOf> oneofs = new ArrayList<>();
-		List<Type> nestedTypes = new ArrayList<>();
-		List<Extensions> extendsions = new ArrayList<>();
-		List<Reserved> reserved = new ArrayList<>();
-		// Add message type to file
-		MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions,
-				reserved, options);
-		wrapperType.setWrapperMessageType(true);
-		messageType.nestedTypes().add(wrapperType);
+		if (!processedXmlObjects.contains(particle)) {
+			processedXmlObjects.add(particle);
 
-		Options fieldOptions = getFieldOptions(particle);
-		int tag = messageType.getNextFieldNum();
+			String fieldName = typeName; // Identical for now
+			// Create new message type enclosed in existing
+			// Add repeated field
+			String doc = resolveDocumentationAnnotation(modelGroup);
 
-		Field field = new Field(null, location, Label.REPEATED, fieldName, doc, tag, null, typeName, fieldOptions, false, false);
+			List<OptionElement> messageOptions = new ArrayList<>();
+			Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
+			Location location = getLocation(modelGroup);
+			List<Field> fields = new ArrayList<>();
+			List<Field> extensions = new ArrayList<>();
+			List<OneOf> oneofs = new ArrayList<>();
+			List<Type> nestedTypes = new ArrayList<>();
+			List<Extensions> extendsions = new ArrayList<>();
+			List<Reserved> reserved = new ArrayList<>();
+			// Add message type to file
+			MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions,
+					reserved, options);
+			wrapperType.setWrapperMessageType(true);
+			messageType.nestedTypes().add(wrapperType);
 
-		messageType.addField(field);
+			Options fieldOptions = getFieldOptions(particle);
+			int tag = messageType.getNextFieldNum();
 
-		processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children);
+			Field field = new Field(null, location, Label.REPEATED, fieldName, doc, tag, null, typeName, fieldOptions, false, false);
+
+			messageType.addField(field);
+
+			processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children);
+		}
 	}
 
 	private void processGroupAsSequence(XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
