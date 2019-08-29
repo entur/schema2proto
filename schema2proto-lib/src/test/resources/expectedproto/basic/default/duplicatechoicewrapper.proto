@@ -32,3 +32,6 @@ message PointInLinkSequence_VersionedChildStructure {
 message ContainmentAggregationStructure {
   string aggregation = 1;
 }
+message UnrelatedTypeWithGlobalNoticeAssignments {
+  NoticeAssignments_RelStructure notice_assignments = 1;
+}

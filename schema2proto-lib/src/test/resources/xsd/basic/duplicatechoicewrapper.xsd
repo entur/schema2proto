@@ -58,4 +58,11 @@
     <xsd:complexType name="VersionedChildStructure">
         <xsd:attribute name="version" type="xsd:string" />
     </xsd:complexType>
+
+    <xsd:complexType name="unrelatedTypeWithGlobalNoticeAssignments">
+        <xsd:sequence>
+            <xsd:element name="noticeAssignments" type="noticeAssignments_RelStructure" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>
