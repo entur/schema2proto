@@ -11,7 +11,7 @@ message PointInJourneyPattern_VersionedChildStructure {
     repeated ChoiceWrapper choice_wrapper = 2;
 
     message ChoiceWrapper {
-      string NoticeAssignment_ = 1;
+      string notice_assignmentu = 1;
     }
   }
 }

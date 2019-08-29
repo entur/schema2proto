@@ -895,18 +895,17 @@ public class ProtoSerializer {
 			for (Type type : file.types()) {
 				if (type instanceof MessageType) {
 					MessageType mt = (MessageType) type;
-					mt.nestedTypes()
-							.stream()
-							.filter(e -> e instanceof MessageType)
-							.forEach(e -> underscoreFieldNames(((MessageType) e).fieldsAndOneOfFields()));
-					underscoreFieldNames(mt.fieldsAndOneOfFields());
+					underscoreFieldNames(mt);
 				}
 			}
 		}
 	}
 
-	private void underscoreFieldNames(List<Field> fields) {
-		for (Field field : fields) {
+	private void underscoreFieldNames(MessageType mt) {
+
+		mt.nestedTypes().stream().filter(e -> e instanceof MessageType).forEach(e -> underscoreFieldNames((MessageType) e));
+
+		for (Field field : mt.fieldsAndOneOfFields()) {
 			String fieldName = field.name();
 			boolean startsWithUnderscore = fieldName.startsWith(UNDERSCORE);
 			boolean endsWithUnderscore = fieldName.endsWith(UNDERSCORE);
@@ -928,6 +927,7 @@ public class ProtoSerializer {
 
 			field.updateName(newFieldName);
 		}
+
 	}
 
 	private void escapeReservedJavaKeywords(Map<String, ProtoFile> packageToProtoFileMap) {
