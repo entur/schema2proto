@@ -1,9 +1,5 @@
 outputFilename: simple.proto
 outputDirectory: target/generated-proto
-#namespace:
-#splitBySchema: false
-#nestEnums: false
-#typeInEnums: true
 includeMessageDocs: true
 includeFieldDocs: true
 options:

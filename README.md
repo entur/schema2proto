@@ -2,7 +2,7 @@
 
 This tool converts XML Schema files (.xsd) to Protocol Buffers (.proto). It was once based on xsd2thrift but has been completely rewritten.
 
-You can also use it to reduce proto files by removing unnecessary packages, messages and fields
+You can also use it to modify proto files by removing unnecessary packages, messages and fields
 
 ## Usage
 

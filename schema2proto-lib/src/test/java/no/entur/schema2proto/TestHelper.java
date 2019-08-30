@@ -41,6 +41,12 @@ import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 
+import no.entur.schema2proto.generateproto.Schema2Proto;
+import no.entur.schema2proto.modifyproto.MergeFrom;
+import no.entur.schema2proto.modifyproto.ModifyProto;
+import no.entur.schema2proto.modifyproto.ModifyProtoConfiguration;
+import no.entur.schema2proto.modifyproto.NewField;
+
 public class TestHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
@@ -141,13 +147,13 @@ public class TestHelper {
 		return outputFile.getPath();
 	}
 
-	public static File reduce(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom)
+	public static File modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom)
 			throws IOException {
 		File dir = new File("target/generated-proto/");
 		FileUtils.deleteDirectory(dir);
 		dir.mkdirs();
 
-		ReduceProtoConfiguration configuration = new ReduceProtoConfiguration();
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
 		configuration.excludes = excludes;
 		configuration.includes = includes;
 		configuration.outputDirectory = dir;
@@ -155,8 +161,8 @@ public class TestHelper {
 		configuration.newFields = newFields;
 		configuration.mergeFrom = mergeFrom;
 
-		ReduceProto processor = new ReduceProto();
-		processor.reduceProto(configuration);
+		ModifyProto processor = new ModifyProto();
+		processor.modifyProto(configuration);
 
 		return dir;
 

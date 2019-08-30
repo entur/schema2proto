@@ -24,17 +24,20 @@ package no.entur;
  */
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
-import no.entur.schema2proto.generateproto.Schema2Proto;
+import no.entur.schema2proto.InvalidConfigurationException;
+import no.entur.schema2proto.modifyproto.ModifyProto;
 
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
-public class GenerateProtoMojo extends AbstractMojo {
+@Mojo(name = "modify", defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
+public class ModifyProtoMojo extends AbstractMojo {
 
 	/**
 	 * Configuration file for schema2proto
@@ -42,28 +45,23 @@ public class GenerateProtoMojo extends AbstractMojo {
 	@Parameter(required = true)
 	private File configFile;
 
-	/**
-	 * XSD file to convert
-	 */
-	@Parameter(required = true)
-	private File xsdFile;
+	@Parameter(readonly = true, defaultValue = "${project}")
+	private MavenProject project;
 
 	public void execute() throws MojoExecutionException {
 
+		if (configFile == null || !configFile.exists()) {
+			throw new MojoExecutionException("Config file not found");
+		}
+
+		getLog().info(String.format("Modifying proto files from using config file %s. Output is defined in config file", configFile));
+
 		try {
-			if (configFile == null || !configFile.exists()) {
-				throw new MojoExecutionException("Config file not found");
-			}
-
-			if (xsdFile == null || !xsdFile.exists()) {
-				throw new MojoExecutionException("XSD file not found");
-			}
-
-			getLog().info(String.format("Generating proto files from %s using config file %s. Output is defined in config file", xsdFile, configFile));
-
-			Schema2Proto.main(new String[] { "--configFile=" + configFile, "" + xsdFile });
-		} catch (MojoExecutionException e) {
-			throw new MojoExecutionException("Error generating proto files", e);
+			new ModifyProto().modifyProto(configFile, project.getBasedir());
+		} catch (IOException e) {
+			throw new MojoExecutionException("Error modifying proto files", e);
+		} catch (InvalidConfigurationException e) {
+			throw new MojoExecutionException("Invalid modify configuration file", e);
 		}
 
 	}

@@ -1,0 +1,19 @@
+# Source folder to read proto files from.
+inputDirectory: src/test/resources/modify
+
+# Target directory to write resulting proto files. Proto files are placed in sub folders according to their package name
+outputDirectory: target/generated-proto
+
+# Any extra import locations to use when the linker is trying to validate the modified proto files.
+customImportLocations:
+#  - pathToRootFolder1OfProtobufImport
+#  - pathToRootFolder2OfProtobufImport
+
+# Explicit packages, types and fields that must be included in the resulting protos
+includes:
+  - A
+  - B
+
+# Explicit packages, types and fields that must be excluded from the resulting protos
+excludes:
+  - LangType

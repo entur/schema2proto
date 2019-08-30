@@ -31,12 +31,14 @@ In your `build` section add:
     </plugin>
 ```
 
-### Reduce proto / prune unwanted messages
+### Modify proto files
+
+You can add, remove and modify both messages and message fields in proto files
 
 In your `build` section add:
 
 2 mandatory parameters:
-* `configFile` path to reduce config file. See [../schema2proto-lib/example_config/reduceproto.yml] for example
+* `configFile` path to modify config file. See [../schema2proto-lib/example_config/modifyproto.yml] for example
 
 ```
     <plugin>
@@ -50,7 +52,7 @@ In your `build` section add:
             <execution>
                 <id>generate-resources</id>
                 <goals>
-                    <goal>reduce</goal>
+                    <goal>modify</goal>
                 </goals>
             </execution>
         </executions>
