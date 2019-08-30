@@ -8,7 +8,7 @@ aliases:
 
   - &sonar-scan
     command: |
-      mvn sonar:sonar \
+      mvn sonar:sonar -s /tools/m2/settings.xml \
         -Dsonar.projectKey=${CIRCLE_PROJECT_REPONAME} \
         -Dsonar.organization=${SONAR_ORG} \
         -Dsonar.projectName=${CIRCLE_PROJECT_REPONAME} \
