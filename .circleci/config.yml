@@ -9,8 +9,8 @@ aliases:
   - &sonar-scan
     command: |
       mvn sonar:sonar -s /tools/m2/settings.xml \
-        -Dsonar.projectKey=${CIRCLE_PROJECT_REPONAME} \
-        -Dsonar.organization=${SONAR_ORG} \
+        -Dsonar.projectKey=entur_${CIRCLE_PROJECT_REPONAME} \
+        -Dsonar.organization=entur \
         -Dsonar.projectName=${CIRCLE_PROJECT_REPONAME} \
         -Dsonar.host.url=https://sonarcloud.io \
         -Dsonar.login=${ENTUR_SONAR_PASSWORD}
@@ -122,3 +122,7 @@ workflows:
         filters:
           branches:
             only: master
+    - sonar:
+        context: org-carbon
+        requires:
+          - test
