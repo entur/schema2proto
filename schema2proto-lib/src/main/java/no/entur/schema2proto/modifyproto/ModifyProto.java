@@ -62,6 +62,7 @@ public class ModifyProto {
 
 		try (InputStream in = Files.newInputStream(configFile.toPath())) {
 
+			// Parse config file
 			Constructor constructor = new Constructor(ModifyProtoConfigFile.class);
 			TypeDescription customTypeDescription = new TypeDescription(ModifyProtoConfigFile.class);
 			customTypeDescription.addPropertyParameters("newFields", NewField.class);
@@ -70,9 +71,9 @@ public class ModifyProto {
 			Yaml yaml = new Yaml(constructor);
 
 			LOGGER.info("Using configFile {}", configFile);
-
 			ModifyProtoConfigFile config = yaml.load(in);
 
+			// Check config values
 			if (config.outputDirectory == null) {
 				throw new InvalidConfigurationException("No output directory");
 			} else {
@@ -108,6 +109,7 @@ public class ModifyProto {
 
 			configuration.basedir = basedir;
 
+			// Run actual proto modification
 			modifyProto(configuration);
 
 		}
@@ -116,6 +118,7 @@ public class ModifyProto {
 	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
 
+		// Collect source proto files (but not dependencies). Used to know which files should be written to .proto and which that should remain a dependency.
 		Collection<File> protoFiles = FileUtils.listFiles(configuration.inputDirectory, new String[] { "proto" }, true);
 		List<String> protosLoaded = protoFiles.stream()
 				.map(e -> configuration.inputDirectory.toURI().relativize(e.toURI()).getPath())
