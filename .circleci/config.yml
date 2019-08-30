@@ -40,7 +40,9 @@ jobs:
     - persist_to_workspace:
             root: .
             paths:
-              - target/
+              - schema2proto-lib/target/
+              - schema2proto-maven-plugin/target/
+              - schema2proto-wire/target/
     - run:
         name: Save test results
         command: |
