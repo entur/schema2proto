@@ -50,66 +50,74 @@ import no.entur.schema2proto.modifyproto.NewField;
 public class TestHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
-	private static final Logger FILECONTENTLOGGER = LoggerFactory.getLogger("FILECONTENT");
+	private static final Logger FILE_CONTENT_LOGGER = LoggerFactory.getLogger("FILECONTENT");
 
-	public static void compareExpectedAndGenerated(File expectedRootFolder, String expected, File generatedRootFolder, String generated) throws IOException {
-
-		File e = new File(expected);
-		File g = new File(generated);
-
-		List<String> exlines = linesFromFile(expectedRootFolder, expected);
-		List<String> genlines = linesFromFile(generatedRootFolder, generated);
-
+	public static void compareExpectedAndGenerated(File expectedRootFolder, String expected, File generatedRootFolder, String generated) {
 		try {
+			File e = new File(expected);
+			File g = new File(generated);
 			ProtoComparator.compareProtoFiles(expectedRootFolder, e, generatedRootFolder, g);
 		} catch (AssertionFailedError e1) {
-			showDiff(expected, generated, exlines, genlines);
-
+			showDiff(expectedRootFolder, generatedRootFolder, expected, generated);
 			throw e1;
 		}
 	}
 
-	private static void showDiff(String expected, String generated, List<String> exlines, List<String> genlines) {
+	private static void showDiff(File expectedRootFolder, File generatedRootFolder, String expected, String generated) {
 		try {
-			Patch<String> patch = DiffUtils.diff(exlines, genlines);
+			List<String> expectedFileLines = linesFromFile(expectedRootFolder, expected);
+			List<String> generatedFileLines = linesFromFile(generatedRootFolder, generated);
+
+			Patch<String> patch = DiffUtils.diff(expectedFileLines, generatedFileLines);
 
 			// simple output the computed patch to console
 			if (patch.getDeltas().size() > 0) {
 
-				dumpFile(expected, exlines);
-				dumpFile(generated, genlines);
+				dumpFile(expected, expectedFileLines);
+				dumpFile(generated, generatedFileLines);
 
-				FILECONTENTLOGGER.info("Diff between {} and {}", expected, generated);
+				FILE_CONTENT_LOGGER.info("Diff between {} and {}", expected, generated);
 				for (AbstractDelta<String> delta : patch.getDeltas()) {
-					FILECONTENTLOGGER.info(delta.getSource() + " <----> " + delta.getTarget());
+					FILE_CONTENT_LOGGER.info(delta.getSource() + " <----> " + delta.getTarget());
 				}
-				FILECONTENTLOGGER.info("Diff end");
+				FILE_CONTENT_LOGGER.info("Diff end");
 			}
 
-		} catch (DiffException e1) {
+		} catch (DiffException | IOException e1) {
 			LOGGER.error("Error creating diff of files", e1);
 		}
 	}
 
 	private static void dumpFile(String filename, List<String> exlines) {
-		FILECONTENTLOGGER.info("****** START " + filename + " ******");
+		FILE_CONTENT_LOGGER.info("****** START " + filename + " ******");
 		int i = 0;
 		for (String s : exlines) {
-			FILECONTENTLOGGER.info("[" + StringUtils.leftPad("" + i++, 4, " ") + "] " + s);
+			FILE_CONTENT_LOGGER.info("[" + StringUtils.leftPad("" + i++, 4, " ") + "] " + s);
 		}
-		FILECONTENTLOGGER.info("****** END   " + filename + " ******");
+		FILE_CONTENT_LOGGER.info("****** END   " + filename + " ******");
+	}
+
+	private static List<String> linesFromFile(File folder, String file) throws IOException {
+		List<String> lines = new ArrayList<String>();
+		BufferedReader reader = new BufferedReader(new FileReader(new File(folder, file)));
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			lines.add(line);
+		}
+		reader.close();
+		return lines;
 	}
 
 	public static String generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
 			String expectedFolder, String expectedFilename) throws IOException {
-		return generate(xsdFile, typeMappings, nameMappings, forcePackageName, inheritanceToComposition, expectedFolder, expectedFilename, false);
+		return generateProtobuf(xsdFile, typeMappings, nameMappings, forcePackageName, inheritanceToComposition, expectedFolder, expectedFilename, false);
 	}
 
 	public static String generateProtobuf(String xsdFile, String expectedFolder, String expectedFilename, boolean skipEmptyTypeInheritance) throws IOException {
-		return generate(xsdFile, null, null, "default", false, expectedFolder, expectedFilename, skipEmptyTypeInheritance);
+		return generateProtobuf(xsdFile, null, null, "default", false, expectedFolder, expectedFilename, skipEmptyTypeInheritance);
 	}
 
-	private static String generate(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
+	private static String generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
 			String expectedFolder, String expectedFilename, boolean skipEmptyTypeInheritance) throws IOException {
 		File dir = new File("target/generated-proto/");
 		FileUtils.deleteDirectory(dir);
@@ -166,17 +174,6 @@ public class TestHelper {
 
 		return dir;
 
-	}
-
-	private static List<String> linesFromFile(File folder, String file) throws IOException {
-		List<String> lines = new ArrayList<String>();
-		BufferedReader reader = new BufferedReader(new FileReader(new File(folder, file)));
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-			lines.add(line);
-		}
-		reader.close();
-		return lines;
 	}
 
 }
