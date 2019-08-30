@@ -91,7 +91,7 @@ jobs:
       - restore_cache:
           keys:
             - cache-dependencies-{{ checksum "pom.xml" }}
-            - cache-dependencies-18012019
+            - cache-dependencies-static
 
       - run: *sonar-scan
 
