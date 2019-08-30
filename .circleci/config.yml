@@ -108,7 +108,7 @@ workflows:
       - test:
           context: org-carbon
       - sonar:
-          context: global
+          context: org-carbon
           requires:
             - test
   build_test_deploy:
@@ -123,6 +123,6 @@ workflows:
           branches:
             only: master
     - sonar:
-        context: global
+        context: org-carbon
         requires:
           - test
