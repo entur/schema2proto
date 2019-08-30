@@ -6,6 +6,15 @@ aliases:
       echo 'export CIRCLE_API_TOKEN="$CIRCLE_API_USER_TOKEN"' >> $BASH_ENV
       /tools/downstream_single_trigger.sh "gh/entur/netex-protobuf" "master"
 
+  - &sonar-scan
+    command: |
+      mvn sonar:sonar \
+        -Dsonar.projectKey=${CIRCLE_PROJECT_REPONAME} \
+        -Dsonar.organization=${SONAR_ORG} \
+        -Dsonar.projectName=${CIRCLE_PROJECT_REPONAME} \
+        -Dsonar.host.url=https://sonarcloud.io \
+        -Dsonar.login=${ENTUR_SONAR_PASSWORD}
+
 jobs:
   test:
     docker:
@@ -28,6 +37,10 @@ jobs:
         key: cache-dependencies-static
     # Cannot use -o because of snapshot dependencies.
     - run: mvn verify -s /tools/m2/settings.xml
+    - persist_to_workspace:
+            root: .
+            paths:
+              - target/
     - run:
         name: Save test results
         command: |
@@ -61,8 +74,41 @@ jobs:
     - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
     - run: *post_build
 
+  sonar:
+    docker:
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
+    environment:
+      MAVEN_OPTS: -Xmx1G -Xms1G
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - cache-dependencies-{{ checksum "pom.xml" }}
+            - cache-dependencies-18012019
+
+      - run: *sonar-scan
+
 workflows:
   version: 2
+  nightly-sonar-analysis:
+    triggers:
+      - schedule:
+          cron: "0 2 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - test:
+          context: org-carbon
+      - sonar:
+          context: global
+          requires:
+            - test
   build_test_deploy:
     jobs:
     - test:
@@ -74,3 +120,7 @@ workflows:
         filters:
           branches:
             only: master
+    - sonar:
+        context: global
+        requires:
+          - test
