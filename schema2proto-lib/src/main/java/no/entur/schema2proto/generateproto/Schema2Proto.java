@@ -60,7 +60,6 @@ public class Schema2Proto {
 	private static final String OPTION_INCLUDE_MESSAGE_DOCS = "includeMessageDocs";
 	private static final String OPTION_INCLUDE_SOURCE_LOCATION_IN_DOC = "includeSourceLocationInDoc";
 	private static final String OPTION_INHERITANCE_TO_COMPOSITION = "inheritanceToComposition";
-	// private static final String OPTION_TYPE_IN_ENUMS = "typeInEnums";
 	private static final String OPTION_OPTIONS = "options";
 	private static final String OPTION_CUSTOM_IMPORTS = "customImports";
 	private static final String OPTION_CUSTOM_IMPORT_LOCATIONS = "customImportLocations";
@@ -68,13 +67,11 @@ public class Schema2Proto {
 	private static final String OPTION_CUSTOM_TYPE_MAPPINGS = "customTypeMappings";
 	private static final String OPTION_CUSTOM_TYPE_REPLACINGS = "customTypeReplacements";
 	private static final String OPTION_IGNORE_OUTPUT_FIELDS = "ignoreOutputFields";
-	// private static final String OPTION_SPLIT_BY_SCHEMA = "splitBySchema";
-//	private static final String OPTION_NEST_ENUMS = "nestEnums";
 	private static final String OPTION_CONFIG_FILE = "configFile";
 	private static final String OPTION_INCLUDE_VALIDATION_RULES = "includeValidationRules";
+	private static final String OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE = "skipEmptyTypeInheritance";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
-	private static final String OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE = "skipEmptyTypeInheritance";
 
 	public Schema2Proto(String[] args) throws IOException {
 		Options commandLineOptions = createCommandLineOptions();
@@ -143,14 +140,6 @@ public class Schema2Proto {
 				.addOption(Option.builder().longOpt(OPTION_OUTPUT_FILENAME).hasArg().argName("FILENAME").desc("name of output file").required(false).build());
 		commandLineOptions.addOption(
 				Option.builder().longOpt(OPTION_OUTPUT_DIRECTORY).hasArg().argName("DIRECTORYNAME").desc("path to output folder").required(false).build());
-		/*
-		 * commandLineOptions.addOption(Option.builder() .longOpt(OPTION_NEST_ENUMS) .hasArg() .argName("true|false")
-		 * .desc("nest enum declaration within messages that reference them, defaults to false") .required(false) .build());
-		 */
-		/*
-		 * commandLineOptions.addOption(Option.builder() .longOpt(OPTION_SPLIT_BY_SCHEMA) .hasArg() .argName("true|false")
-		 * .desc("split output into defaultProtoPackage-specific files, defaults to false") .required(false) .build());
-		 */
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_CUSTOM_TYPE_MAPPINGS)
 				.hasArg()
@@ -193,10 +182,6 @@ public class Schema2Proto {
 				.desc("output field names to ignore")
 				.required(false)
 				.build());
-		/*
-		 * commandLineOptions.addOption(Option.builder() .longOpt(OPTION_TYPE_IN_ENUMS) .hasArg() .argName("true|false")
-		 * .desc("include type as a prefix in enums, defaults to true") .required(false) .build());
-		 */
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_MESSAGE_DOCS)
 				.hasArg()
@@ -319,9 +304,6 @@ public class Schema2Proto {
 			configuration.customNameMappings.putAll(customNameMappings);
 			configuration.defaultProtoPackage = config.defaultProtoPackage;
 			configuration.forceProtoPackage = config.forceProtoPackage;
-			// configuration.splitBySchema = config.splitBySchema;
-//			configuration.nestEnums = config.nestEnums;
-//			configuration.typeInEnums = config.typeInEnums;
 			configuration.includeMessageDocs = config.includeMessageDocs;
 			configuration.includeFieldDocs = config.includeFieldDocs;
 			configuration.includeSourceLocationInDoc = config.includeSourceLocationInDoc;
@@ -387,48 +369,10 @@ public class Schema2Proto {
 		if (cmd.hasOption(OPTION_FORCE_PACKAGE)) {
 			configuration.forceProtoPackage = cmd.getOptionValue(OPTION_FORCE_PACKAGE);
 		}
-//		if (cmd.hasOption(OPTION_SPLIT_BY_SCHEMA)) {
-//			configuration.splitBySchema = Boolean.parseBoolean(cmd.getOptionValue(OPTION_SPLIT_BY_SCHEMA));
-//		}
 
-		HashMap<Pattern, String> customTypeMappings = new LinkedHashMap<>();
-		if (cmd.hasOption(OPTION_CUSTOM_TYPE_MAPPINGS)) {
-			for (String mapping : cmd.getOptionValue(OPTION_CUSTOM_TYPE_MAPPINGS).split(",")) {
-				int colon = mapping.indexOf(':');
-				if (colon > -1) {
-					customTypeMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
-				} else {
-					LOGGER.error(mapping + " is not a valid custom type mapping - use schematype:outputtype");
-				}
-			}
-		}
-		configuration.customTypeMappings = customTypeMappings;
-
-		HashMap<Pattern, String> customTypeReplacings = new LinkedHashMap<>();
-		if (cmd.hasOption(OPTION_CUSTOM_TYPE_REPLACINGS)) {
-			for (String mapping : cmd.getOptionValue(OPTION_CUSTOM_TYPE_REPLACINGS).split(",")) {
-				int colon = mapping.indexOf(':');
-				if (colon > -1) {
-					customTypeReplacings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
-				} else {
-					LOGGER.error(mapping + " is not a valid custom type mapping - use schematype:outputtype");
-				}
-			}
-		}
-		configuration.customTypeReplacements = customTypeReplacings;
-
-		HashMap<Pattern, String> customNameMappings = new LinkedHashMap<>();
-		if (cmd.hasOption(OPTION_CUSTOM_NAME_MAPPINGS)) {
-			for (String mapping : cmd.getOptionValue(OPTION_CUSTOM_NAME_MAPPINGS).split(",")) {
-				int colon = mapping.indexOf(':');
-				if (colon > -1) {
-					customNameMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
-				} else {
-					LOGGER.error(mapping + " is not a valid custom name mapping - use xsdelementname:protomessagename/protofieldname");
-				}
-			}
-		}
-		configuration.customNameMappings = customNameMappings;
+		configuration.customTypeMappings = parseRegexMap(cmd, OPTION_CUSTOM_TYPE_MAPPINGS);
+		configuration.customTypeReplacements = parseRegexMap(cmd, OPTION_CUSTOM_TYPE_REPLACINGS);
+		configuration.customNameMappings = parseRegexMap(cmd, OPTION_CUSTOM_NAME_MAPPINGS);
 
 		HashMap<String, Object> options = new LinkedHashMap<>();
 		if (cmd.hasOption(OPTION_OPTIONS)) {
@@ -442,22 +386,11 @@ public class Schema2Proto {
 			}
 		}
 		configuration.options = options;
-
-		List<String> imports = new ArrayList<>();
-		if (cmd.hasOption(OPTION_CUSTOM_IMPORTS)) {
-			for (String mapping : cmd.getOptionValue(OPTION_CUSTOM_IMPORTS).split(",")) {
-				imports.add(mapping);
-			}
-		}
-		configuration.customImports = imports;
-
-		List<String> importLocations = new ArrayList<>();
-		if (cmd.hasOption(OPTION_CUSTOM_IMPORT_LOCATIONS)) {
-			for (String importLocation : cmd.getOptionValue(OPTION_CUSTOM_IMPORT_LOCATIONS).split(",")) {
-				importLocations.add(importLocation);
-			}
-		}
-		configuration.customImportLocations = importLocations;
+		configuration.customImports = parseCommaSeparatedStringValues(cmd, OPTION_CUSTOM_IMPORTS);
+		;
+		configuration.customImportLocations = parseCommaSeparatedStringValues(cmd, OPTION_CUSTOM_IMPORT_LOCATIONS);
+		;
+		;
 
 		if (cmd.hasOption(OPTION_IGNORE_OUTPUT_FIELDS)) {
 			for (String ignoreOutputField : cmd.getOptionValue(OPTION_IGNORE_OUTPUT_FIELDS).split(",")) {
@@ -466,12 +399,6 @@ public class Schema2Proto {
 			}
 		}
 
-//		if (cmd.hasOption(OPTION_NEST_ENUMS)) {
-//			configuration.nestEnums = Boolean.parseBoolean(cmd.getOptionValue(OPTION_NEST_ENUMS));
-//		}
-//		if (cmd.hasOption(OPTION_TYPE_IN_ENUMS)) {
-//			configuration.typeInEnums = Boolean.parseBoolean(cmd.getOptionValue(OPTION_TYPE_IN_ENUMS));
-//		}
 		if (cmd.hasOption(OPTION_INCLUDE_MESSAGE_DOCS)) {
 			configuration.includeMessageDocs = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_MESSAGE_DOCS));
 		}
@@ -492,5 +419,30 @@ public class Schema2Proto {
 		}
 
 		return configuration;
+	}
+
+	private static List<String> parseCommaSeparatedStringValues(CommandLine cmd, String optionName) {
+		List<String> imports = new ArrayList<>();
+		if (cmd.hasOption(optionName)) {
+			for (String mapping : cmd.getOptionValue(optionName).split(",")) {
+				imports.add(mapping);
+			}
+		}
+		return imports;
+	}
+
+	private static HashMap<Pattern, String> parseRegexMap(CommandLine cmd, String optionName) {
+		HashMap<Pattern, String> customTypeMappings = new LinkedHashMap<>();
+		if (cmd.hasOption(optionName)) {
+			for (String mapping : cmd.getOptionValue(optionName).split(",")) {
+				int colon = mapping.indexOf(':');
+				if (colon > -1) {
+					customTypeMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
+				} else {
+					LOGGER.error(mapping + " is not a valid mapping - use schematype:outputtype/fieldname");
+				}
+			}
+		}
+		return customTypeMappings;
 	}
 }

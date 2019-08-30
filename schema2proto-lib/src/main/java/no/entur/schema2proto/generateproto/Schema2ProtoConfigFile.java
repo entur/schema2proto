@@ -32,17 +32,13 @@ public class Schema2ProtoConfigFile {
 	public String defaultProtoPackage;
 	public String forceProtoPackage;
 	public boolean inheritanceToComposition = false;
-	// public boolean splitBySchema = false;
 	public Map<String, String> customTypeMappings;
 	public Map<String, String> customNameMappings;
 	public Map<String, String> customTypeReplacements;
 	public List<String> customImports;
 	public List<String> customImportLocations;
 	public List<String> ignoreOutputFields;
-
 	public Map<String, Object> options;
-	// public boolean nestEnums = false;
-//	public boolean typeInEnums = true;
 	public boolean includeMessageDocs = true;
 	public boolean includeFieldDocs = true;
 	public boolean includeSourceLocationInDoc = false;

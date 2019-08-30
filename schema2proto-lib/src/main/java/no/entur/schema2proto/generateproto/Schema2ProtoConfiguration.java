@@ -34,7 +34,6 @@ public class Schema2ProtoConfiguration {
 	public String defaultProtoPackage = null;
 	public String forceProtoPackage = null;
 	public boolean inheritanceToComposition = false;
-	// public boolean splitBySchema = false;
 	public Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();;
 	public Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();;
 	public Map<Pattern, String> customNameMappings = new LinkedHashMap<>();;
@@ -42,8 +41,6 @@ public class Schema2ProtoConfiguration {
 	public List<String> customImportLocations = new ArrayList<>();
 	public Map<String, Object> options = new HashMap<>();
 	public List<FieldPath> ignoreOutputFields = new ArrayList<>();
-	// public boolean nestEnums = false;
-	// public boolean typeInEnums = true;
 	public boolean includeMessageDocs = true;
 	public boolean includeFieldDocs = true;
 	public boolean includeSourceLocationInDoc = false;

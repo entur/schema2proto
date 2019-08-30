@@ -749,20 +749,18 @@ public class SchemaParser implements ErrorHandler {
 				Location fieldLocation = getLocation(decl);
 				Options fieldOptions = getFieldOptions(decl);
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(), configuration.forceProtoPackage);
-				// TODO are repeated attributes not handled?
-				Label label = null;
 
 				if (decl.getType().isRestriction() && decl.getType().getFacet("enumeration") != null) {
 					String enumName = createEnum(fieldName, decl.getType().asRestriction(), decl.isLocal() ? messageType : null);
 
-					Field field = new Field(packageName, fieldLocation, label, fieldName, doc, tag, enumName, fieldOptions, false);
+					Field field = new Field(packageName, fieldLocation, null, fieldName, doc, tag, enumName, fieldOptions, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
 
 				} else {
 					String typeName = findFieldType(decl.getType());
 
-					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, fieldName, doc, tag, typeName,
+					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, null, fieldName, doc, tag, typeName,
 							fieldOptions, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
