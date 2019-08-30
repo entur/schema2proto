@@ -342,7 +342,7 @@ public class SchemaParser implements ErrorHandler {
 					} else {
 						String typeName = findFieldType(type);
 						Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc,
-								fieldTag, typeName, fieldOptions, true); // TODO add
+								fieldTag, typeName, fieldOptions, true);
 						addField(messageType, field);
 					}
 
@@ -749,7 +749,7 @@ public class SchemaParser implements ErrorHandler {
 				Location fieldLocation = getLocation(decl);
 				Options fieldOptions = getFieldOptions(decl);
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(), configuration.forceProtoPackage);
-				// TODO is repeated attributes not handled?
+				// TODO are repeated attributes not handled?
 				Label label = null;
 
 				if (decl.getType().isRestriction() && decl.getType().getFacet("enumeration") != null) {

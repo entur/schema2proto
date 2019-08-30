@@ -101,7 +101,7 @@ public class TypeAndNameMapper {
 		standardTypeMappings.put(Pattern.compile("^IDREFS$"), "string");
 		standardTypeMappings.put(Pattern.compile("^ENTITIES$"), "string");
 		standardTypeMappings.put(Pattern.compile("^NMTOKEN$"), "string");
-		standardTypeMappings.put(Pattern.compile("^NMTOKENS$"), "string"); // TODO: Fix this
+		standardTypeMappings.put(Pattern.compile("^NMTOKENS$"), "string"); // TODO: Fix this should be repeated string
 		standardTypeMappings.put(Pattern.compile("^Name$"), "string");
 		standardTypeMappings.put(Pattern.compile("^NCName$"), "string");
 		standardTypeMappings.put(Pattern.compile("^ID$"), "string");
