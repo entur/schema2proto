@@ -337,13 +337,12 @@ public class SchemaParser implements ErrorHandler {
 
 					if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
 						String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
-						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, null, enumName, fieldOptions,
-								false, true);
+						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, enumName, fieldOptions, true);
 						addField(messageType, field);
 					} else {
 						String typeName = findFieldType(type);
 						Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc,
-								fieldTag, null, typeName, fieldOptions, false, true); // TODO add
+								fieldTag, typeName, fieldOptions, true); // TODO add
 						addField(messageType, field);
 					}
 
@@ -355,8 +354,8 @@ public class SchemaParser implements ErrorHandler {
 						// COMPLEX TYPE
 						Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
 						if (substitutables.size() <= 1) {
-							Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, null, type.getName(),
-									fieldOptions, false, true);
+							Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, type.getName(),
+									fieldOptions, true);
 							addField(messageType, field);
 						} else {
 							List<Field> fields = new ArrayList<>();
@@ -376,7 +375,7 @@ public class SchemaParser implements ErrorHandler {
 									Field field = new Field(
 											NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
 													configuration.forceProtoPackage),
-											fieldLocation, null, substitutable.getName(), substDoc, fieldTag, null, typeName, fieldOptions, false, true);
+											fieldLocation, null, substitutable.getName(), substDoc, fieldTag, typeName, fieldOptions, true);
 									addField(messageType, oneOf, field); // Repeated oneOf not allowed
 								}
 							}
@@ -385,8 +384,8 @@ public class SchemaParser implements ErrorHandler {
 						// Local
 
 						MessageType referencedMessageType = processComplexType(type.asComplexType(), currElementDecl.getName(), schemaSet, null, null);
-						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, null,
-								referencedMessageType.getName(), fieldOptions, false, true);
+						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag,
+								referencedMessageType.getName(), fieldOptions, true);
 						addField(messageType, field);
 
 						if (!currElementDecl.isGlobal()) {
@@ -404,7 +403,7 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 			Field field = new Field(null, fieldLocation, label, "any", resolveDocumentationAnnotation(currTerm.asWildcard()), messageType.getNextFieldNum(),
-					null, "anyType", fieldOptions, false, true);
+					"anyType", fieldOptions, true);
 			addField(messageType, field);
 
 		} else {
@@ -591,7 +590,7 @@ public class SchemaParser implements ErrorHandler {
 				Collections.reverse(parentTypes);
 				for (MessageType parentMessageType : parentTypes) {
 					String fieldDoc = parentMessageType.documentation();
-					boolean extension = false;
+
 					List<OptionElement> optionElements = new ArrayList<OptionElement>();
 					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
 					int tag = messageType.getNextFieldNum();
@@ -599,7 +598,7 @@ public class SchemaParser implements ErrorHandler {
 					Location fieldLocation = getLocation(complexType);
 
 					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, label, "_" + parentMessageType.getName(), fieldDoc, tag,
-							null, parentMessageType.getName(), fieldOptions, extension, true);
+							parentMessageType.getName(), fieldOptions, true);
 
 					addField(messageType, field);
 				}
@@ -661,19 +660,18 @@ public class SchemaParser implements ErrorHandler {
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
 					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, "value",
-							"SimpleContent value of element", fieldTag, null, simpleTypeName, fieldOptions, false, true);
+							"SimpleContent value of element", fieldTag, simpleTypeName, fieldOptions, true);
 					addField(messageType, field);
 
 				} else if (basicTypes.contains(name)) {
-					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, null, name, fieldOptions, false,
-							true);
+					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, name, fieldOptions, true);
 					addField(messageType, field);
 
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
 					if (primitiveType != null) {
-						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, null, primitiveType.getName(),
-								fieldOptions, false, true);
+						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, primitiveType.getName(),
+								fieldOptions, true);
 						addField(messageType, field);
 
 					} else {
@@ -757,15 +755,15 @@ public class SchemaParser implements ErrorHandler {
 				if (decl.getType().isRestriction() && decl.getType().getFacet("enumeration") != null) {
 					String enumName = createEnum(fieldName, decl.getType().asRestriction(), decl.isLocal() ? messageType : null);
 
-					Field field = new Field(packageName, fieldLocation, label, fieldName, doc, tag, null, enumName, fieldOptions, false, false);
+					Field field = new Field(packageName, fieldLocation, label, fieldName, doc, tag, enumName, fieldOptions, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
 
 				} else {
 					String typeName = findFieldType(decl.getType());
 
-					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, fieldName, doc, tag, null, typeName,
-							fieldOptions, false, false);
+					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, fieldName, doc, tag, typeName,
+							fieldOptions, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
 
@@ -864,7 +862,7 @@ public class SchemaParser implements ErrorHandler {
 
 			Options fieldOptions = getFieldOptions(particle);
 
-			Field field = new Field(null, location, Label.REPEATED, fieldName, doc, messageType.getNextFieldNum(), null, typeName, fieldOptions, false, false);
+			Field field = new Field(null, location, Label.REPEATED, fieldName, doc, messageType.getNextFieldNum(), typeName, fieldOptions, false);
 
 			messageType.addField(field);
 

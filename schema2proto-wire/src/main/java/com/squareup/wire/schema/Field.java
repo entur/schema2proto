@@ -101,6 +101,21 @@ public final class Field {
 		this.fromElement = fromElement;
 	}
 
+	public Field(String packageName, Location location, Label label, String name, String documentation, int tag, String elementType, Options options,
+			boolean fromElement) {
+		this.packageName = packageName;
+		this.location = location;
+		this.label = label;
+		this.name = name;
+		this.documentation = documentation;
+		this.tag = tag;
+		this.defaultValue = null;
+		this.elementType = elementType;
+		this.extension = false;
+		this.options = options;
+		this.fromElement = fromElement;
+	}
+
 	static List<Field> fromElements(String packageName, List<FieldElement> fieldElements, boolean extension) {
 		List<Field> fields = new ArrayList<>();
 		for (FieldElement field : fieldElements) {
