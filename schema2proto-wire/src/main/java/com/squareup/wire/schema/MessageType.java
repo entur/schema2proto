@@ -45,6 +45,7 @@ import java.util.*;
 import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.internal.parser.GroupElement;
 import com.squareup.wire.schema.internal.parser.MessageElement;
+import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
 
 public final class MessageType extends Type {
@@ -85,6 +86,23 @@ public final class MessageType extends Type {
 		this.extensionsList = extensionsList;
 		this.reserveds = reserveds;
 		this.options = checkNotNull(options);
+	}
+
+	public MessageType(ProtoType protoType, Location location, String documentation, String name) {
+		this.protoType = protoType;
+		this.location = location;
+		this.documentation = documentation;
+		this.name = name;
+
+		// Empty values
+		List<OptionElement> messageOptions = new ArrayList<>();
+		this.options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
+		this.declaredFields = new ArrayList<>();
+		this.extensionFields = new ArrayList<>();
+		this.extensionsList = new ArrayList<>();
+		this.oneOfs = new ArrayList<>();
+		this.nestedTypes = new ArrayList<>();
+		this.reserveds = new ArrayList<>();
 	}
 
 	@Override

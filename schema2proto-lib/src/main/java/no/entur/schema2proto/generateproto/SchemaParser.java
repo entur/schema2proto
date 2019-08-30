@@ -24,7 +24,15 @@ package no.entur.schema2proto.generateproto;
  */
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.parsers.SAXParserFactory;
 
@@ -42,7 +50,6 @@ import org.xml.sax.SAXParseException;
 
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
-import com.squareup.wire.schema.Extensions;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
@@ -52,10 +59,26 @@ import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.ProtoFile.Syntax;
 import com.squareup.wire.schema.ProtoType;
-import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
-import com.sun.xml.xsom.*;
+import com.sun.xml.xsom.XSAttContainer;
+import com.sun.xml.xsom.XSAttGroupDecl;
+import com.sun.xml.xsom.XSAttributeDecl;
+import com.sun.xml.xsom.XSAttributeUse;
+import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSComponent;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSFacet;
+import com.sun.xml.xsom.XSListSimpleType;
+import com.sun.xml.xsom.XSModelGroup;
+import com.sun.xml.xsom.XSModelGroupDecl;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSRestrictionSimpleType;
+import com.sun.xml.xsom.XSSchema;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSSimpleType;
+import com.sun.xml.xsom.XSTerm;
+import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
@@ -67,7 +90,6 @@ public class SchemaParser implements ErrorHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
 	private static final String DEFAULT_PROTO_PACKAGE = "default";
-	private static final String WRAPPER_PREFIX = "ChoiceWrapper";
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
@@ -76,19 +98,17 @@ public class SchemaParser implements ErrorHandler {
 	private Map<MessageType, Set<Object>> elementDeclarationsPerMessageType = new HashMap<>();
 	private Set<String> basicTypes;
 
-	private Set<String> generatedTypeNames = new HashSet<>();
-
-	private int nestlevel = 0;
+	private int nestingLevel = 0;
 
 	private Schema2ProtoConfiguration configuration;
 
 	private PGVRuleFactory ruleFactory;
 
 	private void init() {
-		simpleTypes = new HashMap<String, String>();
-		documentation = new HashMap<String, String>();
+		simpleTypes = new HashMap<>();
+		documentation = new HashMap<>();
 
-		basicTypes = new TreeSet<String>();
+		basicTypes = new TreeSet<>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
 
 		ruleFactory = new PGVRuleFactory(configuration, this);
@@ -225,9 +245,9 @@ public class SchemaParser implements ErrorHandler {
 	 */
 	private String processSimpleType(XSSimpleType xs, String elementName) {
 
-		nestlevel++;
+		nestingLevel++;
 
-		LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "SimpleType " + xs);
+		LOGGER.debug(StringUtils.leftPad(" ", nestingLevel) + "SimpleType " + xs);
 
 		String typeName = xs.getName();
 
@@ -252,7 +272,7 @@ public class SchemaParser implements ErrorHandler {
 			addDocumentation(typeName, doc);
 		}
 
-		nestlevel--;
+		nestingLevel--;
 		return typeName;
 	}
 
@@ -296,6 +316,10 @@ public class SchemaParser implements ErrorHandler {
 	private void navigateSubTypes(XSParticle parentParticle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet) {
 
 		XSTerm currTerm = parentParticle.getTerm();
+
+		Label label = getRange(parentParticle) ? Label.REPEATED : null;
+		Options fieldOptions = getFieldOptions(parentParticle);
+
 		if (currTerm.isElementDecl()) {
 			XSElementDecl currElementDecl = currTerm.asElementDecl();
 
@@ -303,45 +327,23 @@ public class SchemaParser implements ErrorHandler {
 				processedXmlObjects.add(currElementDecl);
 
 				XSType type = currElementDecl.getType();
+				String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
+				Location fieldLocation = getLocation(currElementDecl);
+				int fieldTag = messageType.getNextFieldNum();
+
+				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 
 				if (type.isSimpleType()) {
-					String doc = resolveDocumentationAnnotation(currElementDecl);
 
 					if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
-
 						String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
-
-						boolean extension = false;
-						Options options = getFieldOptions(parentParticle);
-						int tag = messageType.getNextFieldNum();
-						Label label = getRange(parentParticle) ? Label.REPEATED : null;
-						Location location = getLocation(currElementDecl);
-
-						Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage),
-								location, label, currElementDecl.getName(), doc, tag, null, enumName, options, extension, true);
+						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, null, enumName, fieldOptions,
+								false, true);
 						addField(messageType, field);
-
-						XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
-						// checkType(restriction.getBaseType());
-						// TODO ENUM
-
 					} else {
-						//
-						Options options = getFieldOptions(parentParticle);
-						int tag = messageType.getNextFieldNum();
-						Label label = getRange(parentParticle) ? Label.REPEATED : null;
-						Location location = getLocation(currElementDecl);
-
 						String typeName = findFieldType(type);
-
-						String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
-
-						Field field = new Field(basicTypes.contains(typeName) ? null : packageName, location, label, currElementDecl.getName(), doc, tag, null,
-								typeName, options, false, true); // TODO add
-						// restriction
-						// as
-						// validation
-						// parameters
+						Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc,
+								fieldTag, null, typeName, fieldOptions, false, true); // TODO add
 						addField(messageType, field);
 					}
 
@@ -352,26 +354,17 @@ public class SchemaParser implements ErrorHandler {
 
 						// COMPLEX TYPE
 						Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
-						String doc = resolveDocumentationAnnotation(currElementDecl);
-
-						Options options = getFieldOptions(parentParticle);
-
 						if (substitutables.size() <= 1) {
-
-							Label label = getRange(parentParticle) ? Label.REPEATED : null;
-							Location location = getLocation(currElementDecl);
-							int tag = messageType.getNextFieldNum();
-							Field field = new Field(
-									NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage), location,
-									label, currElementDecl.getName(), doc, tag, null, type.getName(), options, false, true);
+							Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, null, type.getName(),
+									fieldOptions, false, true);
 							addField(messageType, field);
 						} else {
 							List<Field> fields = new ArrayList<>();
-							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), doc, fields);
+							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), fieldDoc, fields);
 							messageType.oneOfs().add(oneOf);
 							for (XSElementDecl substitutable : substitutables) {
 								if (substitutable.isAbstract()) {
-
+									// No abstract concept in protobuf, only concrete messages
 								} else {
 									String substDoc = resolveDocumentationAnnotation(substitutable);
 
@@ -380,12 +373,10 @@ public class SchemaParser implements ErrorHandler {
 										typeName = processElement(substitutable, schemaSet);
 									}
 
-									int tag = messageType.getNextFieldNum();
-									Location location = getLocation(substitutable);
 									Field field = new Field(
 											NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
 													configuration.forceProtoPackage),
-											location, null, substitutable.getName(), substDoc, tag, null, typeName, options, false, true);
+											fieldLocation, null, substitutable.getName(), substDoc, fieldTag, null, typeName, fieldOptions, false, true);
 									addField(messageType, oneOf, field); // Repeated oneOf not allowed
 								}
 							}
@@ -394,17 +385,8 @@ public class SchemaParser implements ErrorHandler {
 						// Local
 
 						MessageType referencedMessageType = processComplexType(type.asComplexType(), currElementDecl.getName(), schemaSet, null, null);
-
-						String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
-
-						Options options = getFieldOptions(parentParticle);
-						int tag = messageType.getNextFieldNum();
-						Label label = getRange(parentParticle) ? Label.REPEATED : null;
-						Location fieldLocation = getLocation(currElementDecl);
-
-						Field field = new Field(
-								NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.asComplexType().getTargetNamespace(), configuration.forceProtoPackage),
-								fieldLocation, label, currElementDecl.getName(), fieldDoc, tag, null, referencedMessageType.getName(), options, false, true);
+						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, null,
+								referencedMessageType.getName(), fieldOptions, false, true);
 						addField(messageType, field);
 
 						if (!currElementDecl.isGlobal()) {
@@ -414,10 +396,6 @@ public class SchemaParser implements ErrorHandler {
 				}
 			}
 		} else if (currTerm.isWildcard()) {
-
-			Options options = getFieldOptions(parentParticle);
-			int tag = messageType.getNextFieldNum();
-			Label label = getRange(parentParticle) ? Label.REPEATED : null;
 			Location fieldLocation;
 			if (currTerm.getLocator() != null) {
 				fieldLocation = getLocation(currTerm.asWildcard());
@@ -425,8 +403,8 @@ public class SchemaParser implements ErrorHandler {
 				fieldLocation = messageType.location();
 			}
 
-			Field field = new Field(null, fieldLocation, label, "any", resolveDocumentationAnnotation(currTerm.asWildcard()), tag, null, "anyType", options,
-					false, true);
+			Field field = new Field(null, fieldLocation, label, "any", resolveDocumentationAnnotation(currTerm.asWildcard()), messageType.getNextFieldNum(),
+					null, "anyType", fieldOptions, false, true);
 			addField(messageType, field);
 
 		} else {
@@ -534,9 +512,9 @@ public class SchemaParser implements ErrorHandler {
 	private MessageType processComplexType(XSComplexType complexType, String elementName, XSSchemaSet schemaSet, MessageType messageType,
 			Set<Object> processedXmlObjects) {
 
-		nestlevel++;
+		nestingLevel++;
 
-		LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "ComplexType " + complexType + ", proto " + messageType);
+		LOGGER.debug(StringUtils.leftPad(" ", nestingLevel) + "ComplexType " + complexType + ", proto " + messageType);
 
 		boolean isBaseLevel = messageType == null;
 
@@ -569,19 +547,10 @@ public class SchemaParser implements ErrorHandler {
 			if (messageType == null && !basicTypes.contains(typeName)) {
 
 				String doc = resolveDocumentationAnnotation(complexType);
-
-				List<OptionElement> messageOptions = new ArrayList<>();
-				Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
 				Location location = getLocation(complexType);
-				List<Field> fields = new ArrayList<>();
-				List<Field> extensions = new ArrayList<>();
-				List<OneOf> oneofs = new ArrayList<>();
-				List<Type> nestedTypes = new ArrayList<>();
-				List<Extensions> extendsions = new ArrayList<>();
-				List<Reserved> reserved = new ArrayList<>();
+
 				// Add message type to file
-				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions, reserved,
-						options);
+				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName);
 
 				if (complexType.isGlobal() | (complexType.getScope() != null && complexType.getScope().isGlobal())) {
 					/*
@@ -596,8 +565,8 @@ public class SchemaParser implements ErrorHandler {
 				elementDeclarationsPerMessageType.put(messageType, processedXmlObjects);
 
 			} else {
-				LOGGER.debug(StringUtils.leftPad(" ", nestlevel) + "Already processed ComplexType " + typeName + ", ignored");
-				nestlevel--;
+				LOGGER.debug(StringUtils.leftPad(" ", nestingLevel) + "Already processed ComplexType " + typeName + ", ignored");
+				nestingLevel--;
 				return messageType;
 			}
 		}
@@ -681,58 +650,40 @@ public class SchemaParser implements ErrorHandler {
 					name = xsSimpleType.getName();
 				}
 
+				Location fieldLocation = getLocation(xsSimpleType);
+				int fieldTag = messageType.getNextFieldNum();
+				Label label = isList ? Label.REPEATED : null;
+				Options fieldOptions = getFieldOptions(xsSimpleType);
+
 				if (name == null) {
-					// Add simple field
-					boolean extension = false;
-					Options options = getFieldOptions(xsSimpleType);
-					int tag = messageType.getNextFieldNum();
-
-					Location fieldLocation = getLocation(xsSimpleType);
-
 					String simpleTypeName = findFieldType(xsSimpleType);
 
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
-					Label label = isList ? Label.REPEATED : null;
 					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, "value",
-							"SimpleContent value of element", tag, null, simpleTypeName, options, extension, true);
+							"SimpleContent value of element", fieldTag, null, simpleTypeName, fieldOptions, false, true);
 					addField(messageType, field);
 
 				} else if (basicTypes.contains(name)) {
-
-					// Add simple field
-					boolean extension = false;
-					Options options = getFieldOptions(xsSimpleType);
-					int tag = messageType.getNextFieldNum();
-					Label label = isList ? Label.REPEATED : null;
-					Location fieldLocation = getLocation(xsSimpleType);
-
-					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", tag, null, name, options, extension, true);
+					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, null, name, fieldOptions, false,
+							true);
 					addField(messageType, field);
 
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
 					if (primitiveType != null) {
-
-						// Add simple field
-						boolean extension = false;
-						List<OptionElement> optionElements = new ArrayList<>();
-						Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
-						int tag = messageType.getNextFieldNum();
-						Label label = isList ? Label.REPEATED : null;
-
-						Location fieldLocation = getLocation(xsSimpleType);
-
-						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", tag, null, primitiveType.getName(),
-								fieldOptions, extension, true);
+						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, null, primitiveType.getName(),
+								fieldOptions, false, true);
 						addField(messageType, field);
 
+					} else {
+						LOGGER.warn("Unhandled simpleType " + xsSimpleType);
 					}
 				}
 			}
 		}
 
-		nestlevel--;
+		nestingLevel--;
 		return messageType;
 
 	}
@@ -796,42 +747,31 @@ public class SchemaParser implements ErrorHandler {
 			if (decl.getType().getPrimitiveType() != null) {
 				String fieldName = decl.getName();
 				String doc = resolveDocumentationAnnotation(decl);
+				int tag = messageType.getNextFieldNum();
+				Location fieldLocation = getLocation(decl);
+				Options fieldOptions = getFieldOptions(decl);
+				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(), configuration.forceProtoPackage);
+				// TODO is repeated attributes not handled?
+				Label label = null;
 
 				if (decl.getType().isRestriction() && decl.getType().getFacet("enumeration") != null) {
-
 					String enumName = createEnum(fieldName, decl.getType().asRestriction(), decl.isLocal() ? messageType : null);
 
-					boolean extension = false;
-					List<OptionElement> optionElements = new ArrayList<OptionElement>();
-					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
-					int tag = messageType.getNextFieldNum();
-					// Label label = attr. ? Label.REPEATED : null;
-					Location fieldLocation = getLocation(decl);
-
-					Field field = new Field(
-							NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(), configuration.forceProtoPackage),
-							fieldLocation, null, fieldName, doc, tag, null, enumName, fieldOptions, extension, false);
+					Field field = new Field(packageName, fieldLocation, label, fieldName, doc, tag, null, enumName, fieldOptions, false, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
 
 				} else {
-
-					Options options = getFieldOptions(decl);
-					int tag = messageType.getNextFieldNum();
-					// Label label = attr. ? Label.REPEATED : null;
-					Location fieldLocation = getLocation(decl);
-
 					String typeName = findFieldType(decl.getType());
 
-					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(),
-							configuration.forceProtoPackage);
-
-					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, null, fieldName, doc, tag, null, typeName,
-							options, false, false);
+					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, fieldName, doc, tag, null, typeName,
+							fieldOptions, false, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
 
 				}
+			} else {
+				LOGGER.error("Unhandled attribute use " + attr);
 			}
 		}
 	}
@@ -912,30 +852,19 @@ public class SchemaParser implements ErrorHandler {
 		if (!processedXmlObjects.contains(particle)) {
 			processedXmlObjects.add(particle);
 
-			String fieldName = typeName; // Identical for now
 			// Create new message type enclosed in existing
-			// Add repeated field
+			String fieldName = typeName; // Identical for now
 			String doc = resolveDocumentationAnnotation(modelGroup);
-
-			List<OptionElement> messageOptions = new ArrayList<>();
-			Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
 			Location location = getLocation(modelGroup);
-			List<Field> fields = new ArrayList<>();
-			List<Field> extensions = new ArrayList<>();
-			List<OneOf> oneofs = new ArrayList<>();
-			List<Type> nestedTypes = new ArrayList<>();
-			List<Extensions> extendsions = new ArrayList<>();
-			List<Reserved> reserved = new ArrayList<>();
+
 			// Add message type to file
-			MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName, fields, extensions, oneofs, nestedTypes, extendsions,
-					reserved, options);
+			MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName);
 			wrapperType.setWrapperMessageType(true);
 			messageType.nestedTypes().add(wrapperType);
 
 			Options fieldOptions = getFieldOptions(particle);
-			int tag = messageType.getNextFieldNum();
 
-			Field field = new Field(null, location, Label.REPEATED, fieldName, doc, tag, null, typeName, fieldOptions, false, false);
+			Field field = new Field(null, location, Label.REPEATED, fieldName, doc, messageType.getNextFieldNum(), null, typeName, fieldOptions, false, false);
 
 			messageType.addField(field);
 
