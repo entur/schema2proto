@@ -37,4 +37,4 @@ TODO update
 
 Each parameter is explained in the example config file. The parameters have identical name on the command line as well as in the config file.
 
-See [example configuration file with comments here](example_config/config.yml)
+See [example configuration file with comments here](example_config/config.yml) .
