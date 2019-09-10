@@ -150,10 +150,10 @@ public class ProtoSerializer {
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
 
 				File outputFile = new File(destFolder, configuration.outputFilename.toLowerCase());
-				Writer writer = new FileWriter(outputFile);
-				writer.write(protoFile.toSchema());
-				writer.close();
+				try (Writer writer = new FileWriter(outputFile)) {
+					writer.write(protoFile.toSchema());
 
+				}
 				writtenProtoFiles.add(outputFile);
 			}
 		} else {
@@ -162,10 +162,11 @@ public class ProtoSerializer {
 				ProtoFile protoFile = entry.getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
 				File outputFile = new File(destFolder, protoFile.location().getPath().toLowerCase());
-				Writer writer = new FileWriter(outputFile);
-				writer.write(protoFile.toSchema());
-				writer.close();
 
+				try (Writer writer = new FileWriter(outputFile)) {
+					writer.write(protoFile.toSchema());
+
+				}
 				writtenProtoFiles.add(outputFile);
 			}
 		}

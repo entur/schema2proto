@@ -157,10 +157,9 @@ public class ModifyProto {
 			ProtoFile protoFile = prunedSchema.protoFile(protoPathLoaded);
 			File outputFile = new File(configuration.outputDirectory, protoFile.location().getPath());
 			outputFile.getParentFile().mkdirs();
-			Writer writer = new FileWriter(outputFile);
-			writer.write(protoFile.toSchema());
-			writer.close();
-
+			try (Writer writer = new FileWriter(outputFile)) {
+				writer.write(protoFile.toSchema());
+			}
 			LOGGER.info("Wrote file " + outputFile.getPath());
 
 		}

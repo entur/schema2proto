@@ -268,8 +268,11 @@ public class SchemaParser implements ErrorHandler {
 				}
 			}
 			simpleTypes.put(typeName, xs != null ? xs.getName() : "string");
-			String doc = resolveDocumentationAnnotation(xs);
-			addDocumentation(typeName, doc);
+			if (xs != null) {
+				String doc = resolveDocumentationAnnotation(xs);
+				addDocumentation(typeName, doc);
+			}
+
 		}
 
 		nestingLevel--;
@@ -407,12 +410,8 @@ public class SchemaParser implements ErrorHandler {
 			addField(messageType, field);
 
 		} else {
-			XSModelGroupDecl modelGroupDecl = null;
-			XSModelGroup modelGroup = null;
-			modelGroup = getModelGroup(modelGroupDecl, currTerm);
-
+			XSModelGroup modelGroup = getModelGroup(currTerm);
 			if (modelGroup != null) {
-
 				groupProcessing(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet);
 			}
 
@@ -621,9 +620,7 @@ public class SchemaParser implements ErrorHandler {
 			XSParticle particle = complexType.getContentType().asParticle();
 
 			XSTerm term = particle.getTerm();
-			XSModelGroupDecl modelGroupDecl = null;
-			XSModelGroup modelGroup = null;
-			modelGroup = getModelGroup(modelGroupDecl, term);
+			XSModelGroup modelGroup = getModelGroup(term);
 
 			if (modelGroup != null) {
 				groupProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet);
@@ -772,8 +769,9 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private XSModelGroup getModelGroup(XSModelGroupDecl modelGroupDecl, XSTerm term) {
-		if ((modelGroupDecl = term.asModelGroupDecl()) != null) {
+	private XSModelGroup getModelGroup(XSTerm term) {
+		XSModelGroupDecl modelGroupDecl = term.asModelGroupDecl();
+		if (modelGroupDecl != null) {
 			return modelGroupDecl.getModelGroup();
 		} else if (term.isModelGroup()) {
 			return term.asModelGroup();
