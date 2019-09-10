@@ -122,7 +122,3 @@ workflows:
         filters:
           branches:
             only: master
-    - sonar:
-        context: org-carbon
-        requires:
-          - test
