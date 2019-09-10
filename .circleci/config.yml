@@ -13,7 +13,7 @@ aliases:
         -Dsonar.organization=enturas-github \
         -Dsonar.projectName=${CIRCLE_PROJECT_REPONAME} \
         -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.login=${SONAR_PASSWORD}
+        -Dsonar.login=${ENTUR_SONAR_PASSWORD}
 
 jobs:
   test:
