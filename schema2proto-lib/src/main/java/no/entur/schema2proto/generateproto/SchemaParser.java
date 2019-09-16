@@ -740,33 +740,35 @@ public class SchemaParser implements ErrorHandler {
 			processedXmlObjects.add(attr);
 
 			XSAttributeDecl decl = attr.getDecl();
+			XSSimpleType type = decl.getType();
 
-			if (decl.getType().getPrimitiveType() != null) {
+			if (type.getPrimitiveType() != null || type.isList() || type.isUnion()) {
 				String fieldName = decl.getName();
 				String doc = resolveDocumentationAnnotation(decl);
 				int tag = messageType.getNextFieldNum();
 				Location fieldLocation = getLocation(decl);
 				Options fieldOptions = getFieldOptions(decl);
-				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(decl.getType().getTargetNamespace(), configuration.forceProtoPackage);
+				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
+				Label label = type.isList() ? Label.REPEATED : null;
 
-				if (decl.getType().isRestriction() && decl.getType().getFacet("enumeration") != null) {
-					String enumName = createEnum(fieldName, decl.getType().asRestriction(), decl.isLocal() ? messageType : null);
+				if (type.isRestriction() && type.getFacet("enumeration") != null) {
+					String enumName = createEnum(fieldName, type.asRestriction(), decl.isLocal() ? messageType : null);
 
-					Field field = new Field(packageName, fieldLocation, null, fieldName, doc, tag, enumName, fieldOptions, false);
+					Field field = new Field(packageName, fieldLocation, label, fieldName, doc, tag, enumName, fieldOptions, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
 
 				} else {
-					String typeName = findFieldType(decl.getType());
+					String typeName = findFieldType(type);
 
-					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, null, fieldName, doc, tag, typeName,
+					Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, fieldName, doc, tag, typeName,
 							fieldOptions, false);
 					field.setFromAttribute(true);
 					addField(messageType, field);
 
 				}
 			} else {
-				LOGGER.error("Unhandled attribute use " + attr);
+				LOGGER.error("Unhandled attribute use " + attr.getDecl().toString());
 			}
 		}
 	}
