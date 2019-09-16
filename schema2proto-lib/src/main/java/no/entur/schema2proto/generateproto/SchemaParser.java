@@ -332,7 +332,7 @@ public class SchemaParser implements ErrorHandler {
 				XSType type = currElementDecl.getType();
 				String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
 				Location fieldLocation = getLocation(currElementDecl);
-				int fieldTag = messageType.getNextFieldNum();
+				// int fieldTag = messageType.getNextFieldNum();
 
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 
@@ -340,12 +340,13 @@ public class SchemaParser implements ErrorHandler {
 
 					if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
 						String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
-						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, enumName, fieldOptions, true);
+						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, messageType.getNextFieldNum(), enumName,
+								fieldOptions, true);
 						addField(messageType, field);
 					} else {
 						String typeName = findFieldType(type);
 						Field field = new Field(basicTypes.contains(typeName) ? null : packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc,
-								fieldTag, typeName, fieldOptions, true);
+								messageType.getNextFieldNum(), typeName, fieldOptions, true);
 						addField(messageType, field);
 					}
 
@@ -357,8 +358,8 @@ public class SchemaParser implements ErrorHandler {
 						// COMPLEX TYPE
 						Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
 						if (substitutables.size() <= 1) {
-							Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag, type.getName(),
-									fieldOptions, true);
+							Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, messageType.getNextFieldNum(),
+									type.getName(), fieldOptions, true);
 							addField(messageType, field);
 						} else {
 							List<Field> fields = new ArrayList<>();
@@ -378,7 +379,8 @@ public class SchemaParser implements ErrorHandler {
 									Field field = new Field(
 											NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
 													configuration.forceProtoPackage),
-											fieldLocation, null, substitutable.getName(), substDoc, fieldTag, typeName, fieldOptions, true);
+											fieldLocation, null, substitutable.getName(), substDoc, messageType.getNextFieldNum(), typeName, fieldOptions,
+											true);
 									addField(messageType, oneOf, field); // Repeated oneOf not allowed
 								}
 							}
@@ -387,7 +389,7 @@ public class SchemaParser implements ErrorHandler {
 						// Local
 
 						MessageType referencedMessageType = processComplexType(type.asComplexType(), currElementDecl.getName(), schemaSet, null, null);
-						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, fieldTag,
+						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, messageType.getNextFieldNum(),
 								referencedMessageType.getName(), fieldOptions, true);
 						addField(messageType, field);
 
@@ -647,7 +649,6 @@ public class SchemaParser implements ErrorHandler {
 				}
 
 				Location fieldLocation = getLocation(xsSimpleType);
-				int fieldTag = messageType.getNextFieldNum();
 				Label label = isList ? Label.REPEATED : null;
 				Options fieldOptions = getFieldOptions(xsSimpleType);
 
@@ -657,18 +658,19 @@ public class SchemaParser implements ErrorHandler {
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
 					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, "value",
-							"SimpleContent value of element", fieldTag, simpleTypeName, fieldOptions, true);
+							"SimpleContent value of element", messageType.getNextFieldNum(), simpleTypeName, fieldOptions, true);
 					addField(messageType, field);
 
 				} else if (basicTypes.contains(name)) {
-					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, name, fieldOptions, true);
+					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", messageType.getNextFieldNum(), name,
+							fieldOptions, true);
 					addField(messageType, field);
 
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
 					if (primitiveType != null) {
-						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", fieldTag, primitiveType.getName(),
-								fieldOptions, true);
+						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", messageType.getNextFieldNum(),
+								primitiveType.getName(), fieldOptions, true);
 						addField(messageType, field);
 
 					} else {
