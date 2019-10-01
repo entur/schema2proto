@@ -9,12 +9,12 @@ package no.entur.schema2proto.generateproto;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +38,9 @@ public class PGVRuleFactory {
 	private Schema2ProtoConfiguration configuration;
 	private final Set<String> basicTypes;
 	private Map<String, OptionElement> defaultValidationRulesForBasicTypes;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PGVRuleFactory.class);
+	private final TypeAndNameMapper typeMapper;
 
 	public PGVRuleFactory(Schema2ProtoConfiguration configuration, SchemaParser schemaParser) {
 		this.configuration = configuration;
@@ -48,14 +50,13 @@ public class PGVRuleFactory {
 
 		defaultValidationRulesForBasicTypes = new HashMap<>();
 		defaultValidationRulesForBasicTypes.putAll(getValidationRuleForBasicTypes());
+		typeMapper = new TypeAndNameMapper(configuration);
 
 	}
 
-	public List<OptionElement> getValidationRule(XSParticle parentParticle) {
+	public OptionElement getValidationRule(XSParticle parentParticle, boolean isComplexType) {
 
-		List<OptionElement> validationRules = new ArrayList<>();
-
-		if (configuration.includeValidationRules) {
+		if (configuration.includeValidationRules && parentParticle != null) {
 
 			int minOccurs = 0; // Default
 			int maxOccurs = 1; // Default
@@ -68,31 +69,43 @@ public class PGVRuleFactory {
 				maxOccurs = parentParticle.getMaxOccurs().intValue();
 			}
 
-			if (minOccurs == 1 && maxOccurs == 1) {
+			if (minOccurs == 0 && maxOccurs == 1) {
+				// Default case
+			} else {
+				if (minOccurs == 1 && maxOccurs == 1 && isComplexType) {
+					OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false);
+					OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
+					return e;
+				} else {
+					Map<String, Object> parameters = new HashMap<>();
+					parameters.put("min_items", minOccurs);
+					if (maxOccurs != -1) {
+						parameters.put("max_items", maxOccurs);
+					}
+					OptionElement option = new OptionElement("repeated", OptionElement.Kind.MAP, parameters, false);
+					OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
 
-				/*
-				 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
-				 * OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true); return e;
-				 */
-
-				// validationRules.add(e);
+					return e;
+				}
 			}
+
 		}
-		return validationRules;
+
+		return null;
 
 	}
 
-	public List<OptionElement> getValidationRule(XSAttributeDecl attributeDecl) {
+	public List<OptionElement> getValidationRule(XSParticle parentParticle, XSAttributeDecl attributeDecl) {
 
 		List<OptionElement> validationRules = new ArrayList<>();
 
 		if (configuration.includeValidationRules) {
+			validationRules.addAll(getValidationRule(parentParticle, attributeDecl.getType()));
 		}
-		// TOOD check if optional
 		return validationRules;
 	}
 
-	public List<OptionElement> getValidationRule(XSSimpleType simpleType) {
+	public List<OptionElement> getValidationRule(XSParticle parentParticle, XSSimpleType simpleType) {
 
 		List<OptionElement> validationRules = new ArrayList<>();
 		if (configuration.includeValidationRules) {
@@ -100,51 +113,130 @@ public class PGVRuleFactory {
 
 			if (typeName != null && basicTypes.contains(typeName)) {
 				validationRules.addAll(getValidationRuleForBasicType(typeName));
-			} else if (simpleType.isRestriction()) {
-				XSRestrictionSimpleType restriction = simpleType.asRestriction();
-				// XSType baseType = restriction.getBaseType();
-				Collection<? extends XSFacet> declaredFacets = restriction.getDeclaredFacets();
-				String baseType = schemaParser.findFieldType(simpleType);
-				if ("string".equals(baseType)) {
-					Map<String, Object> parameters = new HashMap<>();
-					for (XSFacet facet : declaredFacets) {
-						switch (facet.getName()) {
-						case "pattern":
-							parameters.put("pattern", facet.getValue().value);
-							break;
-						case "minLength":
-							parameters.put("min_len", Integer.parseInt(facet.getValue().value));
-							break;
-						case "maxLength":
-							parameters.put("max_len", Integer.parseInt(facet.getValue().value));
-							break;
+			}
 
-						}
-					}
-					OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
-					OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
-					validationRules.add(e);
+			if (simpleType.isRestriction() && simpleType.getFacet("enumeration") != null) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("defined_only", true);
+				OptionElement option = new OptionElement("enum", OptionElement.Kind.MAP, parameters, false);
+				OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
+				validationRules.add(e);
+			} else if (simpleType.isRestriction()) {
+
+				XSRestrictionSimpleType restriction = simpleType.asRestriction();
+				Collection<? extends XSFacet> declaredFacets = restriction.getDeclaredFacets();
+				// TODO handle List and Union
+				while (declaredFacets.size() == 0 && simpleType.getBaseType() != simpleType && !simpleType.getBaseType().asSimpleType().isList()
+						&& !simpleType.getBaseType().asSimpleType().isUnion()) {
+					simpleType = (XSSimpleType) simpleType.getBaseType();
+					restriction = simpleType.asRestriction();
+					declaredFacets = restriction.getDeclaredFacets();
 				}
 
-				// TODO check baseType, add restrictions on it.
-				// TODO check if facets are inherited or not. If inherited then iterate to top primitive to find
-				// base rule, then select supported facets
-				// System.out.println("x");
+				if (declaredFacets.size() > 0) {
+					String baseType = schemaParser.findFieldType(simpleType);
+					String protobufType = typeMapper.replaceType(baseType);
+					Map<String, Object> parameters = new HashMap<>();
+					switch (protobufType) {
+					case "string": {
+						for (XSFacet facet : declaredFacets) {
+							switch (facet.getName()) {
+							case "pattern":
+								parameters.put("pattern", facet.getValue().value);
+								break;
+							case "minLength":
+								parameters.put("min_len", facet.getValue().value);
+								break;
+							case "maxLength":
+								parameters.put("max_len", facet.getValue().value);
+								break;
+							case "whiteSpace":
+								break;
+							default:
+								LOGGER.warn("Unhandled string facet when generating validation rules: " + facet.getName());
+							}
+						}
+
+						break;
+					}
+					case "double":
+					case "int32":
+					case "int64":
+					case "uint32":
+					case "uint64":
+					case "sint32":
+					case "sint64":
+					case "fixed32":
+					case "fixed64":
+					case "sfixed32":
+					case "sfixed64":
+					case "float": {
+						for (XSFacet facet : declaredFacets) {
+							switch (facet.getName()) {
+							case "maxInclusive":
+								parameters.put("lte", facet.getValue().value);
+								break;
+							case "maxExclusive":
+								parameters.put("lt", facet.getValue().value);
+								break;
+							case "minInclusive":
+								parameters.put("gte", facet.getValue().value);
+								break;
+							case "inExclusive":
+								parameters.put("gt", facet.getValue().value);
+								break;
+
+							// Not supported
+							case "whiteSpace":
+							case "fractionDigits":
+								break;
+							default:
+								LOGGER.warn("Unhandled number facet when generating validation rules: " + facet.getName());
+							}
+						}
+
+						break;
+					}
+					case "bool":
+						break;
+
+					default: {
+						LOGGER.info("Not generating validation rules for restriction on " + baseType);
+					}
+					}
+
+					OptionElement repeatValidationRule = getValidationRule(parentParticle, false);
+
+					if (!parameters.isEmpty()) {
+						// Repeat rule with items
+						String prefix = "";
+						if (repeatValidationRule != null) {
+							prefix = "repeated.items.";
+						}
+						OptionElement option = new OptionElement(prefix + protobufType, OptionElement.Kind.MAP, parameters, false);
+						OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
+						validationRules.add(e);
+					}
+
+					if (repeatValidationRule != null) {
+						validationRules.add(repeatValidationRule);
+					}
+
+					// TODO check baseType, add restrictions on it.
+					// TODO check if facets are inherited or not. If inherited then iterate to top primitive to find
+					// base rule, then select supported facets
+					// System.out.println("x");
+				}
+			} else if (simpleType.isUnion()) {
+				LOGGER.warn("Handling of validation rules for unions is not implemented");
+			} else if (simpleType.isList()) {
+				LOGGER.warn("Handling of validation rules for list is not implemented");
 			} else {
 				LOGGER.warn("During validation rules extraction; Found anonymous simpleType that is not a restriction", simpleType);
 
 			}
 
 		}
-		/*
-		 * if (minOccurs == 1 && maxOccurs == 1) {
-		 *
-		 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
-		 * OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
-		 *
-		 * return e; }
-		 */
-
 		return validationRules;
 
 	}
@@ -214,7 +306,7 @@ public class PGVRuleFactory {
 //        basicTypes.put("unsignedInt");
 //        basicTypes.put("unsignedShort");
 //        basicTypes.put("unsignedByte");
-		basicTypes.put("positiveInteger", createOptionElement("uint32.gt", OptionElement.Kind.NUMBER, 0));
+		basicTypes.put("positiveInteger", createOptionElement("uint32.gte", OptionElement.Kind.NUMBER, 1));
 
 //        basicTypes.put("anySimpleType");
 //        basicTypes.put("anyType");
@@ -229,5 +321,4 @@ public class PGVRuleFactory {
 
 		return wrapper;
 	}
-
 }

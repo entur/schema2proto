@@ -321,7 +321,6 @@ public class SchemaParser implements ErrorHandler {
 		XSTerm currTerm = parentParticle.getTerm();
 
 		Label label = getRange(parentParticle) ? Label.REPEATED : null;
-		Options fieldOptions = getFieldOptions(parentParticle);
 
 		if (currTerm.isElementDecl()) {
 			XSElementDecl currElementDecl = currTerm.asElementDecl();
@@ -337,6 +336,7 @@ public class SchemaParser implements ErrorHandler {
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 
 				if (type.isSimpleType()) {
+					Options fieldOptions = getFieldOptions(parentParticle, type.asSimpleType());
 
 					if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
 						String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
@@ -353,6 +353,7 @@ public class SchemaParser implements ErrorHandler {
 				} else {
 					// Complex type
 
+					Options fieldOptions = getFieldOptions(parentParticle, true);
 					if (type.isGlobal()) {
 
 						// COMPLEX TYPE
@@ -407,6 +408,9 @@ public class SchemaParser implements ErrorHandler {
 				fieldLocation = messageType.location();
 			}
 
+			List<OptionElement> optionElements = new ArrayList<OptionElement>();
+			Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
+
 			Field field = new Field(null, fieldLocation, label, "any", resolveDocumentationAnnotation(currTerm.asWildcard()), messageType.getNextFieldNum(),
 					"anyType", fieldOptions, true);
 			addField(messageType, field);
@@ -420,31 +424,34 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	@NotNull
-	private Options getFieldOptions(XSParticle parentParticle) {
-		List<OptionElement> optionElements = new ArrayList<OptionElement>(ruleFactory.getValidationRule(parentParticle));
+	private Options getFieldOptions(XSParticle parentParticle, boolean isComplexType) {
+		List<OptionElement> optionElements = new ArrayList<OptionElement>();
+		OptionElement validationRule = ruleFactory.getValidationRule(parentParticle, isComplexType);
+		if (validationRule != null) {
+			optionElements.add(validationRule);
+		}
 		return new Options(Options.FIELD_OPTIONS, optionElements);
 	}
 
 	@NotNull
-	private Options getFieldOptions(XSAttributeDecl attributeDecl) {
+	private Options getFieldOptions(XSParticle parentParticle, XSAttributeDecl attributeDecl) {
 		List<OptionElement> optionElements = new ArrayList<OptionElement>();
 
 		// First see if there are rules associated with attribute declaration
-		List<OptionElement> validationRule = ruleFactory.getValidationRule(attributeDecl);
+		List<OptionElement> validationRule = ruleFactory.getValidationRule(parentParticle, attributeDecl);
 		if (validationRule.size() > 0) {
 			optionElements.addAll(validationRule);
 		} else {
 			// Check attribute TYPE rules
-			List<OptionElement> typeRule = ruleFactory.getValidationRule(attributeDecl.getType());
+			List<OptionElement> typeRule = ruleFactory.getValidationRule(parentParticle, attributeDecl.getType());
 			optionElements.addAll(typeRule);
 		}
 		return new Options(Options.FIELD_OPTIONS, optionElements);
 	}
 
 	@NotNull
-	private Options getFieldOptions(XSSimpleType attributeDecl) {
-		List<OptionElement> optionElements = new ArrayList<OptionElement>(ruleFactory.getValidationRule(attributeDecl));
+	private Options getFieldOptions(XSParticle parentParticle, XSSimpleType attributeDecl) {
+		List<OptionElement> optionElements = new ArrayList<OptionElement>(ruleFactory.getValidationRule(parentParticle, attributeDecl));
 		return new Options(Options.FIELD_OPTIONS, optionElements);
 	}
 
@@ -650,7 +657,7 @@ public class SchemaParser implements ErrorHandler {
 
 				Location fieldLocation = getLocation(xsSimpleType);
 				Label label = isList ? Label.REPEATED : null;
-				Options fieldOptions = getFieldOptions(xsSimpleType);
+				Options fieldOptions = getFieldOptions(complexType.getContentType().asParticle(), xsSimpleType);
 
 				if (name == null) {
 					String simpleTypeName = findFieldType(xsSimpleType);
@@ -721,6 +728,7 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private void processAttributes(XSAttContainer xsAttContainer, MessageType messageType, Set<Object> processedXmlObjects) {
+
 		Iterator<? extends XSAttributeUse> iterator = xsAttContainer.iterateDeclaredAttributeUses();
 		while (iterator.hasNext()) {
 			XSAttributeUse attr = iterator.next();
@@ -736,6 +744,7 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private void processAttribute(MessageType messageType, Set<Object> processedXmlObjects, XSAttributeUse attr) {
+
 		if (!processedXmlObjects.contains(attr)) {
 			processedXmlObjects.add(attr);
 
@@ -747,7 +756,7 @@ public class SchemaParser implements ErrorHandler {
 				String doc = resolveDocumentationAnnotation(decl);
 				int tag = messageType.getNextFieldNum();
 				Location fieldLocation = getLocation(decl);
-				Options fieldOptions = getFieldOptions(decl);
+				Options fieldOptions = getFieldOptions(null, decl);
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 				Label label = type.isList() ? Label.REPEATED : null;
 
@@ -792,7 +801,7 @@ public class SchemaParser implements ErrorHandler {
 		} else if (XSModelGroup.CHOICE.equals(compositor)) {
 			wrapperPrefix = "ChoiceWrapper";
 		} else {
-			throw new ConversionException("Cannot wrap message with compositor?" + compositor);
+			throw new ConversionException("Cannot wrap message with compositor " + compositor);
 		}
 
 		long numExistingWrappers = enclosingType.nestedTypes()
@@ -860,7 +869,7 @@ public class SchemaParser implements ErrorHandler {
 			wrapperType.setWrapperMessageType(true);
 			messageType.nestedTypes().add(wrapperType);
 
-			Options fieldOptions = getFieldOptions(particle);
+			Options fieldOptions = getFieldOptions(particle, true);
 
 			Field field = new Field(null, location, Label.REPEATED, fieldName, doc, messageType.getNextFieldNum(), typeName, fieldOptions, false);
 
