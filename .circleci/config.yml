@@ -23,11 +23,12 @@ jobs:
           username: _json_key
           password: $GCLOUD_SERVICE_KEY
     environment:
-      MAVEN_OPTS: -Xmx1G -Xms1G
+      MAVEN_OPTS: -Xmx3G
     steps:
       - checkout
       - restore_cache:
           keys:
+            - cache-dependencies-{{ checksum "pom.xml" }}-deploy
             - cache-dependencies-{{ checksum "pom.xml" }}
             - cache-dependencies-static
       - run: mvn dependency:go-offline -s /tools/m2/settings.xml
@@ -35,8 +36,12 @@ jobs:
           paths:
             - ~/.m2
           key: cache-dependencies-{{ checksum "pom.xml" }}
-      # Cannot use -o because of snapshot dependencies.
-      - run: mvn verify -s /tools/m2/settings.xml
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: cache-dependencies-static
+      # Cannot use -o because of snapshot dependencies. Using deploy &  -Dmaven.deploy.skip=true to download ALL necessary dependencies
+      - run: mvn deploy -s /tools/m2/settings.xml  -Dmaven.deploy.skip=true
       - persist_to_workspace:
           root: ../
           paths:
@@ -75,12 +80,12 @@ jobs:
       #      - ~/.m2
       #   key: cache-dependencies-static
       # Cannot use -o because of snapshot dependencies..
-      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
+      - run: mvn deploy -o -s /tools/m2/settings.xml -DskipTests -Dspotless.check.skip=true
       - run: *post_build
       - save_cache:
           paths:
             - ~/.m2
-          key: cache-dependencies-static
+          key: cache-dependencies-{{ checksum "pom.xml" }}-deploy
 
   sonar:
     docker:
@@ -89,7 +94,7 @@ jobs:
           username: _json_key
           password: $GCLOUD_SERVICE_KEY
     environment:
-      MAVEN_OPTS: -Xmx1G -Xms1G
+      MAVEN_OPTS: -Xmx3G
     steps:
       #      - checkout
       - attach_workspace:
