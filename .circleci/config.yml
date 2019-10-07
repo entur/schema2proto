@@ -45,7 +45,7 @@ jobs:
             - schema2proto-lib
             - schema2proto-maven-plugin
             - schema2proto-wire
-            - ~/.m2
+            - ../.m2
       - run:
           name: Save test results
           command: |
