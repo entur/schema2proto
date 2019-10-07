@@ -41,6 +41,7 @@ jobs:
           root: .
           paths:
             - pom.xml
+            - target
             - schema2proto-lib
             - schema2proto-maven-plugin
             - schema2proto-wire
