@@ -34,18 +34,14 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: cache-dependencies-static
+          key: cache-dependencies-{{ checksum "pom.xml" }}
       # Cannot use -o because of snapshot dependencies.
       - run: mvn verify -s /tools/m2/settings.xml
       - persist_to_workspace:
-          root: .
+          root: ../
           paths:
-            - pom.xml
-            - target
-            - schema2proto-lib
-            - schema2proto-maven-plugin
-            - schema2proto-wire
-            - ../.m2
+            - project
+            - .m2
       - run:
           name: Save test results
           command: |
