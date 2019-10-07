@@ -200,7 +200,7 @@ public class Schema2Proto {
 				.longOpt(OPTION_INCLUDE_SOURCE_LOCATION_IN_DOC)
 				.hasArg()
 				.argName("true|false")
-				.desc("include xsd source location in docs, defaults to true")
+				.desc("include xsd source location relative to source xsd file in docs, defaults to false")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()

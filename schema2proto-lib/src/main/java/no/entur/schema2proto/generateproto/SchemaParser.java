@@ -24,6 +24,8 @@ package no.entur.schema2proto.generateproto;
  */
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -717,7 +719,16 @@ public class SchemaParser implements ErrorHandler {
 
 	private Location getLocation(XSComponent t) {
 		Locator l = t.getLocator();
-		return new Location("", l.getSystemId(), l.getLineNumber(), l.getColumnNumber());
+		try {
+			URI absolute = URI.create(l.getSystemId()); // With scheme
+			URI base = new URI("file", configuration.xsdFile.getAbsoluteFile().getParent(), null);
+			URI relative = base.relativize(absolute);
+			return new Location(base.toString(), relative.toString(), l.getLineNumber(), l.getColumnNumber());
+		} catch (URISyntaxException e) {
+			LOGGER.warn("Unable to relativise xsd file path: {}", e.getMessage());
+			return new Location("", l.getSystemId(), l.getLineNumber(), l.getColumnNumber());
+		}
+
 	}
 
 	private void processAttributes(XSAttContainer xsAttContainer, MessageType messageType, Set<Object> processedXmlObjects) {
@@ -916,7 +927,7 @@ public class SchemaParser implements ErrorHandler {
 			if (xsComponent != null && xsComponent.getLocator() != null) {
 				Location loc = getLocation(xsComponent);
 				b.append(" [");
-				b.append(loc.toString());
+				b.append(loc.withoutBase());
 				b.append("]");
 			}
 		}
