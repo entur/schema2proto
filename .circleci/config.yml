@@ -62,7 +62,7 @@ jobs:
       MAVEN_OPTS: -Xmx3G
     steps:
       - attach_workspace:
-          at: .
+          at: ../
       #      - checkout
       #      - restore_cache:
       #         keys:
