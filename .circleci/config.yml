@@ -68,18 +68,6 @@ jobs:
     steps:
       - attach_workspace:
           at: ../
-      #      - checkout
-      #      - restore_cache:
-      #         keys:
-      #          - cache-dependencies-{{ checksum "pom.xml" }}
-      #         - cache-dependencies-static
-      #- run: mvn deploy:deploy -s /tools/m2/settings.xml
-      #      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
-      #  - save_cache:
-      #     paths:
-      #      - ~/.m2
-      #   key: cache-dependencies-static
-      # Cannot use -o because of snapshot dependencies..
       - run: mvn deploy -s /tools/m2/settings.xml -DskipTests -Dspotless.check.skip=true
       - run: *post_build
       - save_cache:
@@ -99,11 +87,6 @@ jobs:
       #      - checkout
       - attach_workspace:
           at: ../
-      #      - restore_cache:
-      #          keys:
-      #            - cache-dependencies-{{ checksum "pom.xml" }}
-      #            - cache-dependencies-static
-
       - run: *sonar-scan
 
 workflows:
