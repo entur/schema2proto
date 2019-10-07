@@ -18,63 +18,66 @@ aliases:
 jobs:
   test:
     docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-      auth:
-        username: _json_key
-        password: $GCLOUD_SERVICE_KEY
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
     environment:
       MAVEN_OPTS: -Xmx1G -Xms1G
     steps:
-    - checkout
-    - restore_cache:
-        keys:
-          - cache-dependencies-{{ checksum "pom.xml" }}
-          - cache-dependencies-static
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
-    - save_cache:
-        paths:
-        - ~/.m2
-        key: cache-dependencies-static
-    # Cannot use -o because of snapshot dependencies.
-    - run: mvn verify -s /tools/m2/settings.xml
-    - persist_to_workspace:
-            root: .
-            paths:
-              - schema2proto-lib/target/
-              - schema2proto-maven-plugin/target/
-              - schema2proto-wire/target/
-    - run:
-        name: Save test results
-        command: |
-          mkdir -p ~/junit/
-          find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-        when: always
-    - store_test_results:
-        path: ~/junit
-    - store_artifacts:
-        path: ~/junit
+      - checkout
+      - restore_cache:
+          keys:
+            - cache-dependencies-{{ checksum "pom.xml" }}
+            - cache-dependencies-static
+      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: cache-dependencies-static
+      # Cannot use -o because of snapshot dependencies.
+      - run: mvn verify -s /tools/m2/settings.xml
+      - persist_to_workspace:
+          root: .
+          paths:
+            - schema2proto-lib/target/
+            - schema2proto-maven-plugin/target/
+            - schema2proto-wire/target/
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
   deploy-artifactory:
     docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
-      auth:
-        username: _json_key
-        password: $GCLOUD_SERVICE_KEY
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
-    - checkout
-    - restore_cache:
-        keys:
-          - cache-dependencies-{{ checksum "pom.xml" }}
-          - cache-dependencies-static
-    - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
-    - save_cache:
-        paths:
-        - ~/.m2
-        key: cache-dependencies-static
-    # Cannot use -o because of snapshot dependencies..
-    - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
-    - run: *post_build
+      - attach_workspace:
+          at: .
+      #      - checkout
+      - restore_cache:
+          keys:
+            - cache-dependencies-{{ checksum "pom.xml" }}
+            - cache-dependencies-static
+      - run: mvn deploy:deploy -s /tools/m2/settings.xml
+      #      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: cache-dependencies-static
+      # Cannot use -o because of snapshot dependencies..
+      #- run: mvn deploy -s /tools/m2/settings.xml -DskipTests
+      - run: *post_build
 
   sonar:
     docker:
@@ -113,12 +116,12 @@ workflows:
             - test
   build_test_deploy:
     jobs:
-    - test:
-        context: org-carbon
-    - deploy-artifactory:
-        context: org-carbon
-        requires:
-        - test
-        filters:
-          branches:
-            only: master
+      - test:
+          context: org-carbon
+      - deploy-artifactory:
+          context: org-carbon
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
