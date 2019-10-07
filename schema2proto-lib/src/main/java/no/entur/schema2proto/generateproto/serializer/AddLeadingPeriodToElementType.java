@@ -23,14 +23,14 @@ package no.entur.schema2proto.generateproto.serializer;
  * #L%
  */
 
+import static no.entur.schema2proto.generateproto.serializer.CommonUtils.messageTypes;
+
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.squareup.wire.schema.Field;
-import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.ProtoFile;
-import com.squareup.wire.schema.Type;
 
 /*
  * Adds leading '.' to field.elementType when needed. Ref.: https://developers.google.com/protocol-buffers/docs/proto3#packages-and-name-resolution
@@ -39,30 +39,13 @@ public class AddLeadingPeriodToElementType implements Processor {
 
 	@Override
 	public void process(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
-			for (Type type : file.types()) {
-				if (type instanceof MessageType) {
-					MessageType mt = (MessageType) type;
-					// TODO must this be done for nested types as well or handled differently?
-					for (Field field : mt.fieldsAndOneOfFields()) {
-
-						String fieldElementType = StringUtils.trimToNull(field.getElementType());
-						if (fieldElementType != null) {
-							if (fieldElementType.contains(".")) {
-								for (String pkg : packageToProtoFileMap.keySet()) {
-									if (!fieldElementType.equals(pkg)) {
-										String rootFieldElementType = fieldElementType.split("\\.")[0];
-										if (pkg.contains("." + rootFieldElementType + ".")) {
-											// elementType should only be prepended when root-package of elementType matches a non-root package
-											field.updateElementType("." + fieldElementType);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+		packageToProtoFileMap.values()
+				.stream()
+				.flatMap(f -> messageTypes(f.types()))
+				.flatMap(mt -> mt.fieldsAndOneOfFields().stream())
+				.filter(field -> Objects.nonNull(StringUtils.trimToNull(field.getElementType())) && field.getElementType().contains(".")
+						&& !packageToProtoFileMap.containsKey(field.getElementType())
+						&& packageToProtoFileMap.containsKey("." + field.getElementType().split("\\.")[0] + "."))
+				.forEach(field -> field.updateElementType("." + field.getElementType()));
 	}
 }
