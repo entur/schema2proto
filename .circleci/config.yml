@@ -30,7 +30,7 @@ jobs:
           keys:
             - cache-dependencies-{{ checksum "pom.xml" }}
             - cache-dependencies-static
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
+      - run: mvn dependency:go-offline -s /tools/m2/settings.xml
       - save_cache:
           paths:
             - ~/.m2
@@ -77,6 +77,10 @@ jobs:
       # Cannot use -o because of snapshot dependencies..
       - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
       - run: *post_build
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: cache-dependencies-static
 
   sonar:
     docker:
@@ -87,13 +91,13 @@ jobs:
     environment:
       MAVEN_OPTS: -Xmx1G -Xms1G
     steps:
-      - checkout
+      #      - checkout
       - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - cache-dependencies-{{ checksum "pom.xml" }}
-            - cache-dependencies-static
+          at: ../
+      #      - restore_cache:
+      #          keys:
+      #            - cache-dependencies-{{ checksum "pom.xml" }}
+      #            - cache-dependencies-static
 
       - run: *sonar-scan
 
