@@ -80,7 +80,7 @@ jobs:
       #      - ~/.m2
       #   key: cache-dependencies-static
       # Cannot use -o because of snapshot dependencies..
-      - run: mvn deploy -o -s /tools/m2/settings.xml -DskipTests -Dspotless.check.skip=true
+      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests -Dspotless.check.skip=true
       - run: *post_build
       - save_cache:
           paths:
