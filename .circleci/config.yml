@@ -45,6 +45,7 @@ jobs:
             - schema2proto-lib
             - schema2proto-maven-plugin
             - schema2proto-wire
+            - ~/.m2
       - run:
           name: Save test results
           command: |
@@ -67,18 +68,18 @@ jobs:
       - attach_workspace:
           at: .
       #      - checkout
-      - restore_cache:
-          keys:
-            - cache-dependencies-{{ checksum "pom.xml" }}
-            - cache-dependencies-static
-      - run: mvn deploy:deploy -s /tools/m2/settings.xml
+      #      - restore_cache:
+      #         keys:
+      #          - cache-dependencies-{{ checksum "pom.xml" }}
+      #         - cache-dependencies-static
+      #- run: mvn deploy:deploy -s /tools/m2/settings.xml
       #      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -s /tools/m2/settings.xml
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: cache-dependencies-static
+      #  - save_cache:
+      #     paths:
+      #      - ~/.m2
+      #   key: cache-dependencies-static
       # Cannot use -o because of snapshot dependencies..
-      #- run: mvn deploy -s /tools/m2/settings.xml -DskipTests
+      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
       - run: *post_build
 
   sonar:
