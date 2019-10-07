@@ -95,8 +95,6 @@ public class SchemaParser implements ErrorHandler {
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
-	private Map<String, String> simpleTypes;
-	private Map<String, String> documentation;
 	private Map<MessageType, Set<Object>> elementDeclarationsPerMessageType = new HashMap<>();
 	private Set<String> basicTypes;
 
@@ -107,14 +105,9 @@ public class SchemaParser implements ErrorHandler {
 	private PGVRuleFactory ruleFactory;
 
 	private void init() {
-		simpleTypes = new HashMap<>();
-		documentation = new HashMap<>();
-
 		basicTypes = new TreeSet<>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
-
 		ruleFactory = new PGVRuleFactory(configuration, this);
-
 	}
 
 	public SchemaParser(Schema2ProtoConfiguration configuration) {
@@ -141,16 +134,6 @@ public class SchemaParser implements ErrorHandler {
 	private void addType(String namespace, Type type) {
 		ProtoFile file = getProtoFileForNamespace(namespace);
 		file.types().add(type);
-
-		// Type auto generated collision avoidance
-		String typeName = null;
-
-		if (type instanceof MessageType) {
-			MessageType mt = (MessageType) type;
-			typeName = mt.getName();
-		} else if (type instanceof EnumType) {
-			typeName = ((EnumType) type).name();
-		}
 	}
 
 	private ProtoFile getProtoFileForNamespace(String namespace) {
@@ -208,7 +191,7 @@ public class SchemaParser implements ErrorHandler {
 					if (rootElement.getType().isLocal()) {
 						processElement(rootElement, schemaSet);
 					} else {
-						LOGGER.info("Skipping global element " + rootElement.getName() + " declaration with global type " + rootElement.getType().getName());
+						LOGGER.debug("Skipping global element " + rootElement.getName() + " declaration with global type " + rootElement.getType().getName());
 					}
 				}
 			}
@@ -223,10 +206,6 @@ public class SchemaParser implements ErrorHandler {
 			cType = (XSComplexType) el.getType();
 			MessageType t = processComplexType(cType, el.getName(), schemaSet, null, null);
 			if (cType.isGlobal()) {
-				/*
-				 * Type is global
-				 */
-
 				addType(el.getTargetNamespace(), t);
 			}
 			return t.getName();
@@ -241,10 +220,6 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	/**
-	 * @param xs
-	 * @param elementName
-	 */
 	private String processSimpleType(XSSimpleType xs, String elementName) {
 
 		nestingLevel++;
@@ -259,32 +234,10 @@ public class SchemaParser implements ErrorHandler {
 
 		if (xs.isRestriction() && xs.getFacet("enumeration") != null) {
 			createEnum(typeName, xs.asRestriction(), null);
-		} else {
-			// This is just a restriction on a basic type, find parent and messages
-			// it to the type
-			String baseTypeName = typeName;
-			while (xs != null && !basicTypes.contains(baseTypeName)) {
-				xs = xs.getBaseType().asSimpleType();
-				if (xs != null) {
-					baseTypeName = xs.getName();
-				}
-			}
-			simpleTypes.put(typeName, xs != null ? xs.getName() : "string");
-			if (xs != null) {
-				String doc = resolveDocumentationAnnotation(xs);
-				addDocumentation(typeName, doc);
-			}
-
 		}
 
 		nestingLevel--;
 		return typeName;
-	}
-
-	private void addDocumentation(String typeName, String doc) {
-		if (doc != null) {
-			documentation.put(typeName, doc);
-		}
 	}
 
 	private void addField(MessageType message, Field newField) {
@@ -334,7 +287,6 @@ public class SchemaParser implements ErrorHandler {
 				XSType type = currElementDecl.getType();
 				String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
 				Location fieldLocation = getLocation(currElementDecl);
-				// int fieldTag = messageType.getNextFieldNum();
 
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 
@@ -357,7 +309,6 @@ public class SchemaParser implements ErrorHandler {
 
 					if (type.isGlobal()) {
 
-						// COMPLEX TYPE
 						Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
 						if (substitutables.size() <= 1) {
 							Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, messageType.getNextFieldNum(),
@@ -506,11 +457,6 @@ public class SchemaParser implements ErrorHandler {
 		return max > 1 || max == -1 || min > 1;
 	}
 
-	/**
-	 * @param complexType
-	 * @param elementName
-	 * @param schemaSet   @
-	 */
 	private MessageType processComplexType(XSComplexType complexType, String elementName, XSSchemaSet schemaSet, MessageType messageType,
 			Set<Object> processedXmlObjects) {
 
