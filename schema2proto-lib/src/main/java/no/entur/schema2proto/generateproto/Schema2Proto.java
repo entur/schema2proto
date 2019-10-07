@@ -50,7 +50,6 @@ import org.yaml.snakeyaml.error.YAMLException;
 import com.squareup.wire.schema.ProtoFile;
 
 import no.entur.schema2proto.InvalidConfigurationException;
-import no.entur.schema2proto.generateproto.serializer.ProtoSerializer;
 
 public class Schema2Proto {
 	private static final String OPTION_OUTPUT_DIRECTORY = "outputDirectory";
