@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package package;
+
+import "package/isexcluded.proto";
+
+message ShouldExist {
+    ExcludeType lang = 1;
+    string value = 2;
+
+}
+

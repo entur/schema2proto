@@ -83,8 +83,23 @@ public class ModifyProtoTest {
 		List<NewField> newFields = new ArrayList<>();
 		List<MergeFrom> mergeFrom = new ArrayList<>();
 		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
-
 		TestHelper.compareExpectedAndGenerated(expected, "no_langtype.proto", actual, "simple.proto");
+	}
+
+	@Test
+	public void removeEmptyFilesAndImports() throws IOException {
+		File expected = new File("src/test/resources/modify/expected/emptyfile").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/emptyfile").getCanonicalFile();
+
+		List<String> excludes = new ArrayList<>();
+		excludes.add("package.ExcludeMessage");
+		excludes.add("package.ExcludeType");
+		List<String> includes = new ArrayList<>();
+
+		List<NewField> newFields = new ArrayList<>();
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
+		TestHelper.compareExpectedAndGenerated(expected, "package/no_exclusions.proto", actual, "package/importsexcluded.proto");
 
 	}
 

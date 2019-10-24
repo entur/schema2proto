@@ -9,12 +9,12 @@ package no.entur.schema2proto.modifyproto;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,9 +26,7 @@ package no.entur.schema2proto.modifyproto;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -153,16 +151,26 @@ public class ModifyProto {
 			mergeFromFile(mergeFrom, prunedSchema, configuration);
 		}
 
-		for (String protoPathLoaded : protosLoaded) {
-			ProtoFile protoFile = prunedSchema.protoFile(protoPathLoaded);
-			File outputFile = new File(configuration.outputDirectory, protoFile.location().getPath());
+		Set<String> emptyImportLocations = protosLoaded.stream()
+				.map(prunedSchema::protoFile)
+				.filter(Objects::nonNull)
+				.filter(p -> p.types().isEmpty())
+				.map(p -> p.location().getPath())
+				.collect(Collectors.toSet());
+
+		protosLoaded.stream().map(prunedSchema::protoFile).filter(Objects::nonNull).filter(p -> !p.types().isEmpty()).forEach(file -> {
+			file.imports().removeIf(emptyImportLocations::contains);
+			file.publicImports().removeIf(emptyImportLocations::contains);
+			File outputFile = new File(configuration.outputDirectory, file.location().getPath());
 			outputFile.getParentFile().mkdirs();
 			try (Writer writer = new FileWriter(outputFile)) {
-				writer.write(protoFile.toSchema());
+				writer.write(file.toSchema());
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 			LOGGER.info("Wrote file " + outputFile.getPath());
 
-		}
+		});
 
 	}
 

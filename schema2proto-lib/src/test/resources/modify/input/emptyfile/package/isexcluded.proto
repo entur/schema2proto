@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package package;
+
+message ExcludeMessage{
+    string isExcluded = 1;
+}
+
+enum ExcludeType {
+    IS = 0;
+    EXCLUDED = 1;
+}
+
