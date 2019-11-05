@@ -25,6 +25,7 @@ package no.entur.schema2proto.generateproto;
 
 import java.util.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,7 +111,7 @@ public class PGVRuleFactory {
 					for (XSFacet facet : declaredFacets) {
 						switch (facet.getName()) {
 						case "pattern":
-							parameters.put("pattern", facet.getValue().value);
+							parameters.put("pattern", StringUtils.replace(facet.getValue().value, "\\", "\\\\")); // Add escaping of backslash
 							break;
 						case "minLength":
 							parameters.put("min_len", Integer.parseInt(facet.getValue().value));
