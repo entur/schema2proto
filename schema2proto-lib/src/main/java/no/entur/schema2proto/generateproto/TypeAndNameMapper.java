@@ -79,7 +79,7 @@ public class TypeAndNameMapper {
 		standardTypeMappings.put(Pattern.compile("^decimal$"), "double");
 		standardTypeMappings.put(Pattern.compile("^duration$"), "string"); // XML duration string
 		standardTypeMappings.put(Pattern.compile("^dateTime$"), "uint64"); // Number of milliseconds since January 1st), 1970
-		standardTypeMappings.put(Pattern.compile("^time$"), "uint64"); // Number of milliseconds since January 1st), 1970
+		standardTypeMappings.put(Pattern.compile("^time$"), "uint64"); // Number of milliseconds since midnight
 		standardTypeMappings.put(Pattern.compile("^date$"), "uint32"); // Number of days since January 1st 1970
 
 		standardTypeMappings.put(Pattern.compile("^gYearMonth$"), "string");
