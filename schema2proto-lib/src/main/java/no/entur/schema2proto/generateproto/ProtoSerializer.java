@@ -28,8 +28,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -813,6 +822,11 @@ public class ProtoSerializer {
 				}
 			}
 		}
+
+		Options options = mt.options();
+
+		options.replaceOptionIfValueMatchces(oldName, MessageType.BASE_TYPE_MESSAGE_OPTION,
+				new OptionElement(MessageType.BASE_TYPE_MESSAGE_OPTION, Kind.STRING, newName, false));
 	}
 
 	private boolean samePackage(String packageNameOfFile, String packageNameOfReferencedTypeInField) {
