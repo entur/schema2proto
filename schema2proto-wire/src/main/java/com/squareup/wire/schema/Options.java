@@ -77,22 +77,6 @@ public final class Options {
 		this.optionElements = new ArrayList<>(elements);
 	}
 
-	public void replaceOptionIfValueMatchces(Object oldValue, String optionName, OptionElement element) {
-		Object toBeRemoved = null;
-
-		for (OptionElement e : optionElements) {
-			if (e.getName().equals(optionName) && e.getValue().equals(oldValue)) {
-				toBeRemoved = e;
-				break;
-			}
-		}
-
-		if (toBeRemoved != null) {
-			optionElements.remove(toBeRemoved);
-			optionElements.add(element);
-		}
-	}
-
 	/**
 	 * Returns a map with the values for these options. Map values may be either a single entry, like {@code {deprecated: "true"}}, or more sophisticated, with
 	 * nested maps and lists.

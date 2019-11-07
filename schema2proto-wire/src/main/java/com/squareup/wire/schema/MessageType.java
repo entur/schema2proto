@@ -40,19 +40,15 @@ package com.squareup.wire.schema;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.internal.parser.GroupElement;
 import com.squareup.wire.schema.internal.parser.MessageElement;
+import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
 
 public final class MessageType extends Type {
-	public static final String BASE_TYPE_MESSAGE_OPTION = "base_type";
 	public static final int FIELD_NUM_INCREMENT = 10;
 	private ProtoType protoType;
 	private final Location location;
@@ -92,14 +88,15 @@ public final class MessageType extends Type {
 		this.options = checkNotNull(options);
 	}
 
-	public MessageType(ProtoType protoType, Location location, String documentation, String name, Options options) {
+	public MessageType(ProtoType protoType, Location location, String documentation, String name) {
 		this.protoType = protoType;
 		this.location = location;
 		this.documentation = documentation;
 		this.name = name;
 
 		// Empty values
-		this.options = checkNotNull(options);
+		List<OptionElement> messageOptions = new ArrayList<>();
+		this.options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
 		this.declaredFields = new ArrayList<>();
 		this.extensionFields = new ArrayList<>();
 		this.extensionsList = new ArrayList<>();

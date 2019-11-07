@@ -457,16 +457,6 @@ public class SchemaParser implements ErrorHandler {
 		return max > 1 || max == -1 || min > 1;
 	}
 
-	private XSType getBaseType(XSSchemaSet schemaSet, XSType child) {
-		XSType parent = child.getBaseType();
-
-		if (parent != schemaSet.getAnyType()) {
-			return parent;
-		} else {
-			return null;
-		}
-	}
-
 	private MessageType processComplexType(XSComplexType complexType, String elementName, XSSchemaSet schemaSet, MessageType messageType,
 			Set<Object> processedXmlObjects) {
 
@@ -507,16 +497,8 @@ public class SchemaParser implements ErrorHandler {
 				String doc = resolveDocumentationAnnotation(complexType);
 				Location location = getLocation(complexType);
 
-				List<OptionElement> messageOptions = new ArrayList<>();
-				XSType baseType = getBaseType(schemaSet, complexType);
-				if (baseType != null) {
-					OptionElement e = new OptionElement(MessageType.BASE_TYPE_MESSAGE_OPTION, OptionElement.Kind.STRING, baseType.getName(), false);
-					messageOptions.add(e);
-				}
-				Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
-
 				// Add message type to file
-				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, options);
+				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName);
 
 				if (complexType.isGlobal() | (complexType.getScope() != null && complexType.getScope().isGlobal())) {
 					/*
@@ -831,10 +813,7 @@ public class SchemaParser implements ErrorHandler {
 			Location location = getLocation(modelGroup);
 
 			// Add message type to file
-			List<OptionElement> messageOptions = new ArrayList<>();
-			Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
-
-			MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName, options);
+			MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, doc, typeName);
 			wrapperType.setWrapperMessageType(true);
 			messageType.nestedTypes().add(wrapperType);
 
