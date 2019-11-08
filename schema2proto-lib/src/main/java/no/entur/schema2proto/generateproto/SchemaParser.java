@@ -549,8 +549,8 @@ public class SchemaParser implements ErrorHandler {
 					XSType baseType = getBaseType(schemaSet, complexType);
 					if (baseType != null) {
 						String prefix = "";
-						String packageName = NamespaceHelper.xmlNamespaceToProtoPackage(nameSpace, configuration.defaultProtoPackage);
-						if (StringUtils.trimToNull(packageName) != null) {
+						String packageName = NamespaceHelper.xmlNamespaceToProtoPackage(baseType.getTargetNamespace(), configuration.defaultProtoPackage);
+						if (StringUtils.trimToNull(packageName) != null && !baseType.getTargetNamespace().equals(nameSpace)) {
 							prefix = packageName + ".";
 						}
 						OptionElement e = new OptionElement(XSD_MESSAGE_OPTIONS_PACKAGE + "." + MessageType.BASE_TYPE_MESSAGE_OPTION, OptionElement.Kind.STRING,

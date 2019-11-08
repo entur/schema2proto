@@ -77,11 +77,11 @@ public final class Options {
 		this.optionElements = new ArrayList<>(elements);
 	}
 
-	public void replaceOptionIfValueMatchces(Object oldValue, String optionName, OptionElement element) {
+	public void replaceOption(String optionName, OptionElement element) {
 		Object toBeRemoved = null;
 
 		for (OptionElement e : optionElements) {
-			if (e.getName().equals(optionName) && e.getValue().equals(oldValue)) {
+			if (e.getName().equals(optionName)) {
 				toBeRemoved = e;
 				break;
 			}

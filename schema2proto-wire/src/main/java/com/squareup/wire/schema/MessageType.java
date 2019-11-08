@@ -54,6 +54,7 @@ import com.squareup.wire.schema.internal.parser.TypeElement;
 public final class MessageType extends Type {
 	public static final String XSD_MESSAGE_OPTIONS_PACKAGE = "xsd";
 	public static final String BASE_TYPE_MESSAGE_OPTION = "base_type";
+	public static final String XSD_BASE_TYPE_MESSAGE_OPTION_NAME = XSD_MESSAGE_OPTIONS_PACKAGE + "." + BASE_TYPE_MESSAGE_OPTION;
 	public static final int FIELD_NUM_INCREMENT = 10;
 	private ProtoType protoType;
 	private final Location location;

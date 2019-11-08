@@ -790,14 +790,14 @@ public class ProtoSerializer {
 
 	private void updateTypeReferences(Map<String, ProtoFile> packageToProtoFileMap, String packageNameOfType, String oldName, String newName) {
 		for (ProtoFile file : packageToProtoFileMap.values()) {
-			updateTypeReferences(packageNameOfType, oldName, newName, file.types());
+			updateTypeReferences(packageNameOfType, oldName, newName, file.types(), file.packageName());
 		}
 
 	}
 
-	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, List<Type> types) {
+	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, List<Type> types, String currentMessageTypePackage) {
 		for (Type type : types) {
-			updateTypeReferences(packageNameOfType, oldName, newName, type.nestedTypes());
+			updateTypeReferences(packageNameOfType, oldName, newName, type.nestedTypes(), currentMessageTypePackage);
 
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
@@ -805,14 +805,16 @@ public class ProtoSerializer {
 				mt.nestedTypes()
 						.stream()
 						.filter(e -> e instanceof MessageType)
-						.forEach(e -> updateTypeReferences(packageNameOfType, oldName, newName, (MessageType) e, ((MessageType) e).fieldsAndOneOfFields()));
-				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fieldsAndOneOfFields());
+						.forEach(e -> updateTypeReferences(packageNameOfType, oldName, newName, (MessageType) e, ((MessageType) e).fieldsAndOneOfFields(),
+								currentMessageTypePackage));
+				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fieldsAndOneOfFields(), currentMessageTypePackage);
 
 			}
 		}
 	}
 
-	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, MessageType mt, Collection<Field> fields) {
+	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, MessageType mt, Collection<Field> fields,
+			String currentMessageTypePackage) {
 		for (Field field : fields) {
 			if (samePackage(field.packageName(), packageNameOfType)) {
 				String fieldType = field.getElementType();
@@ -824,9 +826,27 @@ public class ProtoSerializer {
 		}
 
 		Options options = mt.options();
+		// Avoid concurrent mod exception
 
-		options.replaceOptionIfValueMatchces(oldName, MessageType.BASE_TYPE_MESSAGE_OPTION,
-				new OptionElement(MessageType.BASE_TYPE_MESSAGE_OPTION, Kind.STRING, newName, false));
+		List<OptionElement> listCopy = new ArrayList<>(options.getOptionElements());
+
+		listCopy.stream().filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME)).forEach(e -> {
+			String packageAndType = (String) e.getValue();
+			if (packageAndType.equals(".")) {
+				String packageName = packageAndType.substring(0, packageAndType.lastIndexOf('.'));
+				String messageName = packageAndType.substring(packageName.hashCode() + 1);
+
+				if (packageName.equals(packageAndType) && oldName.equals(messageName)) {
+					options.replaceOption(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME,
+							new OptionElement(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME, Kind.STRING, packageName + "." + newName, true));
+
+				}
+			} else if (currentMessageTypePackage.equals(packageNameOfType) && packageAndType.equals(oldName)) {
+				options.replaceOption(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME,
+						new OptionElement(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME, Kind.STRING, newName, true));
+			}
+
+		});
 	}
 
 	private boolean samePackage(String packageNameOfFile, String packageNameOfReferencedTypeInField) {

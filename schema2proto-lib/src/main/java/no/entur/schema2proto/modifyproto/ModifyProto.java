@@ -95,11 +95,11 @@ public class ModifyProto {
 			}
 
 			if (config.includes != null) {
-				configuration.includes.addAll(config.includes);
+				configuration.includes.addAll(config.includes.stream().filter(e -> StringUtils.trimToNull(e) != null).collect(Collectors.toList()));
 			}
 
 			if (config.excludes != null) {
-				configuration.excludes.addAll(config.excludes);
+				configuration.excludes.addAll(config.excludes.stream().filter(e -> StringUtils.trimToNull(e) != null).collect(Collectors.toList()));
 			}
 
 			if (config.mergeFrom != null) {
@@ -111,7 +111,8 @@ public class ModifyProto {
 			}
 
 			if (config.customImportLocations != null) {
-				configuration.customImportLocations = new ArrayList<>(config.customImportLocations);
+				configuration.customImportLocations = new ArrayList<>(
+						config.customImportLocations.stream().filter(e -> StringUtils.trimToNull(e) != null).collect(Collectors.toList()));
 			}
 
 			configuration.basedir = basedir;
@@ -155,7 +156,7 @@ public class ModifyProto {
 			List<OptionElement> baseTypeInherits = type.options()
 					.getOptionElements()
 					.stream()
-					.filter(e -> e.getName().equals(MessageType.XSD_MESSAGE_OPTIONS_PACKAGE + "." + MessageType.BASE_TYPE_MESSAGE_OPTION))
+					.filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME))
 					.collect(Collectors.toList());
 			baseTypeInherits.stream().forEach(e -> {
 				String baseTypeValue = (String) e.getValue();
