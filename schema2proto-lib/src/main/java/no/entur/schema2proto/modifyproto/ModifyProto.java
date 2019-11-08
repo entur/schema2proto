@@ -120,6 +120,9 @@ public class ModifyProto {
 			// Run actual proto modification
 			modifyProto(configuration);
 
+		} catch (Exception e) {
+			LOGGER.error("Error modifying file", e);
+			throw e;
 		}
 	}
 
@@ -153,24 +156,30 @@ public class ModifyProto {
 
 		for (String include : configuration.includes) {
 			Type type = schema.getType(include);
-			List<OptionElement> baseTypeInherits = type.options()
-					.getOptionElements()
-					.stream()
-					.filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME))
-					.collect(Collectors.toList());
-			baseTypeInherits.stream().forEach(e -> {
-				String baseTypeValue = (String) e.getValue();
-				if (baseTypeValue.contains(".")) {
-					// has package reference
-					b.include(baseTypeValue);
-				} else if (include.contains(".")) {
-					// must include this package
-					b.include(include.substring(0, include.lastIndexOf('.')) + "." + baseTypeValue);
-				} else {
-					// No package in include statement
-					b.include(baseTypeValue);
+			if (type != null) {
+				if (type.options() != null) {
+					List<OptionElement> baseTypeInherits = type.options()
+							.getOptionElements()
+							.stream()
+							.filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME))
+							.collect(Collectors.toList());
+					baseTypeInherits.stream().forEach(e -> {
+						String baseTypeValue = (String) e.getValue();
+						if (baseTypeValue.contains(".")) {
+							// has package reference
+							b.include(baseTypeValue);
+						} else if (include.contains(".")) {
+							// must include this package
+							b.include(include.substring(0, include.lastIndexOf('.')) + "." + baseTypeValue);
+						} else {
+							// No package in include statement
+							b.include(baseTypeValue);
+						}
+					});
 				}
-			});
+			} else {
+				LOGGER.warn("Included type " + include + " does not exist in schema");
+			}
 		}
 
 		Schema prunedSchema = schema.prune(b.build());
