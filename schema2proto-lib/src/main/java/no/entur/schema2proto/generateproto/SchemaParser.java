@@ -23,6 +23,8 @@ package no.entur.schema2proto.generateproto;
  * #L%
  */
 
+import static com.squareup.wire.schema.MessageType.XSD_MESSAGE_OPTIONS_PACKAGE;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,6 +54,7 @@ import org.xml.sax.SAXParseException;
 
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
+import com.squareup.wire.schema.Extend;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
@@ -108,6 +111,26 @@ public class SchemaParser implements ErrorHandler {
 		basicTypes = new TreeSet<>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
 		ruleFactory = new PGVRuleFactory(configuration, this);
+
+		if (configuration.includeXsdOptions) {
+			addXsdOptions();
+		}
+	}
+
+	private void addXsdOptions() {
+		Location loc = new Location("", "", 0, 0);
+
+		List<Field> fields = new ArrayList<>();
+		List<OptionElement> optionElements = new ArrayList<>();
+		Options options = new Options(ProtoType.get("google.protobuf.MessageOptions"), optionElements);
+		Field field = new Field(null, loc, null, MessageType.BASE_TYPE_MESSAGE_OPTION, "Base type this message actually is an extension of", 1101, "string",
+				options, false);
+		fields.add(field);
+		Extend e = new Extend(loc, "Information elements extracted from the xsd structure", "google.protobuf.MessageOptions", fields);
+
+		ProtoFile xsdProtoFile = getProtoFileForPackage(XSD_MESSAGE_OPTIONS_PACKAGE);
+		xsdProtoFile.imports().add("google/protobuf/descriptor.proto");
+		xsdProtoFile.getExtendList().add(e);
 	}
 
 	public SchemaParser(Schema2ProtoConfiguration configuration) {
@@ -136,8 +159,8 @@ public class SchemaParser implements ErrorHandler {
 		file.types().add(type);
 	}
 
-	private ProtoFile getProtoFileForNamespace(String namespace) {
-		String packageName = NamespaceHelper.xmlNamespaceToProtoPackage(namespace, configuration.forceProtoPackage);
+	private ProtoFile getProtoFileForPackage(String packageName) {
+
 		if (StringUtils.trimToNull(packageName) == null) {
 			packageName = DEFAULT_PROTO_PACKAGE;
 		}
@@ -149,9 +172,22 @@ public class SchemaParser implements ErrorHandler {
 		ProtoFile file = packageToProtoFileMap.get(packageName);
 		if (file == null) {
 			file = new ProtoFile(Syntax.PROTO_3, packageName);
+			if (configuration.includeXsdOptions) {
+				if (packageName != XSD_MESSAGE_OPTIONS_PACKAGE) {
+					file.imports().add((XSD_MESSAGE_OPTIONS_PACKAGE + "/" + XSD_MESSAGE_OPTIONS_PACKAGE + ".PROTO").toLowerCase());
+
+				}
+			}
+
 			packageToProtoFileMap.put(packageName, file);
 		}
 		return file;
+
+	}
+
+	private ProtoFile getProtoFileForNamespace(String namespace) {
+		String packageName = NamespaceHelper.xmlNamespaceToProtoPackage(namespace, configuration.forceProtoPackage);
+		return getProtoFileForPackage(packageName);
 	}
 
 	private Type getType(String namespace, String typeName) {
@@ -508,10 +544,19 @@ public class SchemaParser implements ErrorHandler {
 				Location location = getLocation(complexType);
 
 				List<OptionElement> messageOptions = new ArrayList<>();
-				XSType baseType = getBaseType(schemaSet, complexType);
-				if (baseType != null) {
-					OptionElement e = new OptionElement(MessageType.BASE_TYPE_MESSAGE_OPTION, OptionElement.Kind.STRING, baseType.getName(), false);
-					messageOptions.add(e);
+
+				if (configuration.includeXsdOptions) {
+					XSType baseType = getBaseType(schemaSet, complexType);
+					if (baseType != null) {
+						String prefix = "";
+						String packageName = NamespaceHelper.xmlNamespaceToProtoPackage(nameSpace, configuration.defaultProtoPackage);
+						if (StringUtils.trimToNull(packageName) != null) {
+							prefix = packageName + ".";
+						}
+						OptionElement e = new OptionElement(XSD_MESSAGE_OPTIONS_PACKAGE + "." + MessageType.BASE_TYPE_MESSAGE_OPTION, OptionElement.Kind.STRING,
+								prefix + baseType.getName(), true);
+						messageOptions.add(e);
+					}
 				}
 				Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
 

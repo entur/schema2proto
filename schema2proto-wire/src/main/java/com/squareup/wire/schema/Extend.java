@@ -43,14 +43,14 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.internal.parser.ExtendElement;
 
-final class Extend {
+public final class Extend {
 	private final Location location;
 	private final String documentation;
 	private final String name;
 	private final List<Field> fields;
 	private ProtoType protoType;
 
-	private Extend(Location location, String documentation, String name, List<Field> fields) {
+	public Extend(Location location, String documentation, String name, List<Field> fields) {
 		this.location = location;
 		this.documentation = documentation;
 		this.name = name;

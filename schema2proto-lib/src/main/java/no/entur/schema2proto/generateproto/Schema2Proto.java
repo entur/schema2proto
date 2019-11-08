@@ -29,7 +29,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
@@ -70,7 +74,7 @@ public class Schema2Proto {
 	private static final String OPTION_CONFIG_FILE = "configFile";
 	private static final String OPTION_INCLUDE_VALIDATION_RULES = "includeValidationRules";
 	private static final String OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE = "skipEmptyTypeInheritance";
-
+	private static final String OPTION_INCLUDE_XSD_OPTIONS = "includeXsdOptions";
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
 	public Schema2Proto(String[] args) throws IOException {
@@ -224,6 +228,13 @@ public class Schema2Proto {
 				.desc("skip types just redefining other types with a different name")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_INCLUDE_XSD_OPTIONS)
+				.hasArg()
+				.argName("true|false")
+				.desc("include message options describing the xsd type hierarchy")
+				.required(false)
+				.build());
 		return commandLineOptions;
 	}
 
@@ -310,6 +321,7 @@ public class Schema2Proto {
 			configuration.inheritanceToComposition = config.inheritanceToComposition;
 			configuration.includeValidationRules = config.includeValidationRules;
 			configuration.skipEmptyTypeInheritance = config.skipEmptyTypeInheritance;
+			configuration.includeXsdOptions = config.includeXsdOptions;
 
 			Map<String, Object> options = config.options;
 			if (config.options != null) {
@@ -387,10 +399,7 @@ public class Schema2Proto {
 		}
 		configuration.options = options;
 		configuration.customImports = parseCommaSeparatedStringValues(cmd, OPTION_CUSTOM_IMPORTS);
-		;
 		configuration.customImportLocations = parseCommaSeparatedStringValues(cmd, OPTION_CUSTOM_IMPORT_LOCATIONS);
-		;
-		;
 
 		if (cmd.hasOption(OPTION_IGNORE_OUTPUT_FIELDS)) {
 			for (String ignoreOutputField : cmd.getOptionValue(OPTION_IGNORE_OUTPUT_FIELDS).split(",")) {
@@ -416,6 +425,9 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE)) {
 			configuration.skipEmptyTypeInheritance = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE));
+		}
+		if (cmd.hasOption(OPTION_INCLUDE_XSD_OPTIONS)) {
+			configuration.includeXsdOptions = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_XSD_OPTIONS));
 		}
 
 		return configuration;

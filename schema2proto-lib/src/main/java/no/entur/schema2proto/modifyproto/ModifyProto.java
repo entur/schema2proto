@@ -23,10 +23,18 @@ package no.entur.schema2proto.modifyproto;
  * #L%
  */
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -45,6 +53,7 @@ import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
+import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 
 import no.entur.schema2proto.InvalidConfigurationException;
@@ -141,6 +150,28 @@ public class ModifyProto {
 		b.exclude(configuration.excludes);
 		b.include(configuration.includes);
 
+		for (String include : configuration.includes) {
+			Type type = schema.getType(include);
+			List<OptionElement> baseTypeInherits = type.options()
+					.getOptionElements()
+					.stream()
+					.filter(e -> e.getName().equals(MessageType.XSD_MESSAGE_OPTIONS_PACKAGE + "." + MessageType.BASE_TYPE_MESSAGE_OPTION))
+					.collect(Collectors.toList());
+			baseTypeInherits.stream().forEach(e -> {
+				String baseTypeValue = (String) e.getValue();
+				if (baseTypeValue.contains(".")) {
+					// has package reference
+					b.include(baseTypeValue);
+				} else if (include.contains(".")) {
+					// must include this package
+					b.include(include.substring(0, include.lastIndexOf('.')) + "." + baseTypeValue);
+				} else {
+					// No package in include statement
+					b.include(baseTypeValue);
+				}
+			});
+		}
+
 		Schema prunedSchema = schema.prune(b.build());
 
 		for (NewField newField : configuration.newFields) {
@@ -216,7 +247,7 @@ public class ModifyProto {
 			LOGGER.error("Did not find existing type " + newField.targetMessageType);
 		} else {
 
-			List<OptionElement> optionElements = new ArrayList<OptionElement>();
+			List<OptionElement> optionElements = new ArrayList<>();
 
 			Options options = new Options(Options.FIELD_OPTIONS, optionElements);
 			int tag = newField.fieldNumber;

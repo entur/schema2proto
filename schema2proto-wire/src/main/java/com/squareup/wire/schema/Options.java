@@ -93,6 +93,10 @@ public final class Options {
 		}
 	}
 
+	public List<OptionElement> getOptionElements() {
+		return optionElements;
+	}
+
 	/**
 	 * Returns a map with the values for these options. Map values may be either a single entry, like {@code {deprecated: "true"}}, or more sophisticated, with
 	 * nested maps and lists.

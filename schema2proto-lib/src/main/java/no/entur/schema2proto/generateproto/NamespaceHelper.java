@@ -36,8 +36,6 @@ public class NamespaceHelper {
 
 	public static final String XML_SCHEMA_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
 
-	public static final String XML_NAMESPACE_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(NamespaceHelper.class);
 
 	private static Map<String, String> namespaceToPackageNames = new HashMap<>();

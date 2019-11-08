@@ -23,149 +23,162 @@ package no.entur.schema2proto.generateproto;
  * #L%
  */
 
-import static no.entur.schema2proto.TestHelper.compareExpectedAndGenerated;
-import static no.entur.schema2proto.TestHelper.generateProtobuf;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-public class SchemaParserTest {
+import no.entur.schema2proto.AbstractMappingTest;
 
-	private File expectedRootFolder = new File("src/test/resources/expectedproto/basic/default");
-	private File generatedRootFolder = new File(".");
+public class SchemaParserTest extends AbstractMappingTest {
+
+	private File expectedRootFolder = new File("src/test/resources/expectedproto/basic");
 
 	@Test
 	public void testAnyTypeElement() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "anytype.proto", generatedRootFolder,
-				generateProtobuf("basic/anyType.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/anyType.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/anytype.proto", generatedRootFolder, "default/default.proto");
+
 	}
 
 	@Test
 	public void testNestedTopLevelElement() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "nestedtoplevelelement.proto", generatedRootFolder,
-				generateProtobuf("basic/nestedtoplevelelement.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/nestedtoplevelelement.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/nestedtoplevelelement.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicTopLevelEnum() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "toplevelenum.proto", generatedRootFolder,
-				generateProtobuf("basic/toplevelenum.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/toplevelenum.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/toplevelenum.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testAvoidDuplicateChoiceWrapper() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "duplicatechoicewrapper.proto", generatedRootFolder,
-				generateProtobuf("basic/duplicatechoicewrapper.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/duplicatechoicewrapper.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/duplicatechoicewrapper.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicTopLevelComplexType() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "toplevelcomplextype.proto", generatedRootFolder,
-				generateProtobuf("basic/toplevelcomplextype.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/toplevelcomplextype.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/toplevelcomplextype.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicTopLevelSimpleType() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "toplevelsimpletype.proto", generatedRootFolder,
-				generateProtobuf("basic/toplevelsimpletype.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/toplevelsimpletype.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/toplevelsimpletype.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicExtensionBase() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "extensionbase.proto", generatedRootFolder,
-				generateProtobuf("basic/extensionbase.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/extensionbase.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/extensionbase.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicExtensionBaseComposition() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "extensionbase_composition.proto", generatedRootFolder,
-				generateProtobuf("basic/extensionbase.xsd", null, null, null, true, "default", "default.proto"));
+		Map<String, Object> options = new HashMap<>();
+		generateProtobuf("basic/extensionbase.xsd", null, null, null, true, options);
+		compareExpectedAndGenerated(expectedRootFolder, "default/extensionbase_composition.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicInheritanceToComposition() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "inheritancetocomposition.proto", generatedRootFolder,
-				generateProtobuf("basic/inheritancetocomposition.xsd", null, null, null, true, "default", "default.proto"));
+		Map<String, Object> options = new HashMap<>();
+		generateProtobuf("basic/inheritancetocomposition.xsd", null, null, null, true, options);
+		compareExpectedAndGenerated(expectedRootFolder, "default/inheritancetocomposition.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicExtensionBase2() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "extensionbase2.proto", generatedRootFolder,
-				generateProtobuf("basic/extensionbase2.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/extensionbase2.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/extensionbase2.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testExtensionBaseDuplicateElements() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "extensionbaseduplicateelements.proto", generatedRootFolder,
-				generateProtobuf("basic/extensionbaseduplicateelements.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/extensionbaseduplicateelements.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/extensionbaseduplicateelements.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testElementExtensions() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "extendedelement.proto", generatedRootFolder,
-				generateProtobuf("basic/extendedelement.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/extendedelement.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/extendedelement.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testDifferentInnerClassesWithSameName() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "differentinnerclasseswithsamename.proto", generatedRootFolder,
-				generateProtobuf("basic/differentinnerclasseswithsamename.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/differentinnerclasseswithsamename.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/differentinnerclasseswithsamename.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testAttributeGroups() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "attributegroups.proto", generatedRootFolder,
-				generateProtobuf("basic/attributegroups.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/attributegroups.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/attributegroups.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testElementRef() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "elementref.proto", generatedRootFolder,
-				generateProtobuf("basic/elementref.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/elementref.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/elementref.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testSkipEmptyTypeInheritance() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "skipemptytypeinheritance.proto", generatedRootFolder,
-				generateProtobuf("basic/skipemptytypeinheritance.xsd", "default", "default.proto", true));
+		Map<String, Object> options = new HashMap<>();
+		options.put("skipEmptyTypeInheritance", true);
+		generateProtobufNoTypeOrNameMappings("basic/skipemptytypeinheritance.xsd", options);
+		compareExpectedAndGenerated(expectedRootFolder, "default/skipemptytypeinheritance.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testUnboundedChoice() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "unboundedchoices.proto", generatedRootFolder,
-				generateProtobuf("basic/unboundedchoices.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/unboundedchoices.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/unboundedchoices.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testUnboundedSequence() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "unboundedsequences.proto", generatedRootFolder,
-				generateProtobuf("basic/unboundedsequences.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/unboundedsequences.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/unboundedsequences.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testList() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "list.proto", generatedRootFolder,
-				generateProtobuf("basic/list.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/list.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/list.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testUnion() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "union.proto", generatedRootFolder,
-				generateProtobuf("basic/union.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/union.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/union.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	// Disabled for now @Test
 	public void testValidationRules() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "validationrules.proto", generatedRootFolder,
-				generateProtobuf("basic/validationrules.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/validationrules.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/validationrules.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testRestrictionBase() throws IOException {
-		compareExpectedAndGenerated(expectedRootFolder, "restrictionbaseduplicateelements.proto", generatedRootFolder,
-				generateProtobuf("basic/restrictionbaseduplicateelements.xsd", "default", "default.proto", false));
+		generateProtobufNoOptions("basic/restrictionbaseduplicateelements.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/restrictionbaseduplicateelements.proto", generatedRootFolder, "default/default.proto");
+	}
+
+	@Test
+	public void testIncludeXsdOptions() throws IOException {
+		Map<String, Object> options = new HashMap<>();
+		options.put("includeXsdOptions", true);
+		generateProtobufNoTypeOrNameMappings("basic/xsdoption.xsd", options);
+		compareExpectedAndGenerated(expectedRootFolder, "default/xsdoption.proto", generatedRootFolder, "default/default.proto");
 	}
 
 }

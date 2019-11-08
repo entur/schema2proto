@@ -327,10 +327,10 @@ public class ProtoComparator {
 				"Field type mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
 	}
 
-	private static ProtoFile load(File folder, File protoFilename) throws IOException {
+	private static ProtoFile load(File rootFolder, File protoFilename) throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
+		schemaLoader.addSource(rootFolder);
 		schemaLoader.addProto(protoFilename.getPath());
-		schemaLoader.addSource(folder);
 		Schema schema = schemaLoader.load();
 		ProtoFile protofile = schema.protoFile(protoFilename.getPath());
 		return protofile;

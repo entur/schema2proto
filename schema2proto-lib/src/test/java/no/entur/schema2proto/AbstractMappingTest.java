@@ -28,7 +28,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,23 +49,26 @@ import no.entur.schema2proto.modifyproto.ModifyProto;
 import no.entur.schema2proto.modifyproto.ModifyProtoConfiguration;
 import no.entur.schema2proto.modifyproto.NewField;
 
-public class TestHelper {
+public abstract class AbstractMappingTest {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(TestHelper.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMappingTest.class);
 	private static final Logger FILE_CONTENT_LOGGER = LoggerFactory.getLogger("FILECONTENT");
 
-	public static void compareExpectedAndGenerated(File expectedRootFolder, String expected, File generatedRootFolder, String generated) {
+	protected File generatedRootFolder = new File("target/generated-proto");
+
+	protected void compareExpectedAndGenerated(File expectedRootFolder, String expectedRelativeToRootFolder, File generatedRootFolder,
+			String generatedRelativeToRootFolder) {
 		try {
-			File e = new File(expected);
-			File g = new File(generated);
+			File e = new File(expectedRelativeToRootFolder);
+			File g = new File(generatedRelativeToRootFolder);
 			ProtoComparator.compareProtoFiles(expectedRootFolder, e, generatedRootFolder, g);
 		} catch (AssertionFailedError e1) {
-			showDiff(expectedRootFolder, generatedRootFolder, expected, generated);
+			showDiff(expectedRootFolder, generatedRootFolder, expectedRelativeToRootFolder, generatedRelativeToRootFolder);
 			throw e1;
 		}
 	}
 
-	private static void showDiff(File expectedRootFolder, File generatedRootFolder, String expected, String generated) {
+	private void showDiff(File expectedRootFolder, File generatedRootFolder, String expected, String generated) {
 		try {
 			List<String> expectedFileLines = linesFromFile(expectedRootFolder, expected);
 			List<String> generatedFileLines = linesFromFile(generatedRootFolder, generated);
@@ -88,7 +93,7 @@ public class TestHelper {
 		}
 	}
 
-	private static void dumpFile(String filename, List<String> exlines) {
+	private void dumpFile(String filename, List<String> exlines) {
 		FILE_CONTENT_LOGGER.info("****** START " + filename + " ******");
 		int i = 0;
 		for (String s : exlines) {
@@ -97,7 +102,7 @@ public class TestHelper {
 		FILE_CONTENT_LOGGER.info("****** END   " + filename + " ******");
 	}
 
-	private static List<String> linesFromFile(File folder, String file) throws IOException {
+	private List<String> linesFromFile(File folder, String file) throws IOException {
 		List<String> lines = new ArrayList<String>();
 		BufferedReader reader = new BufferedReader(new FileReader(new File(folder, file)));
 		String line = null;
@@ -108,25 +113,24 @@ public class TestHelper {
 		return lines;
 	}
 
-	public static String generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
-			String expectedFolder, String expectedFilename) throws IOException {
-		return generateProtobuf(xsdFile, typeMappings, nameMappings, forcePackageName, inheritanceToComposition, expectedFolder, expectedFilename, false);
+	protected void generateProtobufNoOptions(String xsdFile) throws IOException {
+
+		Map<String, Object> options = new HashMap<>();
+		generateProtobuf(xsdFile, null, null, "default", false, options);
 	}
 
-	public static String generateProtobuf(String xsdFile, String expectedFolder, String expectedFilename, boolean skipEmptyTypeInheritance) throws IOException {
-		return generateProtobuf(xsdFile, null, null, "default", false, expectedFolder, expectedFilename, skipEmptyTypeInheritance);
+	protected void generateProtobufNoTypeOrNameMappings(String xsdFile, Map<String, Object> additionalOptions) throws IOException {
+		generateProtobuf(xsdFile, null, null, "default", false, additionalOptions);
 	}
 
-	private static String generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
-			String expectedFolder, String expectedFilename, boolean skipEmptyTypeInheritance) throws IOException {
-		File dir = new File("target/generated-proto/");
-		FileUtils.deleteDirectory(dir);
-		dir.mkdirs();
+	protected void generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
+			Map<String, Object> additionalOptions) throws IOException {
 
-		String filename = expectedFilename;
+		FileUtils.deleteDirectory(generatedRootFolder);
+		generatedRootFolder.mkdirs();
 
 		List<String> args = new ArrayList<>();
-		args.add("--outputDirectory=" + dir.getPath());
+		args.add("--outputDirectory=" + generatedRootFolder.getPath());
 		if (forcePackageName != null) {
 			args.add("--forceProtoPackage=" + forcePackageName);
 		}
@@ -138,41 +142,33 @@ public class TestHelper {
 		}
 
 		args.add("--inheritanceToComposition=" + inheritanceToComposition);
-		args.add("--skipEmptyTypeInheritance=" + skipEmptyTypeInheritance);
+
+		for (Map.Entry<String, Object> entry : additionalOptions.entrySet()) {
+			args.add("--" + entry.getKey() + "=" + entry.getValue());
+		}
 
 		args.add("src/test/resources/xsd/" + xsdFile);
 
-		File outputFile = new File(dir, expectedFolder + "/" + filename);
-		if (outputFile.exists()) {
-			outputFile.delete();
-		}
-
-		File parentFile = outputFile.getParentFile();
-		parentFile.mkdirs();
-
 		new Schema2Proto(args.toArray(new String[0]));
 
-		return outputFile.getPath();
 	}
 
-	public static File modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom)
+	public void modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom)
 			throws IOException {
-		File dir = new File("target/generated-proto/");
-		FileUtils.deleteDirectory(dir);
-		dir.mkdirs();
+
+		FileUtils.deleteDirectory(generatedRootFolder);
+		generatedRootFolder.mkdirs();
 
 		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
 		configuration.excludes = excludes;
 		configuration.includes = includes;
-		configuration.outputDirectory = dir;
+		configuration.outputDirectory = generatedRootFolder;
 		configuration.inputDirectory = sourceProtoFolder;
 		configuration.newFields = newFields;
 		configuration.mergeFrom = mergeFrom;
 
 		ModifyProto processor = new ModifyProto();
 		processor.modifyProto(configuration);
-
-		return dir;
 
 	}
 

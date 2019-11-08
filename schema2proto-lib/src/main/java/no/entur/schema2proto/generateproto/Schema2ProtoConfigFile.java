@@ -44,4 +44,6 @@ public class Schema2ProtoConfigFile {
 	public boolean includeSourceLocationInDoc = false;
 	public boolean includeValidationRules = false;
 	public boolean skipEmptyTypeInheritance = false;
+	public boolean includeXsdOptions = false;
+
 }

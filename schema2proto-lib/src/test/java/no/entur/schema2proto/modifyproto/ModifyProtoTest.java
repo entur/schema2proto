@@ -30,9 +30,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import no.entur.schema2proto.TestHelper;
+import no.entur.schema2proto.AbstractMappingTest;
 
-public class ModifyProtoTest {
+public class ModifyProtoTest extends AbstractMappingTest {
 
 	@Test
 	public void testRemoveIndependentMessageType() throws IOException {
@@ -46,9 +46,9 @@ public class ModifyProtoTest {
 
 		List<NewField> newFields = new ArrayList<>();
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
 
-		TestHelper.compareExpectedAndGenerated(expected, "missing_a.proto", actual, "simple.proto");
+		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
 	}
 
@@ -64,9 +64,27 @@ public class ModifyProtoTest {
 		includes.add("A");
 		List<NewField> newFields = new ArrayList<>();
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
 
-		TestHelper.compareExpectedAndGenerated(expected, "only_a.proto", actual, "simple.proto");
+		compareExpectedAndGenerated(expected, "only_a.proto", generatedRootFolder, "simple.proto");
+
+	}
+
+	@Test
+	public void testWhitelistMessageTypeWithBaseTypeOption() throws IOException {
+
+		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
+
+		List<String> excludes = new ArrayList<>();
+
+		List<String> includes = new ArrayList<>();
+		includes.add("B");
+		List<NewField> newFields = new ArrayList<>();
+		List<MergeFrom> mergeFrom = new ArrayList<>();
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
+
+		compareExpectedAndGenerated(expected, "simple.proto", generatedRootFolder, "simple.proto");
 
 	}
 
@@ -82,8 +100,8 @@ public class ModifyProtoTest {
 
 		List<NewField> newFields = new ArrayList<>();
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
-		TestHelper.compareExpectedAndGenerated(expected, "no_langtype.proto", actual, "simple.proto");
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		compareExpectedAndGenerated(expected, "no_langtype.proto", generatedRootFolder, "simple.proto");
 	}
 
 	@Test
@@ -98,8 +116,8 @@ public class ModifyProtoTest {
 
 		List<NewField> newFields = new ArrayList<>();
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
-		TestHelper.compareExpectedAndGenerated(expected, "package/no_exclusions.proto", actual, "package/importsexcluded.proto");
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		compareExpectedAndGenerated(expected, "package/no_exclusions.proto", generatedRootFolder, "package/importsexcluded.proto");
 
 	}
 
@@ -115,9 +133,9 @@ public class ModifyProtoTest {
 		includes.add("B");
 		List<NewField> newFields = new ArrayList<>();
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
 
-		TestHelper.compareExpectedAndGenerated(expected, "missing_a.proto", actual, "simple.proto");
+		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
 	}
 
@@ -133,9 +151,9 @@ public class ModifyProtoTest {
 		includes.add("package.B");
 		List<NewField> newFields = new ArrayList<>();
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
 
-		TestHelper.compareExpectedAndGenerated(expected, "package/insidepackage.proto", actual, "package/simple.proto");
+		compareExpectedAndGenerated(expected, "package/insidepackage.proto", generatedRootFolder, "package/simple.proto");
 
 	}
 
@@ -159,9 +177,9 @@ public class ModifyProtoTest {
 		newFields.add(newField);
 
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
 
-		TestHelper.compareExpectedAndGenerated(expected, "extrafield.proto", actual, "simple.proto");
+		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
 
 	}
 
@@ -182,9 +200,9 @@ public class ModifyProtoTest {
 		m.protoFile = "mergefrom.proto";
 
 		mergeFrom.add(m);
-		File actual = TestHelper.modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, excludes, newFields, mergeFrom);
 
-		TestHelper.compareExpectedAndGenerated(expected, "mergefrom.proto", actual, "simple.proto");
+		compareExpectedAndGenerated(expected, "mergefrom.proto", generatedRootFolder, "simple.proto");
 
 	}
 

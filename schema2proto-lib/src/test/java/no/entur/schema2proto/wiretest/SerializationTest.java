@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
+import com.squareup.wire.schema.Extend;
 import com.squareup.wire.schema.Extensions;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
@@ -81,5 +82,25 @@ public class SerializationTest {
 
 		String schema = f.toSchema();
 		assertNotNull(schema);
+	}
+
+	@Test
+	public void testBuildExtension() {
+		ProtoFile f = new ProtoFile(Syntax.PROTO_3, "default");
+
+		Location loc = new Location("", "", 0, 0);
+
+		List<Field> fields = new ArrayList<>();
+		List<OptionElement> optionElements = new ArrayList<>();
+		Options options = new Options(ProtoType.get("google.protobuf.MessageOptions"), optionElements);
+		Field field = new Field(null, loc, null, "fieldname", "Base type this message actually is an extension of", 1101, "string", options, false);
+		fields.add(field);
+		Extend e = new Extend(loc, "Information elements extracted from the xsd structure", "google.protobuf.MessageOptions", fields);
+		f.getExtendList().add(e);
+
+		String schema = f.toSchema();
+		System.out.println(schema);
+		assertNotNull(schema);
+
 	}
 }
