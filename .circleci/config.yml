@@ -31,7 +31,7 @@ jobs:
             - cache-dependencies-{{ checksum "pom.xml" }}-deploy
             - cache-dependencies-{{ checksum "pom.xml" }}
             - cache-dependencies-static
-      - run: mvn dependency:go-offline -s /tools/m2/settings.xml
+      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U -s /tools/m2/settings.xml
       - save_cache:
           paths:
             - ~/.m2
