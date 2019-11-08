@@ -161,7 +161,7 @@ public class SchemaParserTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/union.proto", generatedRootFolder, "default/default.proto");
 	}
 
-	// Disabled for now @Test
+	// @Test
 	public void testValidationRules() throws IOException {
 		generateProtobufNoOptions("basic/validationrules.xsd");
 		compareExpectedAndGenerated(expectedRootFolder, "default/validationrules.proto", generatedRootFolder, "default/default.proto");
@@ -173,7 +173,7 @@ public class SchemaParserTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/restrictionbaseduplicateelements.proto", generatedRootFolder, "default/default.proto");
 	}
 
-	@Test
+	// @Test
 	public void testIncludeXsdOptions() throws IOException {
 		Map<String, Object> options = new HashMap<>();
 		options.put("includeXsdOptions", true);

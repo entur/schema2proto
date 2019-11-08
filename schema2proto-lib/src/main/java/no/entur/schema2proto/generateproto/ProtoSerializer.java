@@ -67,6 +67,7 @@ public class ProtoSerializer {
 
 	public static final String UNDERSCORE = "_";
 	public static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
+	public static final String XSDOPTIONS_PROTO_IMPORT = "xsd/xsd.proto";
 	public static final String DASH = "-";
 	private Schema2ProtoConfiguration configuration;
 
@@ -431,9 +432,11 @@ public class ProtoSerializer {
 		SchemaLoader schemaLoader = new SchemaLoader();
 
 		try {
-
 			if (configuration.includeValidationRules) {
-				schemaLoader.addProto("validate/validate.proto");
+				schemaLoader.addProto(VALIDATION_PROTO_IMPORT);
+			}
+			if (configuration.includeXsdOptions) {
+				schemaLoader.addProto(XSDOPTIONS_PROTO_IMPORT);
 			}
 
 			for (String importRootFolder : configuration.customImportLocations) {
@@ -569,6 +572,10 @@ public class ProtoSerializer {
 			if (configuration.includeValidationRules) {
 				file.imports().add(VALIDATION_PROTO_IMPORT);
 			}
+			if (configuration.includeXsdOptions) {
+				file.imports().add(XSDOPTIONS_PROTO_IMPORT);
+			}
+
 		}
 	}
 

@@ -41,6 +41,7 @@
         <module>schema2proto-lib</module>
         <module>schema2proto-wire</module>
         <module>schema2proto-maven-plugin</module>
+        <module>schema2proto-xsdproto</module>
     </modules>
 
     <build>

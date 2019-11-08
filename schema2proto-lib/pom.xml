@@ -99,6 +99,20 @@
             <version>1.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.envoyproxy.protoc-gen-validate</groupId>
+            <artifactId>pgv-java-stub</artifactId>
+            <version>0.2.0</version>
+
+        </dependency>
+        <dependency>
+            <groupId>no.entur</groupId>
+            <artifactId>schema2proto-xsdproto</artifactId>
+            <version>${project.version}</version>
+
+        </dependency>
+
+
     </dependencies>
 
 

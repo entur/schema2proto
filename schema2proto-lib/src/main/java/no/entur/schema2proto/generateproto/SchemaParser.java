@@ -113,7 +113,7 @@ public class SchemaParser implements ErrorHandler {
 		ruleFactory = new PGVRuleFactory(configuration, this);
 
 		if (configuration.includeXsdOptions) {
-			addXsdOptions();
+			// addXsdOptions();
 		}
 	}
 
@@ -172,13 +172,6 @@ public class SchemaParser implements ErrorHandler {
 		ProtoFile file = packageToProtoFileMap.get(packageName);
 		if (file == null) {
 			file = new ProtoFile(Syntax.PROTO_3, packageName);
-			if (configuration.includeXsdOptions) {
-				if (packageName != XSD_MESSAGE_OPTIONS_PACKAGE) {
-					file.imports().add((XSD_MESSAGE_OPTIONS_PACKAGE + "/" + XSD_MESSAGE_OPTIONS_PACKAGE + ".PROTO").toLowerCase());
-
-				}
-			}
-
 			packageToProtoFileMap.put(packageName, file);
 		}
 		return file;
