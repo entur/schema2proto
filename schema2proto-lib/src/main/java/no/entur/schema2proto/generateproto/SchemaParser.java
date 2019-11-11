@@ -111,26 +111,6 @@ public class SchemaParser implements ErrorHandler {
 		basicTypes = new TreeSet<>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
 		ruleFactory = new PGVRuleFactory(configuration, this);
-
-		if (configuration.includeXsdOptions) {
-			// addXsdOptions();
-		}
-	}
-
-	private void addXsdOptions() {
-		Location loc = new Location("", "", 0, 0);
-
-		List<Field> fields = new ArrayList<>();
-		List<OptionElement> optionElements = new ArrayList<>();
-		Options options = new Options(ProtoType.get("google.protobuf.MessageOptions"), optionElements);
-		Field field = new Field(null, loc, null, MessageType.BASE_TYPE_MESSAGE_OPTION, "Base type this message actually is an extension of", 1101, "string",
-				options, false);
-		fields.add(field);
-		Extend e = new Extend(loc, "Information elements extracted from the xsd structure", "google.protobuf.MessageOptions", fields);
-
-		ProtoFile xsdProtoFile = getProtoFileForPackage(XSD_MESSAGE_OPTIONS_PACKAGE);
-		xsdProtoFile.imports().add("google/protobuf/descriptor.proto");
-		xsdProtoFile.getExtendList().add(e);
 	}
 
 	public SchemaParser(Schema2ProtoConfiguration configuration) {
