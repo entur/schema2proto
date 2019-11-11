@@ -14,7 +14,17 @@ message B {
   LangType lang = 1;
   // SimpleContent value of element
   string value = 2;
+  D field_d = 3;
 
+  message D {
+    option (xsd.base_type) = "C";
+    uint64 field_d = 1;
+  }
+
+}
+
+message C {
+  uint64 field_c = 1;
 }
 
 

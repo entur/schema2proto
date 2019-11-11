@@ -150,39 +150,20 @@ public class ModifyProto {
 
 		Schema schema = schemaLoader.load();
 
-		IdentifierSet.Builder b = new IdentifierSet.Builder();
-		b.exclude(configuration.excludes);
-		b.include(configuration.includes);
+		// First run initial pruning, then look at the results and add referenced types from xsd.base_type
 
-		for (String include : configuration.includes) {
-			Type type = schema.getType(include);
-			if (type != null) {
-				if (type.options() != null) {
-					List<OptionElement> baseTypeInherits = type.options()
-							.getOptionElements()
-							.stream()
-							.filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME))
-							.collect(Collectors.toList());
-					baseTypeInherits.stream().forEach(e -> {
-						String baseTypeValue = (String) e.getValue();
-						if (baseTypeValue.contains(".")) {
-							// has package reference
-							b.include(baseTypeValue);
-						} else if (include.contains(".")) {
-							// must include this package
-							b.include(include.substring(0, include.lastIndexOf('.')) + "." + baseTypeValue);
-						} else {
-							// No package in include statement
-							b.include(baseTypeValue);
-						}
-					});
-				}
-			} else {
-				LOGGER.warn("Included type " + include + " does not exist in schema");
-			}
+		IdentifierSet.Builder initialIdentifierSet = new IdentifierSet.Builder();
+		initialIdentifierSet.exclude(configuration.excludes);
+		initialIdentifierSet.include(configuration.includes);
+
+		IdentifierSet finalIterationIdentifiers = followOneMoreLevel(initialIdentifierSet, schema);
+		Schema prunedSchema = schema.prune(finalIterationIdentifiers);
+		for (String s : finalIterationIdentifiers.unusedExcludes()) {
+			LOGGER.warn("Unused exclude: (already excluded elsewhere or explicitly included?) " + s);
 		}
-
-		Schema prunedSchema = schema.prune(b.build());
+		for (String s : finalIterationIdentifiers.unusedIncludes()) {
+			LOGGER.warn("Unused include: (already included elsewhere or explicitly excluded?) " + s);
+		}
 
 		for (NewField newField : configuration.newFields) {
 			addField(newField, prunedSchema);
@@ -212,6 +193,60 @@ public class ModifyProto {
 			LOGGER.info("Wrote file " + outputFile.getPath());
 
 		});
+
+	}
+
+	private IdentifierSet followOneMoreLevel(IdentifierSet.Builder identifierSetBuilder, Schema schema) {
+
+		// Prune schema using current schema
+		IdentifierSet identifierSet = identifierSetBuilder.build();
+		Schema prunedSchema = schema.prune(identifierSet);
+
+		// Add new base types to follow
+		IdentifierSet.Builder updatedIdentifierSetBuilder = new IdentifierSet.Builder();
+		updatedIdentifierSetBuilder.exclude(identifierSet.excludes());
+		updatedIdentifierSetBuilder.include(identifierSet.includes());
+
+		for (ProtoFile file : prunedSchema.protoFiles()) {
+			for (Type t : file.types()) {
+				includeBaseType(updatedIdentifierSetBuilder, t, file.packageName());
+			}
+		}
+
+		IdentifierSet updatedIdentifierSet = updatedIdentifierSetBuilder.build();
+
+		// More dependencies found, iterate once more
+		if (!identifierSet.includes().equals(updatedIdentifierSet.includes())) {
+			return followOneMoreLevel(updatedIdentifierSetBuilder, schema);
+		} else {
+			// Another iteration yielded no more identifiers to include, we're done
+			return updatedIdentifierSet;
+		}
+
+	}
+
+	private void includeBaseType(IdentifierSet.Builder b, Type type, String enclosingPackage) {
+		if (type.options() != null) {
+			List<OptionElement> baseTypeInherits = type.options()
+					.getOptionElements()
+					.stream()
+					.filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME))
+					.collect(Collectors.toList());
+			baseTypeInherits.stream().forEach(e -> {
+				String baseTypeValue = (String) e.getValue();
+				if (baseTypeValue.contains(".")) {
+					b.include(baseTypeValue);
+				} else {
+					// No package in includeBaseType statement
+					String fullType = baseTypeValue;
+					if (enclosingPackage != null) {
+						fullType = enclosingPackage + "." + fullType;
+					}
+					b.include(fullType);
+				}
+			});
+		}
+		type.nestedTypes().stream().forEach(e -> includeBaseType(b, e, enclosingPackage));
 
 	}
 

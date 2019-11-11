@@ -187,6 +187,14 @@ public final class IdentifierSet {
 		return Sets.difference(excludes, usedExcludes);
 	}
 
+	public Set<String> includes() {
+		return includes;
+	}
+
+	public Set<String> excludes() {
+		return excludes;
+	}
+
 	public static final class Builder {
 		final ImmutableSet.Builder<String> includes = ImmutableSet.builder();
 		final ImmutableSet.Builder<String> excludes = ImmutableSet.builder();
