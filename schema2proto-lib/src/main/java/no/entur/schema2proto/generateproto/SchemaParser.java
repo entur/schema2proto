@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -54,7 +55,6 @@ import org.xml.sax.SAXParseException;
 
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
-import com.squareup.wire.schema.Extend;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
@@ -102,6 +102,8 @@ public class SchemaParser implements ErrorHandler {
 	private Set<String> basicTypes;
 
 	private int nestingLevel = 0;
+
+	private List<LocalType> localTypes = new ArrayList<>();
 
 	private Schema2ProtoConfiguration configuration;
 
@@ -203,8 +205,65 @@ public class SchemaParser implements ErrorHandler {
 						LOGGER.debug("Skipping global element " + rootElement.getName() + " declaration with global type " + rootElement.getType().getName());
 					}
 				}
+
+				// Reorganize reused embedded types into global types referenced from the
 			}
 		}
+		moveReusedLocalTypesToGlobal();
+	}
+
+	private void moveReusedLocalTypesToGlobal() {
+		LOGGER.info("Reorganizing embedded local types into global if reused");
+		Map<XSComplexType, Integer> seenComplexTypes = new HashMap<>();
+
+		localTypes.forEach(e -> {
+			Integer count = seenComplexTypes.get(e.xsComplexType);
+			if (count == null) {
+				seenComplexTypes.put(e.xsComplexType, 1);
+			} else {
+				count++;
+				seenComplexTypes.put(e.xsComplexType, count);
+			}
+
+		});
+
+		seenComplexTypes.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
+
+			// XSComplextype used more than once
+			LocalType first = localTypes.stream().filter(lt -> lt.xsComplexType == e.getKey()).findFirst().get();
+			ProtoFile enclosingFile = getProtoFileForNamespace(first.xsComplexType.getTargetNamespace());
+
+			// DuplicateCheck
+			int counter = 0;
+			String candidateName = first.localType.type().simpleName();
+			boolean duplicateFound = true;
+			while (duplicateFound) {
+				Optional<Type> existingType = Optional.empty();
+				for (Type type : enclosingFile.types()) {
+					if (candidateName.equals(type.type().simpleName())) {
+						existingType = Optional.of(type);
+						break;
+					}
+				}
+				if (existingType.isPresent()) {
+					counter++;
+					candidateName = StringUtils.repeat('X', counter) + first.localType.type().simpleName();
+				} else {
+					duplicateFound = false;
+				}
+			}
+
+			MessageType localToBecomeGlobal = first.localType;
+			localToBecomeGlobal.updateName(candidateName);
+			enclosingFile.types().add(localToBecomeGlobal);
+
+			// Remove all local types, update fields
+			localTypes.stream().filter(lt -> lt.xsComplexType == e.getKey()).forEach(y -> {
+				y.enclosingType.nestedTypes().remove(y.localType);
+				y.referencingField.updateElementType(localToBecomeGlobal.getName());
+			});
+		});
+
 	}
 
 	private String processElement(XSElementDecl el, XSSchemaSet schemaSet) {
@@ -289,7 +348,6 @@ public class SchemaParser implements ErrorHandler {
 
 		if (currTerm.isElementDecl()) {
 			XSElementDecl currElementDecl = currTerm.asElementDecl();
-
 			if (!processedXmlObjects.contains(currElementDecl)) {
 				processedXmlObjects.add(currElementDecl);
 
@@ -357,6 +415,8 @@ public class SchemaParser implements ErrorHandler {
 
 						if (!currElementDecl.isGlobal()) {
 							messageType.nestedTypes().add(referencedMessageType);
+							localTypes.add(new LocalType(type.asComplexType(), referencedMessageType, messageType, field));
+
 						}
 					}
 				}
@@ -380,6 +440,22 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 		}
+	}
+
+	private class LocalType {
+		XSComplexType xsComplexType;
+		MessageType localType;
+		MessageType enclosingType;
+		Field referencingField;
+
+		public LocalType(XSComplexType xsComplexType, MessageType localType, MessageType enclosingType, Field referencingField) {
+
+			this.xsComplexType = xsComplexType;
+			this.localType = localType;
+			this.enclosingType = enclosingType;
+			this.referencingField = referencingField;
+		}
+
 	}
 
 	@NotNull

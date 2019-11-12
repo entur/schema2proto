@@ -173,6 +173,12 @@ public class SchemaParserTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/restrictionbaseduplicateelements.proto", generatedRootFolder, "default/default.proto");
 	}
 
+	@Test
+	public void testLocalToGlobalConversion() throws IOException {
+		generateProtobufNoOptions("basic/localtoglobal.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/localtoglobal.proto", generatedRootFolder, "default/default.proto");
+	}
+
 	// @Test
 	public void testIncludeXsdOptions() throws IOException {
 		Map<String, Object> options = new HashMap<>();

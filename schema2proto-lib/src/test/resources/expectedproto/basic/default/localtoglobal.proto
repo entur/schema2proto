@@ -1,0 +1,24 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message ParentType {
+  string local_field = 1;
+
+}
+
+message InheritedType {
+  string local_field = 1;
+}
+
+message A {
+  string field_a = 1;
+  InheritedType inherited = 2;
+}
+
+
+message B {
+  string field_a = 1;
+  InheritedType inherited = 2;
+  string field_b = 21;
+}
