@@ -44,10 +44,12 @@ import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 
 import no.entur.schema2proto.generateproto.Schema2Proto;
-import no.entur.schema2proto.modifyproto.MergeFrom;
+import no.entur.schema2proto.modifyproto.InvalidProtobufException;
 import no.entur.schema2proto.modifyproto.ModifyProto;
-import no.entur.schema2proto.modifyproto.ModifyProtoConfiguration;
-import no.entur.schema2proto.modifyproto.NewField;
+import no.entur.schema2proto.modifyproto.config.MergeFrom;
+import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
+import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
+import no.entur.schema2proto.modifyproto.config.NewField;
 
 public abstract class AbstractMappingTest {
 
@@ -153,19 +155,31 @@ public abstract class AbstractMappingTest {
 
 	}
 
-	public void modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom)
-			throws IOException {
+	public void modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom,
+			List<NewEnumConstant> newEnumValues) throws IOException, InvalidProtobufException {
 
 		FileUtils.deleteDirectory(generatedRootFolder);
 		generatedRootFolder.mkdirs();
 
 		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
-		configuration.excludes = excludes;
-		configuration.includes = includes;
 		configuration.outputDirectory = generatedRootFolder;
 		configuration.inputDirectory = sourceProtoFolder;
-		configuration.newFields = newFields;
-		configuration.mergeFrom = mergeFrom;
+
+		if (excludes != null) {
+			configuration.excludes = excludes;
+		}
+		if (includes != null) {
+			configuration.includes = includes;
+		}
+		if (newFields != null) {
+			configuration.newFields = newFields;
+		}
+		if (mergeFrom != null) {
+			configuration.mergeFrom = mergeFrom;
+		}
+		if (newEnumValues != null) {
+			configuration.newEnumConstants = newEnumValues;
+		}
 
 		ModifyProto processor = new ModifyProto();
 		processor.modifyProto(configuration);

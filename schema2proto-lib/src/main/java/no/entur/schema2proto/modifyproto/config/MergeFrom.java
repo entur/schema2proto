@@ -1,4 +1,4 @@
-package no.entur.schema2proto.modifyproto;
+package no.entur.schema2proto.modifyproto.config;
 
 /*-
  * #%L
@@ -9,12 +9,12 @@ package no.entur.schema2proto.modifyproto;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- *
+ * 
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- *
+ * 
  * http://ec.europa.eu/idabc/eupl5
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,19 +23,9 @@ package no.entur.schema2proto.modifyproto;
  * #L%
  */
 
-import java.util.List;
+import java.io.File;
 
-import no.entur.schema2proto.modifyproto.config.MergeFrom;
-import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
-import no.entur.schema2proto.modifyproto.config.NewField;
-
-public class ModifyProtoConfigFile {
-	public String inputDirectory;
-	public String outputDirectory;
-	public List<String> includes;
-	public List<String> excludes;
-	public List<NewField> newFields;
-	public List<MergeFrom> mergeFrom;
-	public List<String> customImportLocations;
-	public List<NewEnumConstant> newEnumConstants;
+public class MergeFrom {
+	public File sourceFolder;
+	public String protoFile;
 }

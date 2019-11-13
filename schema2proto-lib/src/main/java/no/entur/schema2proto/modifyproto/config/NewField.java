@@ -1,4 +1,4 @@
-package no.entur.schema2proto.modifyproto;
+package no.entur.schema2proto.modifyproto.config;
 
 /*-
  * #%L
