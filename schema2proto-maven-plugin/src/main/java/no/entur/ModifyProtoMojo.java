@@ -34,6 +34,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import no.entur.schema2proto.InvalidConfigurationException;
+import no.entur.schema2proto.modifyproto.InvalidProtobufException;
 import no.entur.schema2proto.modifyproto.ModifyProto;
 
 @Mojo(name = "modify", defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
@@ -62,6 +63,8 @@ public class ModifyProtoMojo extends AbstractMojo {
 			throw new MojoExecutionException("Error modifying proto files", e);
 		} catch (InvalidConfigurationException e) {
 			throw new MojoExecutionException("Invalid modify configuration file", e);
+		} catch (InvalidProtobufException e) {
+			throw new MojoExecutionException("Could not fully modify proto files", e);
 		}
 
 	}

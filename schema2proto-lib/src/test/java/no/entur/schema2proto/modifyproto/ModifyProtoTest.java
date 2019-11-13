@@ -31,140 +31,136 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import no.entur.schema2proto.AbstractMappingTest;
+import no.entur.schema2proto.modifyproto.config.MergeFrom;
+import no.entur.schema2proto.modifyproto.config.NewField;
 
 public class ModifyProtoTest extends AbstractMappingTest {
 
 	@Test
-	public void testRemoveIndependentMessageType() throws IOException {
+	public void testRemoveIndependentMessageType() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 		excludes.add("A");
-		List<String> includes = new ArrayList<>();
 
-		List<NewField> newFields = new ArrayList<>();
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, null, excludes, null, null, null);
 
 		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
 	}
 
 	@Test
-	public void testWhitelistMessageType() throws IOException {
+	public void testWhitelistMessageType() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
-		List<String> excludes = new ArrayList<>();
-
 		List<String> includes = new ArrayList<>();
 		includes.add("A");
-		List<NewField> newFields = new ArrayList<>();
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, null, null, null, null);
 
 		compareExpectedAndGenerated(expected, "only_a.proto", generatedRootFolder, "simple.proto");
 
 	}
 
 	@Test
-	public void testWhitelistMessageTypeWithBaseTypeOption() throws IOException {
+	public void testWhitelistMessageTypeWithBaseTypeOption() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
 
-		List<String> excludes = new ArrayList<>();
-
 		List<String> includes = new ArrayList<>();
 		includes.add("B");
-		List<NewField> newFields = new ArrayList<>();
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, null, null, null, null);
 
 		compareExpectedAndGenerated(expected, "simple.proto", generatedRootFolder, "simple.proto");
 
 	}
 
 	@Test
-	public void testRemoveFieldAndType() throws IOException {
+	public void testRemoveFieldAndType() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 		excludes.add("LangType");
-		List<String> includes = new ArrayList<>();
-
-		List<NewField> newFields = new ArrayList<>();
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, null, excludes, null, null, null);
 		compareExpectedAndGenerated(expected, "no_langtype.proto", generatedRootFolder, "simple.proto");
 	}
 
 	@Test
-	public void removeEmptyFilesAndImports() throws IOException {
+	public void removeEmptyFilesAndImports() throws IOException, InvalidProtobufException {
 		File expected = new File("src/test/resources/modify/expected/emptyfile").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/emptyfile").getCanonicalFile();
 
 		List<String> excludes = new ArrayList<>();
 		excludes.add("package.ExcludeMessage");
 		excludes.add("package.ExcludeType");
-		List<String> includes = new ArrayList<>();
-
-		List<NewField> newFields = new ArrayList<>();
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, null, excludes, null, null, null);
 		compareExpectedAndGenerated(expected, "package/no_exclusions.proto", generatedRootFolder, "package/importsexcluded.proto");
 
 	}
 
 	@Test
-	public void testWhitelistMessageTypeAndDependency() throws IOException {
+	public void testWhitelistMessageTypeAndDependency() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
-		List<String> excludes = new ArrayList<>();
-
 		List<String> includes = new ArrayList<>();
 		includes.add("B");
-		List<NewField> newFields = new ArrayList<>();
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, null, null, null, null);
 
 		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
 	}
 
 	@Test
-	public void testInsidePackage() throws IOException {
+	public void testInsidePackage() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/withpackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/withpackagename").getCanonicalFile();
 
-		List<String> excludes = new ArrayList<>();
-
 		List<String> includes = new ArrayList<>();
 		includes.add("package.B");
-		List<NewField> newFields = new ArrayList<>();
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, includes, null, null, null, null);
 
 		compareExpectedAndGenerated(expected, "package/insidepackage.proto", generatedRootFolder, "package/simple.proto");
 
 	}
 
 	@Test
-	public void testAddField() throws IOException {
+	public void testAddField() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
-		List<String> excludes = new ArrayList<>();
-		List<String> includes = new ArrayList<>();
+		List<NewField> newFields = new ArrayList<>();
+
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		// newField.importProto = "importpackage/p.proto";
+		newField.label = "repeated";
+		newField.fieldNumber = 100;
+		newField.name = "new_field";
+		newField.type = "B";
+		newFields.add(newField);
+
+		modifyProto(source, null, null, newFields, null, null);
+
+		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
+
+	}
+
+	@Test
+	public void testAddEnumValue() throws IOException, InvalidProtobufException {
+
+		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
+
 		List<NewField> newFields = new ArrayList<>();
 
 		NewField newField = new NewField();
@@ -177,22 +173,18 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		newFields.add(newField);
 
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, null, null, newFields, null, null);
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
 
 	}
 
 	@Test
-	public void testMergeProto() throws IOException {
+	public void testMergeProto() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 		File mergefrom = new File("src/test/resources/modify/mergefrom/nopackagename").getCanonicalFile();
-
-		List<String> excludes = new ArrayList<>();
-		List<String> includes = new ArrayList<>();
-		List<NewField> newFields = new ArrayList<>();
 
 		List<MergeFrom> mergeFrom = new ArrayList<>();
 		MergeFrom m = new MergeFrom();
@@ -200,7 +192,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		m.protoFile = "mergefrom.proto";
 
 		mergeFrom.add(m);
-		modifyProto(source, includes, excludes, newFields, mergeFrom);
+		modifyProto(source, null, null, null, mergeFrom, null);
 
 		compareExpectedAndGenerated(expected, "mergefrom.proto", generatedRootFolder, "simple.proto");
 

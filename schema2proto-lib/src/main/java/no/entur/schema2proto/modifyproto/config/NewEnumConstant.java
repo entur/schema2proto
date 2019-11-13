@@ -1,4 +1,4 @@
-package no.entur.schema2proto.modifyproto;
+package no.entur.schema2proto.modifyproto.config;
 
 /*-
  * #%L
@@ -23,9 +23,15 @@ package no.entur.schema2proto.modifyproto;
  * #L%
  */
 
-import java.io.File;
+public class NewEnumConstant {
+	public String targetEnumType;
+	public String documentation;
+	public String name;
+	public int fieldNumber = -1;
 
-public class MergeFrom {
-	public File sourceFolder;
-	public String protoFile;
+	@Override
+	public String toString() {
+		return "NewEnumValue{" + "targetEnumType='" + targetEnumType + '\'' + ", documentation='" + documentation + '\'' + ", name='" + name + '\''
+				+ ", fieldNumber=" + fieldNumber + '}';
+	}
 }

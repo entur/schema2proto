@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,8 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
+import com.squareup.wire.schema.EnumConstant;
+import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.IdentifierSet;
 import com.squareup.wire.schema.Location;
@@ -58,12 +61,16 @@ import com.squareup.wire.schema.internal.parser.OptionElement;
 
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.generateproto.Schema2Proto;
+import no.entur.schema2proto.modifyproto.config.MergeFrom;
+import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
+import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
+import no.entur.schema2proto.modifyproto.config.NewField;
 
 public class ModifyProto {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
-	public void modifyProto(File configFile, File basedir) throws IOException, InvalidConfigurationException {
+	public void modifyProto(File configFile, File basedir) throws IOException, InvalidConfigurationException, InvalidProtobufException {
 
 		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
 
@@ -110,6 +117,10 @@ public class ModifyProto {
 				configuration.newFields = new ArrayList<>(config.newFields);
 			}
 
+			if (config.newEnumConstants != null) {
+				configuration.newEnumConstants = new ArrayList<>(config.newEnumConstants);
+			}
+
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(
 						config.customImportLocations.stream().filter(e -> StringUtils.trimToNull(e) != null).collect(Collectors.toList()));
@@ -126,7 +137,7 @@ public class ModifyProto {
 		}
 	}
 
-	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException {
+	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException {
 		SchemaLoader schemaLoader = new SchemaLoader();
 
 		// Collect source proto files (but not dependencies). Used to know which files should be written to .proto and which that should remain a dependency.
@@ -167,6 +178,10 @@ public class ModifyProto {
 
 		for (NewField newField : configuration.newFields) {
 			addField(newField, prunedSchema);
+		}
+
+		for (NewEnumConstant newEnumValue : configuration.newEnumConstants) {
+			addEnumConstant(newEnumValue, prunedSchema);
 		}
 
 		for (MergeFrom mergeFrom : configuration.mergeFrom) {
@@ -285,15 +300,37 @@ public class ModifyProto {
 
 	}
 
-	private void addField(NewField newField, Schema prunedSchema) {
+	private void addEnumConstant(NewEnumConstant newEnumConstant, Schema prunedSchema) throws InvalidProtobufException {
+		Type targetEnumType = prunedSchema.getType(newEnumConstant.targetEnumType);
+		if (targetEnumType instanceof EnumType) {
+			List<OptionElement> optionElements = new ArrayList<>();
+			Options options = new Options(Options.ENUM_VALUE_OPTIONS, optionElements);
+			Location location = new Location("", "", -1, -1);
+			EnumConstant enumConstant = new EnumConstant(location, newEnumConstant.name, newEnumConstant.fieldNumber, newEnumConstant.documentation, options);
+			EnumType enumType = (EnumType) targetEnumType;
+			// Duplicate check
+			Optional<EnumConstant> existing = enumType.constants()
+					.stream()
+					.filter(e -> e.getName().equals(enumConstant.getName().equals(e.getName()) || e.getTag() == enumConstant.getTag()))
+					.findFirst();
+			if (existing.isPresent()) {
+				throw new InvalidProtobufException("Enum constant already present: " + newEnumConstant);
+			} else {
+				enumType.constants().add(enumConstant);
+			}
+		} else {
+			throw new InvalidProtobufException("Did not find existing enum " + newEnumConstant.targetEnumType);
+		}
+	}
+
+	private void addField(NewField newField, Schema prunedSchema) throws InvalidProtobufException {
 
 		MessageType type = (MessageType) prunedSchema.getType(newField.targetMessageType);
 		if (type == null) {
-			LOGGER.error("Did not find existing type " + newField.targetMessageType);
+			throw new InvalidProtobufException("Did not find existing type " + newField.targetMessageType);
 		} else {
 
 			List<OptionElement> optionElements = new ArrayList<>();
-
 			Options options = new Options(Options.FIELD_OPTIONS, optionElements);
 			int tag = newField.fieldNumber;
 

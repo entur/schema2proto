@@ -41,8 +41,13 @@ excludes:
 
 # Add new field to given type. Note: All on same line (snake yaml)
 newFields:
-  - {    targetMessageType: existingPackageName.ExistingMessageType, name: field_name,  type: packageName.FieldType, importProto: packageName/file.proto, label: repeated, fieldNumber: 12 }
+  - { targetMessageType: existingPackageName.ExistingMessageType, name: field_name,  type: packageName.FieldType, importProto: packageName/file.proto, label: repeated, fieldNumber: 12 }
   - { targetMessageType: existingPackageName.ExistingMessageType, name: field_name_2, type: FieldTypeCommon, importProto: packageName/file2.proto, fieldNumber: 13}
 
+# Add new enum value to existing enum. Note: All on same line (snake yaml)
+newEnumConstants:
+  - { targetEnumType: existingPackageName.ExistingEnumType, name: ENUM_CONSTANT_TYPE_NEW_VALUE, fieldNumber: 12, documentation: "Enum value documentation" }
+
+# Merge types from an external path into existing schema
 mergeFrom:
   - { sourceFolder: pathToSourceFolder, protoFile: protoPackage/protofile.proto}
