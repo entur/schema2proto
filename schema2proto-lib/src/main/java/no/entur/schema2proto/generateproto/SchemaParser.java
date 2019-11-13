@@ -878,7 +878,7 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private String createWrapperName(MessageType enclosingType, XSModelGroup.Compositor compositor) {
+	private String createWrapperName(MessageType enclosingType, XSModelGroup.Compositor compositor, String enclosingName) {
 
 		final String wrapperPrefix;
 		if (XSModelGroup.SEQUENCE.equals(compositor)) {
@@ -896,9 +896,9 @@ public class SchemaParser implements ErrorHandler {
 				.filter(e -> e.getName().startsWith(wrapperPrefix))
 				.count();
 		if (numExistingWrappers == 0) {
-			return wrapperPrefix;
+			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingName) }, "_");
 		} else {
-			return wrapperPrefix + (numExistingWrappers + 1);
+			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingName), (numExistingWrappers + 1) }, "_");
 		}
 
 	}
@@ -915,8 +915,9 @@ public class SchemaParser implements ErrorHandler {
 			boolean repeated = getRange(particle);
 			if (repeated) {
 
-				String typeName = createWrapperName(messageType, XSModelGroup.SEQUENCE);
-				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace);
+				String typeName = createWrapperName(messageType, XSModelGroup.SEQUENCE, enclosingName);
+				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace,
+						"sequenceWrapper");
 
 			} else {
 				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace);
@@ -927,8 +928,9 @@ public class SchemaParser implements ErrorHandler {
 			boolean repeated = getRange(particle);
 			if (repeated) {
 
-				String typeName = createWrapperName(messageType, XSModelGroup.CHOICE);
-				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace);
+				String typeName = createWrapperName(messageType, XSModelGroup.CHOICE, enclosingName);
+				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace,
+						"choiceWrapper");
 
 			} else {
 				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace);
@@ -939,7 +941,7 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private void createWrapperAndContinueProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects,
-			XSSchemaSet schemaSet, XSParticle[] children, String typeName, String targetNamespace) {
+			XSSchemaSet schemaSet, XSParticle[] children, String typeName, String targetNamespace, String fieldName) {
 
 		if (!processedXmlObjects.contains(particle)) {
 			processedXmlObjects.add(particle);
@@ -950,7 +952,7 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 			// Create new message type enclosed in existing
-			String fieldName = typeName; // Identical for now
+
 			String doc = resolveDocumentationAnnotation(modelGroup);
 			Location location = getLocation(modelGroup);
 
@@ -964,7 +966,9 @@ public class SchemaParser implements ErrorHandler {
 
 			Options fieldOptions = getFieldOptions(particle);
 
-			Field field = new Field(null, location, Label.REPEATED, fieldName, doc, messageType.getNextFieldNum(), typeName, fieldOptions, false);
+			String fieldPackagename = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(targetNamespace, configuration.forceProtoPackage);
+
+			Field field = new Field(fieldPackagename, location, Label.REPEATED, fieldName, doc, messageType.getNextFieldNum(), typeName, fieldOptions, false);
 
 			messageType.addField(field);
 

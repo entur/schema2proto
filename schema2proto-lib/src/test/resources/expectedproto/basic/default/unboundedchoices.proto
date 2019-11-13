@@ -3,12 +3,10 @@ syntax = "proto3";
 package default;
 
 message Outer {
+  repeated ChoiceWrapper_Outer choice_wrapper = 1;
 
-    repeated ChoiceWrapper choice_wrapper = 1;
-
-    message ChoiceWrapper {
-        string option1 = 1;
-        string option2 = 2;
-    }
-
+  message ChoiceWrapper_Outer {
+    string option1 = 1;
+    string option2 = 2;
+  }
 }

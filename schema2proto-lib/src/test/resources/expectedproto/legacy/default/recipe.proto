@@ -22,9 +22,9 @@ message IngredientsType {
   repeated string item = 1;
 }
 message DirectionsType {
-  repeated ChoiceWrapper choice_wrapper = 1;
+  repeated ChoiceWrapper_DirectionsType choice_wrapper = 1;
 
-  message ChoiceWrapper {
+  message ChoiceWrapper_DirectionsType {
     ParaType para = 1;
     BulletType bullet = 2;
   }

@@ -8,9 +8,9 @@ message EntryType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  repeated ChoiceWrapper choice_wrapper = 3;
+  repeated ChoiceWrapper_EntryType choice_wrapper = 3;
 
-  message ChoiceWrapper {
+  message ChoiceWrapper_EntryType {
     repeated PersonType author = 1;
     repeated CategoryType category = 2;
     ContentType content = 3;
@@ -87,9 +87,9 @@ message SourceType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  repeated ChoiceWrapper choice_wrapper = 3;
+  repeated ChoiceWrapper_SourceType choice_wrapper = 3;
 
-  message ChoiceWrapper {
+  message ChoiceWrapper_SourceType {
     repeated PersonType author = 1;
     repeated CategoryType category = 2;
     repeated PersonType contributor = 3;
@@ -111,9 +111,9 @@ message FeedType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  repeated ChoiceWrapper choice_wrapper = 3;
+  repeated ChoiceWrapper_FeedType choice_wrapper = 3;
 
-  message ChoiceWrapper {
+  message ChoiceWrapper_FeedType {
     repeated PersonType author = 1;
     repeated CategoryType category = 2;
     repeated PersonType contributor = 3;
@@ -166,9 +166,9 @@ message PersonType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  repeated ChoiceWrapper choice_wrapper = 3;
+  repeated ChoiceWrapper_PersonType choice_wrapper = 3;
 
-  message ChoiceWrapper {
+  message ChoiceWrapper_PersonType {
     string name = 1;
     UriType uri = 2;
     string email = 3;

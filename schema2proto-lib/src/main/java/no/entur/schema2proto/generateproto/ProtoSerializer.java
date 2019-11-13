@@ -809,11 +809,10 @@ public class ProtoSerializer {
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
 
-				mt.nestedTypes()
-						.stream()
-						.filter(e -> e instanceof MessageType)
-						.forEach(e -> updateTypeReferences(packageNameOfType, oldName, newName, (MessageType) e, ((MessageType) e).fieldsAndOneOfFields(),
-								currentMessageTypePackage));
+				/*
+				 * mt.nestedTypes() .stream() .filter(e -> e instanceof MessageType) .forEach(e -> updateTypeReferences(packageNameOfType, oldName, newName,
+				 * (MessageType) e, ((MessageType) e).fieldsAndOneOfFields(), currentMessageTypePackage));
+				 */
 				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fieldsAndOneOfFields(), currentMessageTypePackage);
 
 			}
