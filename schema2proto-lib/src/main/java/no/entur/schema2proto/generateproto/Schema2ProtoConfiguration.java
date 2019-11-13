@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Schema2ProtoConfiguration {
+	public static final String DEFAULT_PROTO_PACKAGE = "default";
 	public File xsdFile = null;
 	public String outputFilename = "schema2proto.proto";
 	public File outputDirectory = null;

@@ -30,12 +30,14 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -60,6 +62,7 @@ import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.OptionElement.Kind;
+import com.sun.xml.xsom.XSComponent;
 
 import no.entur.schema2proto.InvalidConfigurationException;
 
@@ -90,10 +93,13 @@ public class ProtoSerializer {
 		}
 	}
 
-	public void serialize(Map<String, ProtoFile> packageToProtoFileMap) throws InvalidXSDException, IOException {
+	public void serialize(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypes) throws InvalidXSDException, IOException {
 
 		// Remove temporary generated name suffix
-		replaceGeneratedSuffix(packageToProtoFileMap, SchemaParser.GENERATED_NAME_SUFFIX_UNIQUENESS, SchemaParser.TYPE_SUFFIX);
+		replaceGeneratedTypePlaceholder(packageToProtoFileMap, SchemaParser.GENERATED_NAME_PLACEHOLDER, SchemaParser.TYPE_SUFFIX, localTypes);
+
+		// Reorganize reused embedded types into global types referenced from the
+		moveReusedLocalTypesToGlobal(packageToProtoFileMap, localTypes);
 
 		// Remove unwanted fields
 		removeUnwantedFields(packageToProtoFileMap);
@@ -271,40 +277,35 @@ public class ProtoSerializer {
 		return pathName.replace(".proto", "").replace('/', '.');
 	}
 
-	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, protoFile.getValue().types(),
-					protoFile.getValue().packageName());
-		}
+	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix,
+			List<LocalType> localTypes) {
 
+		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, protoFile.getValue().types(),
+					protoFile.getValue().packageName(), localTypes);
+		}
 	}
 
-	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix, List<Type> types,
-			String packageName) {
+	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder, String newTypeSuffix,
+			List<Type> types, String packageName, List<LocalType> localTypes) {
 		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
 		for (Type type : types) {
 			// Recurse into nested types
-			replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, type.nestedTypes(), packageName);
+			replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, type.nestedTypes(), packageName, localTypes);
 
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
-
-				mt.nestedTypes()
-						.stream()
-						.filter(e -> e instanceof MessageType)
-						.forEach(e -> replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, packageName, usedNames,
-								(MessageType) e));
-
-				replaceGeneratedSuffix(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, packageName, usedNames, mt);
+				replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, packageName, usedNames, mt, localTypes);
 
 			} else if (type instanceof EnumType) {
 				EnumType et = (EnumType) type;
 				String messageName = et.name();
-				if (messageName.endsWith(generatedRandomTypeSuffix)) {
-					String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
+				if (messageName.contains(generatedRandomTypePlaceholder)) {
+					String newMessageName = messageName.replaceAll(generatedRandomTypePlaceholder, newTypeSuffix);
 					if (!usedNames.contains(newMessageName)) {
 						et.updateName(newMessageName);
 						usedNames.add(newMessageName);
+						updateLocalTypes(localTypes, messageName, newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
 						LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
@@ -314,19 +315,25 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void replaceGeneratedSuffix(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix,
-			String packageName, Set<String> usedNames, MessageType mt) {
+	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder, String newTypeSuffix,
+			String packageName, Set<String> usedNames, MessageType mt, List<LocalType> localTypes) {
 		String messageName = mt.getName();
-		if (messageName.endsWith(generatedRandomTypeSuffix)) {
-			String newMessageName = messageName.replace(generatedRandomTypeSuffix, newTypeSuffix);
+		if (messageName.contains(generatedRandomTypePlaceholder)) {
+			String newMessageName = messageName.replaceAll(generatedRandomTypePlaceholder, newTypeSuffix);
 			if (!usedNames.contains(newMessageName)) {
 				mt.updateName(newMessageName);
 				usedNames.add(newMessageName);
+				updateLocalTypes(localTypes, messageName, newMessageName);
 				updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 			} else {
 				LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 			}
 		}
+	}
+
+	private void updateLocalTypes(List<LocalType> localTypes, String messageName, String newMessageName) {
+		localTypes.stream().filter(e -> e.enclosingName.equals(messageName)).forEach(e -> e.enclosingName = newMessageName);
+
 	}
 
 	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap) {
@@ -992,6 +999,76 @@ public class ProtoSerializer {
 			String newFieldName = typeAndFieldNameMapper.escapeFieldName(fieldName);
 			field.updateName(newFieldName);
 		}
+	}
+
+	private void moveReusedLocalTypesToGlobal(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypes) {
+		LOGGER.info("Reorganizing embedded local types into global if reused");
+		Map<XSComponent, Integer> seenComplexTypes = new HashMap<>();
+
+		Collections.sort(localTypes);
+
+		localTypes.forEach(e -> {
+			Integer count = seenComplexTypes.get(e.xsComponent);
+			if (count == null) {
+				seenComplexTypes.put(e.xsComponent, 1);
+			} else {
+				count++;
+				seenComplexTypes.put(e.xsComponent, count);
+			}
+
+		});
+
+		seenComplexTypes.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
+
+			// XSComplextype used more than once
+			LocalType first = localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).findFirst().get();
+			String packageName = first.targetPackage;
+			if (packageName == null) {
+				packageName = Schema2ProtoConfiguration.DEFAULT_PROTO_PACKAGE;
+			}
+			ProtoFile enclosingFile = packageToProtoFileMap.get(packageName);
+
+			// DuplicateCheck
+			long duplicateGlobalNames = localTypes.stream()
+					.filter(z -> z.localType.type().simpleName().equals(first.localType.type().simpleName()) && z.xsComponent != first.xsComponent)
+					.count();
+			String candidateName = first.localType.type().simpleName();
+			if (duplicateGlobalNames > 1) {
+				LOGGER.info("Candidate name for inherited local type {} must be prefixed with enclosing name {} ", candidateName, first.enclosingName);
+				candidateName = first.enclosingName + "_" + StringUtils.capitalize(first.localType.type().simpleName());
+			}
+
+			Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
+			if (!existingType.isPresent()) {
+				MessageType localToBecomeGlobal = first.localType;
+				localToBecomeGlobal.updateName(candidateName);
+				enclosingFile.types().add(localToBecomeGlobal);
+
+				// Remove all local types, update fields
+				localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).forEach(y -> {
+					y.enclosingType.nestedTypes().remove(y.localType);
+					y.referencingField.updateElementType(localToBecomeGlobal.getName());
+				});
+			} else {
+				LOGGER.warn("Could not extract local type " + first.localType.getName() + " from " + first.enclosingType.getName() + " using new global name "
+						+ candidateName
+						+ " due to an existing type with this name. This is a limitation of the current code but can be fixed with a better naming scheme");
+			}
+
+		});
+
+	}
+
+	@NotNull
+	private Optional<Type> checkForExistingType(ProtoFile enclosingFile, String candidateName) {
+		Optional<Type> existingType = Optional.empty();
+		for (Type type : enclosingFile.types()) {
+			if (candidateName.equals(type.type().simpleName())) {
+				existingType = Optional.of(type);
+				break;
+			}
+		}
+		return existingType;
 	}
 
 }

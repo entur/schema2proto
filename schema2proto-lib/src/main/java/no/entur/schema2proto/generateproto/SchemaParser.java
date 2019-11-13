@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -90,11 +89,9 @@ import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 public class SchemaParser implements ErrorHandler {
 
 	public static final String TYPE_SUFFIX = "Type";
-	public static final String GENERATED_NAME_SUFFIX_UNIQUENESS = "GeneratedBySchemaToProto";
+	public static final String GENERATED_NAME_PLACEHOLDER = "GeneratedTypePlaceholder";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
-
-	private static final String DEFAULT_PROTO_PACKAGE = "default";
 
 	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
 
@@ -144,7 +141,7 @@ public class SchemaParser implements ErrorHandler {
 	private ProtoFile getProtoFileForPackage(String packageName) {
 
 		if (StringUtils.trimToNull(packageName) == null) {
-			packageName = DEFAULT_PROTO_PACKAGE;
+			packageName = Schema2ProtoConfiguration.DEFAULT_PROTO_PACKAGE;
 		}
 
 		if (configuration.defaultProtoPackage != null) {
@@ -206,76 +203,8 @@ public class SchemaParser implements ErrorHandler {
 					}
 				}
 
-				// Reorganize reused embedded types into global types referenced from the
 			}
 		}
-		moveReusedLocalTypesToGlobal();
-	}
-
-	private void moveReusedLocalTypesToGlobal() {
-		LOGGER.info("Reorganizing embedded local types into global if reused");
-		Map<XSComponent, Integer> seenComplexTypes = new HashMap<>();
-
-		Collections.sort(localTypes);
-
-		localTypes.forEach(e -> {
-			Integer count = seenComplexTypes.get(e.xsComponent);
-			if (count == null) {
-				seenComplexTypes.put(e.xsComponent, 1);
-			} else {
-				count++;
-				seenComplexTypes.put(e.xsComponent, count);
-			}
-
-		});
-
-		seenComplexTypes.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
-
-			// XSComplextype used more than once
-			LocalType first = localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).findFirst().get();
-			ProtoFile enclosingFile = getProtoFileForNamespace(first.targetNamespace);
-
-			// DuplicateCheck
-			long duplicateGlobalNames = localTypes.stream()
-					.filter(z -> z.localType.type().simpleName().equals(first.localType.type().simpleName()) && z.xsComponent != first.xsComponent)
-					.count();
-			String candidateName = first.localType.type().simpleName();
-			if (duplicateGlobalNames > 1) {
-				LOGGER.info("Candidate name for inherited local type {} must be prefixed with enclosing name {} ", candidateName, first.enclosingName);
-				candidateName = first.enclosingName + "_" + StringUtils.capitalize(first.localType.type().simpleName());
-			}
-
-			Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
-			if (!existingType.isPresent()) {
-				MessageType localToBecomeGlobal = first.localType;
-				localToBecomeGlobal.updateName(candidateName);
-				enclosingFile.types().add(localToBecomeGlobal);
-
-				// Remove all local types, update fields
-				localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).forEach(y -> {
-					y.enclosingType.nestedTypes().remove(y.localType);
-					y.referencingField.updateElementType(localToBecomeGlobal.getName());
-				});
-			} else {
-				LOGGER.warn("Could not extract local type " + first.localType.getName() + " from " + first.enclosingType.getName() + " using new global name "
-						+ candidateName
-						+ " due to an existing type with this name. This is a limitation of the current code but can be fixed with a better naming scheme");
-			}
-
-		});
-
-	}
-
-	@NotNull
-	private Optional<Type> checkForExistingType(ProtoFile enclosingFile, String candidateName) {
-		Optional<Type> existingType = Optional.empty();
-		for (Type type : enclosingFile.types()) {
-			if (candidateName.equals(type.type().simpleName())) {
-				existingType = Optional.of(type);
-				break;
-			}
-		}
-		return existingType;
 	}
 
 	private String processElement(XSElementDecl el, XSSchemaSet schemaSet) {
@@ -309,7 +238,7 @@ public class SchemaParser implements ErrorHandler {
 		String typeName = xs.getName();
 
 		if (typeName == null) {
-			typeName = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
+			typeName = elementName + GENERATED_NAME_PLACEHOLDER;
 		}
 
 		if (xs.isRestriction() && xs.getFacet("enumeration") != null) {
@@ -428,8 +357,8 @@ public class SchemaParser implements ErrorHandler {
 
 						if (!currElementDecl.isGlobal()) {
 							messageType.nestedTypes().add(referencedMessageType);
-							localTypes.add(
-									new LocalType(type.asComplexType(), referencedMessageType, messageType, field, enclosingName, type.getTargetNamespace()));
+							localTypes.add(new LocalType(type.asComplexType(), referencedMessageType, messageType, field, enclosingName,
+									NamespaceHelper.xmlNamespaceToProtoPackage(type.getTargetNamespace(), configuration.forceProtoPackage)));
 
 						}
 					}
@@ -453,30 +382,6 @@ public class SchemaParser implements ErrorHandler {
 				groupProcessing(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace);
 			}
 
-		}
-	}
-
-	private class LocalType implements Comparable<LocalType> {
-		String enclosingName;
-		XSComponent xsComponent;
-		MessageType localType;
-		MessageType enclosingType;
-		Field referencingField;
-		String targetNamespace;
-
-		public LocalType(XSComponent xsComponent, MessageType localType, MessageType enclosingType, Field referencingField, String enclosingName,
-				String targetNamespace) {
-			this.enclosingName = enclosingName;
-			this.xsComponent = xsComponent;
-			this.localType = localType;
-			this.enclosingType = enclosingType;
-			this.referencingField = referencingField;
-			this.targetNamespace = targetNamespace;
-		}
-
-		@Override
-		public int compareTo(@NotNull LocalType o) {
-			return enclosingName.compareTo(o.enclosingName);
 		}
 	}
 
@@ -605,7 +510,7 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 			if (typeName == null) {
-				typeName = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
+				typeName = elementName + GENERATED_NAME_PLACEHOLDER;
 			}
 			messageType = (MessageType) getType(nameSpace, typeName);
 
@@ -974,7 +879,8 @@ public class SchemaParser implements ErrorHandler {
 
 			messageType.addField(field);
 
-			localTypes.add(new LocalType(particle, wrapperType, messageType, field, enclosingName, targetNamespace));
+			localTypes.add(new LocalType(particle, wrapperType, messageType, field, enclosingName,
+					NamespaceHelper.xmlNamespaceToProtoPackage(targetNamespace, configuration.forceProtoPackage)));
 
 			processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace);
 		}
@@ -1049,7 +955,7 @@ public class SchemaParser implements ErrorHandler {
 			} else if (enclosingType != null) {
 				typeNameToUse = elementName + TYPE_SUFFIX;
 			} else {
-				typeNameToUse = elementName + GENERATED_NAME_SUFFIX_UNIQUENESS;
+				typeNameToUse = elementName + GENERATED_NAME_PLACEHOLDER;
 			}
 		}
 
@@ -1128,4 +1034,7 @@ public class SchemaParser implements ErrorHandler {
 		exception.printStackTrace();
 	}
 
+	public List<LocalType> getLocalTypes() {
+		return localTypes;
+	}
 }
