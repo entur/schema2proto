@@ -214,17 +214,17 @@ public class SchemaParser implements ErrorHandler {
 
 	private void moveReusedLocalTypesToGlobal() {
 		LOGGER.info("Reorganizing embedded local types into global if reused");
-		Map<XSComplexType, Integer> seenComplexTypes = new HashMap<>();
+		Map<XSComponent, Integer> seenComplexTypes = new HashMap<>();
 
 		Collections.sort(localTypes);
 
 		localTypes.forEach(e -> {
-			Integer count = seenComplexTypes.get(e.xsComplexType);
+			Integer count = seenComplexTypes.get(e.xsComponent);
 			if (count == null) {
-				seenComplexTypes.put(e.xsComplexType, 1);
+				seenComplexTypes.put(e.xsComponent, 1);
 			} else {
 				count++;
-				seenComplexTypes.put(e.xsComplexType, count);
+				seenComplexTypes.put(e.xsComponent, count);
 			}
 
 		});
@@ -232,8 +232,8 @@ public class SchemaParser implements ErrorHandler {
 		seenComplexTypes.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
 
 			// XSComplextype used more than once
-			LocalType first = localTypes.stream().filter(lt -> lt.xsComplexType == e.getKey()).findFirst().get();
-			ProtoFile enclosingFile = getProtoFileForNamespace(first.xsComplexType.getTargetNamespace());
+			LocalType first = localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).findFirst().get();
+			ProtoFile enclosingFile = getProtoFileForNamespace(first.targetNamespace);
 
 			// DuplicateCheck
 
@@ -250,7 +250,7 @@ public class SchemaParser implements ErrorHandler {
 				enclosingFile.types().add(localToBecomeGlobal);
 
 				// Remove all local types, update fields
-				localTypes.stream().filter(lt -> lt.xsComplexType == e.getKey()).forEach(y -> {
+				localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).forEach(y -> {
 					y.enclosingType.nestedTypes().remove(y.localType);
 					y.referencingField.updateElementType(localToBecomeGlobal.getName());
 				});
@@ -350,7 +350,7 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private void navigateSubTypes(XSParticle parentParticle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
-			String enclosingName) {
+			String enclosingName, String targetNamespace) {
 
 		XSTerm currTerm = parentParticle.getTerm();
 
@@ -426,7 +426,8 @@ public class SchemaParser implements ErrorHandler {
 
 						if (!currElementDecl.isGlobal()) {
 							messageType.nestedTypes().add(referencedMessageType);
-							localTypes.add(new LocalType(type.asComplexType(), referencedMessageType, messageType, field, enclosingName));
+							localTypes.add(
+									new LocalType(type.asComplexType(), referencedMessageType, messageType, field, enclosingName, type.getTargetNamespace()));
 
 						}
 					}
@@ -447,7 +448,7 @@ public class SchemaParser implements ErrorHandler {
 		} else {
 			XSModelGroup modelGroup = getModelGroup(currTerm);
 			if (modelGroup != null) {
-				groupProcessing(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet, enclosingName);
+				groupProcessing(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace);
 			}
 
 		}
@@ -455,17 +456,20 @@ public class SchemaParser implements ErrorHandler {
 
 	private class LocalType implements Comparable<LocalType> {
 		String enclosingName;
-		XSComplexType xsComplexType;
+		XSComponent xsComponent;
 		MessageType localType;
 		MessageType enclosingType;
 		Field referencingField;
+		String targetNamespace;
 
-		public LocalType(XSComplexType xsComplexType, MessageType localType, MessageType enclosingType, Field referencingField, String enclosingName) {
+		public LocalType(XSComponent xsComponent, MessageType localType, MessageType enclosingType, Field referencingField, String enclosingName,
+				String targetNamespace) {
 			this.enclosingName = enclosingName;
-			this.xsComplexType = xsComplexType;
+			this.xsComponent = xsComponent;
 			this.localType = localType;
 			this.enclosingType = enclosingType;
 			this.referencingField = referencingField;
+			this.targetNamespace = targetNamespace;
 		}
 
 		@Override
@@ -706,7 +710,7 @@ public class SchemaParser implements ErrorHandler {
 					enclosingName = modelGroup.asModelGroupDecl().getName();
 				}
 
-				groupProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, enclosingName);
+				groupProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, enclosingName, complexType.getTargetNamespace());
 			}
 
 		} else if (complexType.getContentType().asSimpleType() != null) {
@@ -900,22 +904,22 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private void groupProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
-			String enclosingName) {
+			String enclosingName, String targetNamespace) {
 		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
 
 		XSParticle[] children = modelGroup.getChildren();
 
 		if (compositor.equals(XSModelGroup.ALL)) {
-			processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName);
+			processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace);
 		} else if (compositor.equals(XSModelGroup.SEQUENCE)) {
 			boolean repeated = getRange(particle);
 			if (repeated) {
 
 				String typeName = createWrapperName(messageType, XSModelGroup.SEQUENCE);
-				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName);
+				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace);
 
 			} else {
-				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName);
+				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace);
 			}
 
 		} else if (compositor.equals(XSModelGroup.CHOICE)) {
@@ -924,10 +928,10 @@ public class SchemaParser implements ErrorHandler {
 			if (repeated) {
 
 				String typeName = createWrapperName(messageType, XSModelGroup.CHOICE);
-				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName);
+				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace);
 
 			} else {
-				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName);
+				processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace);
 			}
 		}
 		messageType.advanceFieldNum();
@@ -935,10 +939,15 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private void createWrapperAndContinueProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects,
-			XSSchemaSet schemaSet, XSParticle[] children, String typeName) {
+			XSSchemaSet schemaSet, XSParticle[] children, String typeName, String targetNamespace) {
 
 		if (!processedXmlObjects.contains(particle)) {
 			processedXmlObjects.add(particle);
+
+			String enclosingName = typeName;
+			if (modelGroup.isModelGroupDecl()) {
+				enclosingName = modelGroup.asModelGroupDecl().getName();
+			}
 
 			// Create new message type enclosed in existing
 			String fieldName = typeName; // Identical for now
@@ -959,19 +968,21 @@ public class SchemaParser implements ErrorHandler {
 
 			messageType.addField(field);
 
-			processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children, enclosingName);
+			localTypes.add(new LocalType(particle, wrapperType, messageType, field, enclosingName, targetNamespace));
+
+			processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace);
 		}
 	}
 
 	private void processGroupAsSequence(XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
-			XSParticle[] children, String enclosingName) {
+			XSParticle[] children, String enclosingName, String targetNamespace) {
 		for (int i = 0; i < children.length; i++) {
 			XSTerm currTerm = children[i].getTerm();
 			if (currTerm.isModelGroup()) {
-				groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, enclosingName);
+				groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace);
 			} else {
 				// Create the new complex type for root types
-				navigateSubTypes(children[i], messageType, processedXmlObjects, schemaSet, enclosingName);
+				navigateSubTypes(children[i], messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace);
 			}
 		}
 	}
