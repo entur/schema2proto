@@ -236,14 +236,16 @@ public class SchemaParser implements ErrorHandler {
 			ProtoFile enclosingFile = getProtoFileForNamespace(first.targetNamespace);
 
 			// DuplicateCheck
-
+			long duplicateGlobalNames = localTypes.stream()
+					.filter(z -> z.localType.type().simpleName().equals(first.localType.type().simpleName()) && z.xsComponent != first.xsComponent)
+					.count();
 			String candidateName = first.localType.type().simpleName();
-			Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
-			if (existingType.isPresent()) {
+			if (duplicateGlobalNames > 1) {
+				LOGGER.info("Candidate name for inherited local type {} must be prefixed with enclosing name {} ", candidateName, first.enclosingName);
 				candidateName = first.enclosingName + "_" + StringUtils.capitalize(first.localType.type().simpleName());
-				existingType = checkForExistingType(enclosingFile, candidateName);
 			}
 
+			Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
 			if (!existingType.isPresent()) {
 				MessageType localToBecomeGlobal = first.localType;
 				localToBecomeGlobal.updateName(candidateName);
