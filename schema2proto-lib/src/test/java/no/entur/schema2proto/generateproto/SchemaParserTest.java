@@ -173,6 +173,12 @@ public class SchemaParserTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/restrictionbaseduplicateelements.proto", generatedRootFolder, "default/default.proto");
 	}
 
+	@Test
+	public void testPackedOptionOnRepeatedScalarTypes() throws IOException {
+		generateProtobufNoOptions("basic/packed.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/packed.proto", generatedRootFolder, "default/default.proto");
+	}
+
 	// @Test
 	public void testIncludeXsdOptions() throws IOException {
 		Map<String, Object> options = new HashMap<>();

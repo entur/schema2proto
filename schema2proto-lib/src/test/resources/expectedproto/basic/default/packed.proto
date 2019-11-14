@@ -1,0 +1,13 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message A {
+  repeated bool packed = 1 [packed = true];
+  repeated E enum_value = 2 [packed = true];
+}
+
+enum E {
+  V_UNSPECIFIED = 0;
+  V_VAL1 = 1;
+}
