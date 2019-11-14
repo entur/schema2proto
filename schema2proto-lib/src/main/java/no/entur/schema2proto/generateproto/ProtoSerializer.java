@@ -30,19 +30,22 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +65,7 @@ import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.OptionElement.Kind;
+import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSComponent;
 
 import no.entur.schema2proto.InvalidConfigurationException;
@@ -1001,62 +1005,136 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void moveReusedLocalTypesToGlobal(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypes) {
+	private class ComponentMessageWrapper {
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			ComponentMessageWrapper that = (ComponentMessageWrapper) o;
+			return Objects.equals(component, that.component) && Objects.equals(messageName, that.messageName)
+					&& Objects.equals(enclosingType, that.enclosingType);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(component, messageName, enclosingType);
+		}
+
+		XSComponent component;
+		String messageName;
+
+		public ComponentMessageWrapper(XSComponent component, String messageName, XSComplexType enclosingType) {
+			this.component = component;
+			this.messageName = messageName;
+			this.enclosingType = enclosingType;
+		}
+
+		XSComplexType enclosingType;
+
+		@Override
+		public String toString() {
+			return "ComponentMessageWrapper{" + "component=" + component + ", messageName='" + messageName + '\'' + '}';
+		}
+	}
+
+	private void moveReusedLocalTypesToGlobal(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypesAllPackages) {
 		LOGGER.info("Reorganizing embedded local types into global if reused");
-		Map<XSComponent, Integer> seenComplexTypes = new HashMap<>();
 
-		Collections.sort(localTypes);
+		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
 
-		localTypes.forEach(e -> {
-			Integer count = seenComplexTypes.get(e.xsComponent);
-			if (count == null) {
-				seenComplexTypes.put(e.xsComponent, 1);
-			} else {
-				count++;
-				seenComplexTypes.put(e.xsComponent, count);
-			}
+			String currentPackageName = protoFileEntry.getKey();
+			Map<ComponentMessageWrapper, Integer> seenComplexTypesWithSameName = new HashMap<>();
 
-		});
+			List<LocalType> localTypes = localTypesAllPackages.stream().filter(e -> e.targetPackage.equals(currentPackageName)).collect(Collectors.toList());
 
-		seenComplexTypes.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
+			localTypes.forEach(e -> {
+				ComponentMessageWrapper wrapper = new ComponentMessageWrapper(e.xsComponent, e.localType.getName(), e.enclosingComplexType);
 
-			// XSComplextype used more than once
-			LocalType first = localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).findFirst().get();
-			String packageName = first.targetPackage;
-			if (packageName == null) {
-				packageName = Schema2ProtoConfiguration.DEFAULT_PROTO_PACKAGE;
-			}
-			ProtoFile enclosingFile = packageToProtoFileMap.get(packageName);
+				Integer count = seenComplexTypesWithSameName.get(wrapper);
+				if (count == null) {
+					seenComplexTypesWithSameName.put(wrapper, 1);
+				} else {
+					count++;
+					seenComplexTypesWithSameName.put(wrapper, count);
+				}
 
-			// DuplicateCheck
-			long duplicateGlobalNames = localTypes.stream()
-					.filter(z -> z.localType.type().simpleName().equals(first.localType.type().simpleName()) && z.xsComponent != first.xsComponent)
-					.count();
-			String candidateName = first.localType.type().simpleName();
-			if (duplicateGlobalNames > 1) {
-				LOGGER.info("Candidate name for inherited local type {} must be prefixed with enclosing name {} ", candidateName, first.enclosingName);
-				candidateName = first.enclosingName + "_" + StringUtils.capitalize(first.localType.type().simpleName());
-			}
+			});
 
-			Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
-			if (!existingType.isPresent()) {
-				MessageType localToBecomeGlobal = first.localType;
-				localToBecomeGlobal.updateName(candidateName);
-				enclosingFile.types().add(localToBecomeGlobal);
+			seenComplexTypesWithSameName.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
 
-				// Remove all local types, update fields
-				localTypes.stream().filter(lt -> lt.xsComponent == e.getKey()).forEach(y -> {
-					y.enclosingType.nestedTypes().remove(y.localType);
-					y.referencingField.updateElementType(localToBecomeGlobal.getName());
-				});
-			} else {
-				LOGGER.warn("Could not extract local type " + first.localType.getName() + " from " + first.enclosingType.getName() + " using new global name "
-						+ candidateName
-						+ " due to an existing type with this name. This is a limitation of the current code but can be fixed with a better naming scheme");
-			}
+				ComponentMessageWrapper currentComponent = e.getKey();
 
-		});
+				LOGGER.info("ComplexType/name reused: {} / {} times", currentComponent, e.getValue());
 
+				// XSComplextype used more than once
+				List<LocalType> usagesThisComponent = localTypes.stream()
+						.filter(x -> currentComponent.messageName.equals(x.localType.getName()))
+						.filter(x -> currentComponent.component == x.xsComponent)
+						.filter(x -> currentComponent.enclosingType == x.enclosingComplexType)
+						.collect(Collectors.toList());
+
+				LocalType first = usagesThisComponent.get(0);
+
+				int numUniqueEnclosingTypes = usagesThisComponent.stream().map(u -> u.enclosingType.getName()).collect(Collectors.toSet()).size();
+				if (numUniqueEnclosingTypes > 1) {
+
+					List<LocalType> usagesOtherComponentsSameTypeName = localTypes.stream()
+							.filter(x -> x.localType.getName().equals(currentComponent.messageName))
+							.filter(x -> x.xsComponent != currentComponent.component)
+							.collect(Collectors.toList());
+
+					String packageName = first.targetPackage;
+					if (packageName == null) {
+						packageName = Schema2ProtoConfiguration.DEFAULT_PROTO_PACKAGE;
+					}
+					ProtoFile enclosingFile = packageToProtoFileMap.get(packageName);
+
+					// DuplicateCheck
+					String candidateName = currentComponent.messageName;
+
+					if (usagesOtherComponentsSameTypeName.size() > 0) {
+						Set<String> enclosingTypes = usagesThisComponent.stream().map(k -> k.enclosingComplexType.getName()).collect(Collectors.toSet());
+						if (enclosingTypes.size() > 1) {
+							throw new IllegalArgumentException(String.format(
+									"Candidate enclosing types for %s are many - should be one %s. Cannot continue as conversion is not deterministic",
+									first.localType.getName(), ToStringBuilder.reflectionToString(enclosingTypes.toArray(), ToStringStyle.SIMPLE_STYLE)));
+						}
+						candidateName = StringUtils.capitalize(enclosingTypes.iterator().next()) + "_"
+								+ StringUtils.capitalize(first.localType.type().simpleName());
+						LOGGER.info("Candidate name for inherited local type {} must be prefixed with enclosing name {} ", candidateName, first.enclosingName);
+					} else {
+						LOGGER.info("Candidate name for inherited local type {} is unique - keeping as is", candidateName);
+					}
+
+					Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
+					if (!existingType.isPresent()) {
+						MessageType localToBecomeGlobal = first.localType;
+						localToBecomeGlobal.updateName(candidateName);
+						enclosingFile.types().add(localToBecomeGlobal);
+
+						// Remove all local types, update fields
+						usagesThisComponent.forEach(y -> {
+							y.enclosingType.nestedTypes().remove(y.localType);
+							String previousElementType = y.referencingField.getElementType();
+							y.referencingField.updateElementType(localToBecomeGlobal.getName());
+							LOGGER.info("In type {} field {} of type {} have now been replaced with package global type {}", y.enclosingType.getName(),
+									y.referencingField.name(), previousElementType, localToBecomeGlobal.getName());
+						});
+					} else {
+						LOGGER.warn("Could not extract local type " + currentComponent.messageName + " from " + first.enclosingType.getName()
+								+ " using new global name " + candidateName
+								+ " due to an existing type with this name. This is a limitation of the current code but can be fixed with a better naming scheme");
+					}
+				} else {
+					LOGGER.info("Not extracting {} due to single enclosing type {}", first.localType.getName(), first.enclosingType.getName());
+				}
+			});
+
+		}
 	}
 
 	@NotNull

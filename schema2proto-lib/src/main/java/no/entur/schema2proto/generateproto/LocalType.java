@@ -23,32 +23,29 @@ package no.entur.schema2proto.generateproto;
  * #L%
  */
 
-import org.jetbrains.annotations.NotNull;
-
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.MessageType;
+import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSComponent;
 
-public class LocalType implements Comparable<LocalType> {
+public class LocalType {
 	String enclosingName;
 	XSComponent xsComponent;
 	MessageType localType;
 	MessageType enclosingType;
 	Field referencingField;
 	String targetPackage;
+	XSComplexType enclosingComplexType;
 
 	public LocalType(XSComponent xsComponent, MessageType localType, MessageType enclosingType, Field referencingField, String enclosingName,
-			String targetPackage) {
+			String targetPackage, XSComplexType enclosingComplexType) {
 		this.enclosingName = enclosingName;
 		this.xsComponent = xsComponent;
 		this.localType = localType;
 		this.enclosingType = enclosingType;
 		this.referencingField = referencingField;
 		this.targetPackage = targetPackage;
+		this.enclosingComplexType = enclosingComplexType;
 	}
 
-	@Override
-	public int compareTo(@NotNull LocalType o) {
-		return enclosingName.compareTo(o.enclosingName);
-	}
 }
