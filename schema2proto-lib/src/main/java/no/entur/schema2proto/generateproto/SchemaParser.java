@@ -54,7 +54,6 @@ import org.xml.sax.SAXParseException;
 
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
-import com.squareup.wire.schema.Extend;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
