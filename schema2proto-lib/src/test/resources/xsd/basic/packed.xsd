@@ -3,12 +3,13 @@
     <xs:complexType name="A">
         <xs:sequence>
             <xs:element type="xs:boolean" name="packed" minOccurs="2" maxOccurs="2"/>
+            <xs:element type="E" name="enum_value" minOccurs="2" maxOccurs="2"/>
         </xs:sequence>
     </xs:complexType>
 
-    <xs:simpleType name="V">
+    <xs:simpleType name="E">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="VAL1"/>
+            <xs:enumeration value="val1"/>
         </xs:restriction>
     </xs:simpleType>
 </xs:schema>

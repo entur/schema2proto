@@ -8,6 +8,7 @@ message A {
 }
 
 enum E {
-  V_UNSPECIFIED = 0;
-  V_VAL1 = 1;
+  // Default
+  E_UNSPECIFIED = 0;
+  E_VAL1 = 1;
 }
