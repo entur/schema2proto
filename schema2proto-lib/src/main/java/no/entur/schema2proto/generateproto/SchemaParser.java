@@ -803,10 +803,11 @@ public class SchemaParser implements ErrorHandler {
 				.map(e -> (MessageType) e)
 				.filter(e -> e.getName().startsWith(wrapperPrefix))
 				.count();
+		String wrapperPostfix = (enclosingComplexType.isGlobal() ? enclosingComplexType.getName() : enclosingName);
 		if (numExistingWrappers == 0) {
-			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingComplexType.getName()) }, "_");
+			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(wrapperPostfix) }, "_");
 		} else {
-			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingComplexType.getName()), (numExistingWrappers + 1) }, "_");
+			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(wrapperPostfix), (numExistingWrappers + 1) }, "_");
 		}
 
 	}

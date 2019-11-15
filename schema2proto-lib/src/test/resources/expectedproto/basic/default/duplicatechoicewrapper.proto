@@ -8,11 +8,7 @@ message PointInJourneyPattern_VersionedChildStructure {
 
   message NoticeAssignmentsType {
     string aggregation = 1;
-    repeated ChoiceWrapper_NoticeAssignmentsType choice_wrapper = 2;
-
-    message ChoiceWrapper_NoticeAssignmentsType {
-      string notice_assignmentu = 1;
-    }
+    repeated ChoiceWrapper_NoticeAssignments_RelStructure choice_wrapper = 2;
   }
 }
 message VersionedChildStructure {
@@ -21,10 +17,6 @@ message VersionedChildStructure {
 message NoticeAssignments_RelStructure {
   string aggregation = 1;
   repeated ChoiceWrapper_NoticeAssignments_RelStructure choice_wrapper = 2;
-
-  message ChoiceWrapper_NoticeAssignments_RelStructure {
-    string notice_assignmentu = 1;
-  }
 }
 message PointInLinkSequence_VersionedChildStructure {
   string version = 1;
@@ -34,4 +26,7 @@ message ContainmentAggregationStructure {
 }
 message UnrelatedTypeWithGlobalNoticeAssignments {
   NoticeAssignments_RelStructure notice_assignments = 1;
+}
+message ChoiceWrapper_NoticeAssignments_RelStructure {
+  string notice_assignmentu = 1;
 }
