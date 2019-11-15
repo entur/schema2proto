@@ -29,7 +29,7 @@ import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSComponent;
 
 public class LocalType {
-	String enclosingName;
+	// String enclosingName;
 	XSComponent xsComponent;
 	MessageType localType;
 	MessageType enclosingType;
@@ -37,9 +37,9 @@ public class LocalType {
 	String targetPackage;
 	XSComplexType enclosingComplexType;
 
-	public LocalType(XSComponent xsComponent, MessageType localType, MessageType enclosingType, Field referencingField, String enclosingName,
-			String targetPackage, XSComplexType enclosingComplexType) {
-		this.enclosingName = enclosingName;
+	public LocalType(XSComponent xsComponent, MessageType localType, MessageType enclosingType, Field referencingField, String targetPackage,
+			XSComplexType enclosingComplexType) {
+		// this.enclosingName = enclosingName;
 		this.xsComponent = xsComponent;
 		this.localType = localType;
 		this.enclosingType = enclosingType;

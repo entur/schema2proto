@@ -31,6 +31,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -106,6 +109,9 @@ public class ProtoSerializer {
 
 		// Remove temporary generated name suffix
 		replaceGeneratedTypePlaceholder(packageToProtoFileMap, SchemaParser.GENERATED_NAME_PLACEHOLDER, SchemaParser.TYPE_SUFFIX, localTypes);
+
+		// Sort types in files
+		sortTypesInProtofile(packageToProtoFileMap);
 
 		// Reorganize reused embedded types into global types referenced from the
 		moveReusedLocalTypesToGlobal(packageToProtoFileMap, localTypes);
@@ -201,6 +207,13 @@ public class ProtoSerializer {
 
 		// Parse and verify written proto files
 		parseWrittenFiles(writtenProtoFiles);
+
+	}
+
+	private void sortTypesInProtofile(Map<String, ProtoFile> packageToProtoFileMap) {
+		packageToProtoFileMap.values().stream().forEach(e -> {
+			Collections.sort(e.types(), Comparator.comparing(x -> x.type().simpleName()));
+		});
 
 	}
 
@@ -363,7 +376,6 @@ public class ProtoSerializer {
 					if (!usedNames.contains(newMessageName)) {
 						et.updateName(newMessageName);
 						usedNames.add(newMessageName);
-						updateLocalTypes(localTypes, messageName, newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
 						LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
@@ -381,17 +393,11 @@ public class ProtoSerializer {
 			if (!usedNames.contains(newMessageName)) {
 				mt.updateName(newMessageName);
 				usedNames.add(newMessageName);
-				updateLocalTypes(localTypes, messageName, newMessageName);
 				updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 			} else {
 				LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
 			}
 		}
-	}
-
-	private void updateLocalTypes(List<LocalType> localTypes, String messageName, String newMessageName) {
-		localTypes.stream().filter(e -> e.enclosingName.equals(messageName)).forEach(e -> e.enclosingName = newMessageName);
-
 	}
 
 	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap) {
@@ -1069,44 +1075,50 @@ public class ProtoSerializer {
 				return false;
 			}
 			ComponentMessageWrapper that = (ComponentMessageWrapper) o;
-			return Objects.equals(component, that.component) && Objects.equals(messageName, that.messageName)
-					&& Objects.equals(enclosingType, that.enclosingType);
+			return Objects.equals(xsComponent, that.xsComponent) && Objects.equals(messageName, that.messageName)
+					&& Objects.equals(enclosingComplexType, that.enclosingComplexType);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(component, messageName, enclosingType);
+			return Objects.hash(xsComponent, messageName, enclosingComplexType);
 		}
 
-		XSComponent component;
+		XSComponent xsComponent;
+		XSComplexType enclosingComplexType;
 		String messageName;
 
-		public ComponentMessageWrapper(XSComponent component, String messageName, XSComplexType enclosingType) {
-			this.component = component;
+		public ComponentMessageWrapper(XSComponent xsComponent, XSComplexType enclosingComplexType, String messageName, String enclosingMessageName) {
+			this.xsComponent = xsComponent;
+			this.enclosingComplexType = enclosingComplexType;
 			this.messageName = messageName;
-			this.enclosingType = enclosingType;
-		}
 
-		XSComplexType enclosingType;
+		}
 
 		@Override
 		public String toString() {
-			return "ComponentMessageWrapper{" + "component=" + component + ", messageName='" + messageName + '\'' + '}';
+			return "ComponentMessageWrapper{" + "xsComponent=" + xsComponent + ", enclosingComplexType=" + enclosingComplexType + ", messageName='"
+					+ messageName + '\'' + '}';
 		}
 	}
 
 	private void moveReusedLocalTypesToGlobal(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypesAllPackages) {
-		LOGGER.info("Reorganizing embedded local types into global if reused");
+		LOGGER.debug("Reorganizing embedded local types into global if reused");
+
+		localTypesAllPackages.stream().forEach(e -> LOGGER.debug(e.enclosingType.getName() + " -> " + e.localType.getName()));
 
 		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
 
 			String currentPackageName = protoFileEntry.getKey();
-			Map<ComponentMessageWrapper, Integer> seenComplexTypesWithSameName = new HashMap<>();
 
+			Map<ComponentMessageWrapper, Integer> seenComplexTypesWithSameName = new TreeMap<>(Comparator.comparing(o -> o.messageName));
+
+			// Filter local types that applies to this namespace/package
 			List<LocalType> localTypes = localTypesAllPackages.stream().filter(e -> e.targetPackage.equals(currentPackageName)).collect(Collectors.toList());
 
 			localTypes.forEach(e -> {
-				ComponentMessageWrapper wrapper = new ComponentMessageWrapper(e.xsComponent, e.localType.getName(), e.enclosingComplexType);
+				ComponentMessageWrapper wrapper = new ComponentMessageWrapper(e.xsComponent, e.enclosingComplexType, e.localType.getName(),
+						e.enclosingType.getName());
 
 				Integer count = seenComplexTypesWithSameName.get(wrapper);
 				if (count == null) {
@@ -1118,17 +1130,19 @@ public class ProtoSerializer {
 
 			});
 
+			seenComplexTypesWithSameName.entrySet().forEach(z -> LOGGER.debug(z.getKey() + " :" + z.getValue()));
+
 			seenComplexTypesWithSameName.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
 
 				ComponentMessageWrapper currentComponent = e.getKey();
 
-				LOGGER.info("ComplexType/name reused: {} / {} times", currentComponent, e.getValue());
+				LOGGER.debug("ComplexType/name reused: {} / {} times", currentComponent, e.getValue());
 
 				// XSComplextype used more than once
 				List<LocalType> usagesThisComponent = localTypes.stream()
 						.filter(x -> currentComponent.messageName.equals(x.localType.getName()))
-						.filter(x -> currentComponent.component == x.xsComponent)
-						.filter(x -> currentComponent.enclosingType == x.enclosingComplexType)
+						.filter(x -> currentComponent.xsComponent == x.xsComponent)
+						.filter(x -> currentComponent.enclosingComplexType == x.enclosingComplexType)
 						.collect(Collectors.toList());
 
 				LocalType first = usagesThisComponent.get(0);
@@ -1138,7 +1152,7 @@ public class ProtoSerializer {
 
 					List<LocalType> usagesOtherComponentsSameTypeName = localTypes.stream()
 							.filter(x -> x.localType.getName().equals(currentComponent.messageName))
-							.filter(x -> x.xsComponent != currentComponent.component)
+							.filter(x -> x.xsComponent != currentComponent.xsComponent)
 							.collect(Collectors.toList());
 
 					String packageName = first.targetPackage;
@@ -1159,9 +1173,9 @@ public class ProtoSerializer {
 						}
 						candidateName = StringUtils.capitalize(enclosingTypes.iterator().next()) + "_"
 								+ StringUtils.capitalize(first.localType.type().simpleName());
-						LOGGER.info("Candidate name for inherited local type {} must be prefixed with enclosing name {} ", candidateName, first.enclosingName);
+						LOGGER.debug("Candidate name for inherited local type prefixed with enclosing type {}", candidateName);
 					} else {
-						LOGGER.info("Candidate name for inherited local type {} is unique - keeping as is", candidateName);
+						LOGGER.debug("Candidate name for inherited local type {} is unique - keeping as is", candidateName);
 					}
 
 					Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
@@ -1175,7 +1189,7 @@ public class ProtoSerializer {
 							y.enclosingType.nestedTypes().remove(y.localType);
 							String previousElementType = y.referencingField.getElementType();
 							y.referencingField.updateElementType(localToBecomeGlobal.getName());
-							LOGGER.info("In type {} field {} of type {} have now been replaced with package global type {}", y.enclosingType.getName(),
+							LOGGER.debug("In type {} field {} of type {} have now been replaced with package global type {}", y.enclosingType.getName(),
 									y.referencingField.name(), previousElementType, localToBecomeGlobal.getName());
 						});
 					} else {
@@ -1184,7 +1198,7 @@ public class ProtoSerializer {
 								+ " due to an existing type with this name. This is a limitation of the current code but can be fixed with a better naming scheme");
 					}
 				} else {
-					LOGGER.info("Not extracting {} due to single enclosing type {}", first.localType.getName(), first.enclosingType.getName());
+					LOGGER.debug("Not extracting {} due to single enclosing type {}", first.localType.getName(), first.enclosingType.getName());
 				}
 			});
 

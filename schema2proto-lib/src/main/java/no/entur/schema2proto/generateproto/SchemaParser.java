@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.xml.parsers.SAXParserFactory;
@@ -93,16 +94,16 @@ public class SchemaParser implements ErrorHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 
-	private Map<String, ProtoFile> packageToProtoFileMap = new HashMap<>();
+	private final Map<String, ProtoFile> packageToProtoFileMap = new TreeMap<>();
 
-	private Map<MessageType, Set<Object>> elementDeclarationsPerMessageType = new HashMap<>();
+	private final Map<MessageType, Set<Object>> elementDeclarationsPerMessageType = new HashMap<>();
 	private Set<String> basicTypes;
 
 	private int nestingLevel = 0;
 
-	private List<LocalType> localTypes = new ArrayList<>();
+	private final List<LocalType> localTypes = new ArrayList<>();
 
-	private Schema2ProtoConfiguration configuration;
+	private final Schema2ProtoConfiguration configuration;
 
 	private PGVRuleFactory ruleFactory;
 
@@ -185,24 +186,24 @@ public class SchemaParser implements ErrorHandler {
 		while (schemas.hasNext()) {
 			XSSchema schema = schemas.next();
 			if (!schema.getTargetNamespace().endsWith("/XMLSchema")) {
-				final Iterator<XSSimpleType> simpleTypes = schema.iterateSimpleTypes();
-				while (simpleTypes.hasNext()) {
-					processSimpleType(simpleTypes.next(), null);
-				}
-				final Iterator<XSComplexType> complexTypes = schema.iterateComplexTypes();
-				while (complexTypes.hasNext()) {
-					processComplexType(complexTypes.next(), null, schemaSet, null, null);
-				}
-				final Iterator<XSElementDecl> elementDeclarations = schema.iterateElementDecls();
-				while (elementDeclarations.hasNext()) {
-					XSElementDecl rootElement = elementDeclarations.next();
-					if (rootElement.getType().isLocal()) {
-						processElement(rootElement, schemaSet);
-					} else {
-						LOGGER.debug("Skipping global element " + rootElement.getName() + " declaration with global type " + rootElement.getType().getName());
-					}
+				final Map<String, XSSimpleType> sortedSimpleTypes = new TreeMap<>(schema.getSimpleTypes());
+				for (XSSimpleType type : sortedSimpleTypes.values()) {
+					processSimpleType(type, null);
 				}
 
+				final Map<String, XSComplexType> sortedComplexTypes = new TreeMap<>(schema.getComplexTypes());
+				for (XSComplexType type : sortedComplexTypes.values()) {
+					processComplexType(type, null, schemaSet, null, null);
+				}
+
+				final Map<String, XSElementDecl> sortedElements = new TreeMap<>(schema.getElementDecls());
+				for (XSElementDecl elementDecl : sortedElements.values()) {
+					if (elementDecl.getType().isLocal()) {
+						processElement(elementDecl, schemaSet);
+					} else {
+						LOGGER.debug("Skipping global element " + elementDecl.getName() + " declaration with global type " + elementDecl.getType().getName());
+					}
+				}
 			}
 		}
 	}
@@ -357,7 +358,7 @@ public class SchemaParser implements ErrorHandler {
 
 						if (!currElementDecl.isGlobal()) {
 							messageType.nestedTypes().add(referencedMessageType);
-							localTypes.add(new LocalType(type, referencedMessageType, messageType, field, enclosingName,
+							localTypes.add(new LocalType(type, referencedMessageType, messageType, field,
 									NamespaceHelper.xmlNamespaceToProtoPackage(type.getTargetNamespace(), configuration.forceProtoPackage), enclosingType));
 
 						}
@@ -387,13 +388,13 @@ public class SchemaParser implements ErrorHandler {
 
 	@NotNull
 	private Options getFieldOptions(XSParticle parentParticle) {
-		List<OptionElement> optionElements = new ArrayList<OptionElement>(ruleFactory.getValidationRule(parentParticle));
+		List<OptionElement> optionElements = new ArrayList<>(ruleFactory.getValidationRule(parentParticle));
 		return new Options(Options.FIELD_OPTIONS, optionElements);
 	}
 
 	@NotNull
 	private Options getFieldOptions(XSAttributeDecl attributeDecl) {
-		List<OptionElement> optionElements = new ArrayList<OptionElement>();
+		List<OptionElement> optionElements = new ArrayList<>();
 
 		// First see if there are rules associated with attribute declaration
 		List<OptionElement> validationRule = ruleFactory.getValidationRule(attributeDecl);
@@ -409,7 +410,7 @@ public class SchemaParser implements ErrorHandler {
 
 	@NotNull
 	private Options getFieldOptions(XSSimpleType attributeDecl) {
-		List<OptionElement> optionElements = new ArrayList<OptionElement>(ruleFactory.getValidationRule(attributeDecl));
+		List<OptionElement> optionElements = new ArrayList<>(ruleFactory.getValidationRule(attributeDecl));
 		return new Options(Options.FIELD_OPTIONS, optionElements);
 	}
 
@@ -447,7 +448,7 @@ public class SchemaParser implements ErrorHandler {
 			}
 		}
 
-		if ((typeName != null && !basicTypes.contains(typeName) || typeName == null) && type.isSimpleType() && type.asSimpleType().isRestriction()) {
+		if ((typeName == null || !basicTypes.contains(typeName)) && type.isSimpleType() && type.asSimpleType().isRestriction()) {
 			XSType restrictionBase = type.asSimpleType().asRestriction().getBaseType();
 			return findFieldType(restrictionBase);
 		}
@@ -579,13 +580,13 @@ public class SchemaParser implements ErrorHandler {
 				for (MessageType parentMessageType : parentTypes) {
 					String fieldDoc = parentMessageType.documentation();
 
-					List<OptionElement> optionElements = new ArrayList<OptionElement>();
+					List<OptionElement> optionElements = new ArrayList<>();
 					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
 					int tag = messageType.getNextFieldNum();
 					Label label = null;
 					Location fieldLocation = getLocation(complexType);
 
-					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, label, "_" + parentMessageType.getName(), fieldDoc, tag,
+					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, null, "_" + parentMessageType.getName(), fieldDoc, tag,
 							parentMessageType.getName(), fieldOptions, true);
 
 					addField(messageType, field);
@@ -634,7 +635,7 @@ public class SchemaParser implements ErrorHandler {
 					xsSimpleType = xsSimpleType.asList().getItemType();
 				}
 
-				String name = null;
+				String name;
 				if (xsSimpleType.isUnion()) {
 					name = "string";
 				} else {
@@ -685,7 +686,7 @@ public class SchemaParser implements ErrorHandler {
 			if (!complexType.isGlobal()) {
 				return false;
 			} else if (complexType.getElementDecls().size() > 0) {
-				long numAbstractElementDecls = complexType.getElementDecls().stream().map(e -> e.isAbstract()).count();
+				long numAbstractElementDecls = complexType.getElementDecls().stream().map(XSElementDecl::isAbstract).count();
 				return complexType.getElementDecls().size() == numAbstractElementDecls;
 			} else {
 				return true;
@@ -881,7 +882,7 @@ public class SchemaParser implements ErrorHandler {
 
 			messageType.addField(field);
 
-			localTypes.add(new LocalType(particle, wrapperType, messageType, field, enclosingName,
+			localTypes.add(new LocalType(particle, wrapperType, messageType, field,
 					NamespaceHelper.xmlNamespaceToProtoPackage(targetNamespace, configuration.forceProtoPackage), enclosingType));
 
 			processGroupAsSequence(particle, wrapperType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace, enclosingType);
@@ -890,13 +891,13 @@ public class SchemaParser implements ErrorHandler {
 
 	private void processGroupAsSequence(XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
 			XSParticle[] children, String enclosingName, String targetNamespace, XSComplexType enclosingType) {
-		for (int i = 0; i < children.length; i++) {
-			XSTerm currTerm = children[i].getTerm();
+		for (XSParticle child : children) {
+			XSTerm currTerm = child.getTerm();
 			if (currTerm.isModelGroup()) {
 				groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
 			} else {
 				// Create the new complex type for root types
-				navigateSubTypes(children[i], messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
+				navigateSubTypes(child, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
 			}
 		}
 	}
@@ -944,7 +945,7 @@ public class SchemaParser implements ErrorHandler {
 	private String createEnum(String elementName, XSRestrictionSimpleType type, MessageType enclosingType) {
 		Iterator<? extends XSFacet> it;
 
-		String typeNameToUse = null;
+		String typeNameToUse;
 
 		if (type.getName() != null) {
 			typeNameToUse = type.getName();
@@ -968,7 +969,7 @@ public class SchemaParser implements ErrorHandler {
 
 			Location location = getLocation(type);
 
-			List<EnumConstant> constants = new ArrayList<EnumConstant>();
+			List<EnumConstant> constants = new ArrayList<>();
 			it = type.getDeclaredFacets().iterator();
 
 			int counter = 1;
@@ -1019,19 +1020,19 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	@Override
-	public void error(SAXParseException exception) throws SAXException {
+	public void error(SAXParseException exception) {
 		LOGGER.error(exception.getMessage() + " at " + exception.getSystemId());
 		exception.printStackTrace();
 	}
 
 	@Override
-	public void fatalError(SAXParseException exception) throws SAXException {
+	public void fatalError(SAXParseException exception) {
 		LOGGER.error(exception.getMessage() + " at " + exception.getSystemId());
 		exception.printStackTrace();
 	}
 
 	@Override
-	public void warning(SAXParseException exception) throws SAXException {
+	public void warning(SAXParseException exception) {
 		LOGGER.warn(exception.getMessage() + " at " + exception.getSystemId());
 		exception.printStackTrace();
 	}
