@@ -115,4 +115,4 @@ workflows:
             - test
           filters:
             branches:
-              only: master, inheritance
+              only: master
