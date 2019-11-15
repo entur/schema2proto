@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,6 +77,10 @@ public class ProtoSerializer {
 	public static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
 	public static final String XSDOPTIONS_PROTO_IMPORT = "xsd/xsd.proto";
 	public static final String DASH = "-";
+	public static final String[] PACKABLE_SCALAR_TYPES = new String[] { "int32", "int64", "uint32", "uint64", "sint32", "sint64", "bool" };
+
+	public static final Set<String> PACKABLE_SCALAR_TYPES_SET = new HashSet<>(Arrays.asList(PACKABLE_SCALAR_TYPES));
+
 	private Schema2ProtoConfiguration configuration;
 
 	private TypeAndNameMapper typeAndFieldNameMapper;
@@ -153,6 +158,9 @@ public class ProtoSerializer {
 		// Insert default value, prefix values and possibly escape values
 		updateEnumValues(packageToProtoFileMap);
 
+		// Add packed=true option to repeated enum or number fields
+		addPackedOptionToRepeatedFields(packageToProtoFileMap, true);
+
 		// Run included linker to detect problems
 		// link(packageToProtoFileMap);
 
@@ -194,6 +202,52 @@ public class ProtoSerializer {
 		// Parse and verify written proto files
 		parseWrittenFiles(writtenProtoFiles);
 
+	}
+
+	private void addPackedOptionToRepeatedFields(Map<String, ProtoFile> packageToProtoFileMap, boolean b) {
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			for (Type type : file.types()) {
+				if (type instanceof MessageType) {
+					MessageType mt = (MessageType) type;
+					// Nested types
+					mt.nestedTypes()
+							.stream()
+							.filter(e -> e instanceof MessageType)
+							.forEach(e -> addPackedOptionToRepeatedFields(packageToProtoFileMap, file, (MessageType) e, b));
+					addPackedOptionToRepeatedFields(packageToProtoFileMap, file, mt, b);
+				}
+			}
+		}
+	}
+
+	private void addPackedOptionToRepeatedFields(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile protoFile, MessageType mt, boolean packed) {
+		mt.fields()
+				.stream()
+				.filter(e -> e.label() == Field.Label.REPEATED)
+				.filter(e -> isExposedToPackedBug(packageToProtoFileMap, protoFile, e))
+				.forEach(e -> addPackedOption(e, packed));
+	}
+
+	private void addPackedOption(Field f, boolean packed) {
+		OptionElement packedOptionElement = new OptionElement("packed", Kind.BOOLEAN, packed, false);
+		f.options().getOptionElements().add(packedOptionElement);
+	}
+
+	private boolean isExposedToPackedBug(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile protoFile, Field elementType) {
+		return PACKABLE_SCALAR_TYPES_SET.contains(elementType.getElementType()) || isEnum(elementType, protoFile, packageToProtoFileMap);
+	}
+
+	private boolean isEnum(Field elementType, ProtoFile protoFile, Map<String, ProtoFile> packageToProtoFileMap) {
+		String packageName = elementType.packageName();
+		if (packageName != null) {
+			protoFile = packageToProtoFileMap.get(packageName);
+		}
+		return protoFile.types()
+				.stream()
+				.filter(e -> e instanceof EnumType)
+				.filter(e -> ((EnumType) e).name().equals(elementType.getElementType()))
+				.findFirst()
+				.isPresent();
 	}
 
 	private void removeUnwantedFields(Map<String, ProtoFile> packageToProtoFileMap) {
