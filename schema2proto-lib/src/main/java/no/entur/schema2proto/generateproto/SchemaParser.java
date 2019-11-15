@@ -786,7 +786,7 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private String createWrapperName(MessageType enclosingType, XSModelGroup.Compositor compositor, String enclosingName) {
+	private String createWrapperName(MessageType enclosingType, XSModelGroup.Compositor compositor, String enclosingName, XSComplexType enclosingComplexType) {
 
 		final String wrapperPrefix;
 		if (XSModelGroup.SEQUENCE.equals(compositor)) {
@@ -804,9 +804,9 @@ public class SchemaParser implements ErrorHandler {
 				.filter(e -> e.getName().startsWith(wrapperPrefix))
 				.count();
 		if (numExistingWrappers == 0) {
-			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingName) }, "_");
+			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingComplexType.getName()) }, "_");
 		} else {
-			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingName), (numExistingWrappers + 1) }, "_");
+			return StringUtils.join(new Object[] { wrapperPrefix, StringUtils.capitalize(enclosingComplexType.getName()), (numExistingWrappers + 1) }, "_");
 		}
 
 	}
@@ -823,7 +823,7 @@ public class SchemaParser implements ErrorHandler {
 			boolean repeated = getRange(particle);
 			if (repeated) {
 
-				String typeName = createWrapperName(messageType, XSModelGroup.SEQUENCE, enclosingName);
+				String typeName = createWrapperName(messageType, XSModelGroup.SEQUENCE, enclosingName, enclosingType);
 				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace,
 						"sequenceWrapper", enclosingType);
 
@@ -836,7 +836,7 @@ public class SchemaParser implements ErrorHandler {
 			boolean repeated = getRange(particle);
 			if (repeated) {
 
-				String typeName = createWrapperName(messageType, XSModelGroup.CHOICE, enclosingName);
+				String typeName = createWrapperName(messageType, XSModelGroup.CHOICE, enclosingName, enclosingType);
 				createWrapperAndContinueProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, children, typeName, targetNamespace,
 						"choiceWrapper", enclosingType);
 
