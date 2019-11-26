@@ -186,6 +186,7 @@
                     <tagNameFormat>@{project.version}</tagNameFormat>
                     <releaseProfiles>release</releaseProfiles>
 
+
                     <!--                    <autoVersionSubmodules>true</autoVersionSubmodules>-->
                     <!--                    <useReleaseProfile>false</useReleaseProfile>-->
                     <!--                    <releaseProfiles>release,sign,!noPublicDeploy</releaseProfiles>-->
@@ -213,6 +214,8 @@
                     <url>https://maven.pkg.github.com/entur/schema2proto</url>
                 </repository>
             </distributionManagement>
+
+
         </profile>
     </profiles>
 
