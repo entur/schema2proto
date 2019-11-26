@@ -4,7 +4,7 @@
 
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>0.0.1.TEST</version>
+    <version>0.0.2.TEST-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Schema 2 proto parent pom</name>
@@ -23,7 +23,7 @@
         <connection>scm:git:ssh://git@github.com/entur/schema2proto.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/entur/schema2proto.git</developerConnection>
         <url>https://github.com/entur/schema2proto/tree/master</url>
-        <tag>0.0.1.TEST</tag>
+        <tag>HEAD</tag>
     </scm>
 
 
