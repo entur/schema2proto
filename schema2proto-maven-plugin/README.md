@@ -14,7 +14,7 @@ In your `build` section add:
     <plugin>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-maven-plugin</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0-alpha-2-SNAPSHOT</version>
         <configuration>
             <configFile>netex_to_protobuf_config.yaml</configFile>
             <xsdFile>target/${netexVersion}/NeTEx_publication.xsd</xsdFile>
@@ -44,7 +44,7 @@ In your `build` section add:
     <plugin>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-maven-plugin</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0-alpha-2-SNAPSHOT</version>
         <configuration>
             <configFile>netex_to_protobuf_config.yaml</configFile>
         </configuration>

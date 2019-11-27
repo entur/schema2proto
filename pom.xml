@@ -6,7 +6,7 @@
 
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-alpha-2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Schema 2 proto parent pom</name>
@@ -175,7 +175,37 @@
                 </configuration>
             </plugin>
 
+
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <releaseProfiles>release</releaseProfiles>
+
+                    <arguments>-Dmaven.javadoc.skip=true</arguments>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+
+        <profile>
+            <id>github</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub ENTUR Apache Maven Packages</name>
+                    <url>https://maven.pkg.github.com/entur/schema2proto</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
 </project>
