@@ -894,7 +894,12 @@ public class SchemaParser implements ErrorHandler {
 		for (XSParticle child : children) {
 			XSTerm currTerm = child.getTerm();
 			if (currTerm.isModelGroup()) {
-				groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
+				if (child.asParticle() != null) {
+					groupProcessing(currTerm.asModelGroup(), child, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
+				} else {
+					groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace,
+							enclosingType);
+				}
 			} else {
 				// Create the new complex type for root types
 				navigateSubTypes(child, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
