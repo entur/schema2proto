@@ -149,6 +149,13 @@ public class SchemaParserTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/unboundedsequences.proto", generatedRootFolder, "default/default.proto");
 	}
 
+
+	@Test
+	public void testUnboundedNestedSequence() throws IOException {
+		generateProtobufNoOptions("basic/unboundednestedsequences.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/unboundednestedsequences.proto", generatedRootFolder, "default/default.proto");
+	}
+
 	@Test
 	public void testList() throws IOException {
 		generateProtobufNoOptions("basic/list.xsd");

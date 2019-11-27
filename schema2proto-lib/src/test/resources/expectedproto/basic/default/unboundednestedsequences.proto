@@ -1,0 +1,12 @@
+ // default.proto at 0:0
+ syntax = "proto3";
+ package default;
+
+ message Outer {
+   AType a = 1;
+
+   message AType {
+     string b = 1;
+     repeated string c = 2;
+   }
+ }
