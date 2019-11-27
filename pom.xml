@@ -28,6 +28,11 @@
 
 
     <distributionManagement>
+        <repository>
+            <id>central</id>
+            <name>entur-team-kontobasert-billettering-release</name>
+            <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-release</url>
+        </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <name>entur2-snapshots</name>
@@ -180,7 +185,7 @@
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <tagNameFormat>@{project.version}</tagNameFormat>
-                    <releaseProfiles>release</releaseProfiles>
+                    <releaseProfiles>github</releaseProfiles>
 
                     <arguments>-Dmaven.javadoc.skip=true</arguments>
                     <goals>deploy</goals>
