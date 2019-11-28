@@ -14,3 +14,25 @@ message Outer {
     }
   }
 }
+message Outer2 {
+  AType a = 1;
+
+  message AType {
+    string b = 1;
+    repeated SequenceWrapper_AType sequence_wrapper = 2;
+
+    message SequenceWrapper_AType {
+      string c = 1;
+      repeated SequenceWrapper_SequenceWrapper_AType sequence_wrapper = 2;
+
+      message SequenceWrapper_SequenceWrapper_AType {
+        string d = 1;
+        repeated SequenceWrapper_SequenceWrapper_SequenceWrapper_AType sequence_wrapper = 2;
+
+        message SequenceWrapper_SequenceWrapper_SequenceWrapper_AType {
+            string e = 1;
+        }
+      }
+    }
+  }
+}
