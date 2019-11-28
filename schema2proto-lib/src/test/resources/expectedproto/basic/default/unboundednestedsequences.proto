@@ -23,15 +23,11 @@ message Outer2 {
 
     message SequenceWrapper_AType {
       string c = 1;
-      repeated SequenceWrapper_SequenceWrapper_AType sequence_wrapper = 2;
+      string d = 2;
+      repeated SequenceWrapper_SequenceWrapper_AType sequence_wrapper = 3;
 
       message SequenceWrapper_SequenceWrapper_AType {
-        string d = 1;
-        repeated SequenceWrapper_SequenceWrapper_SequenceWrapper_AType sequence_wrapper = 2;
-
-        message SequenceWrapper_SequenceWrapper_SequenceWrapper_AType {
-            string e = 1;
-        }
+        string e = 1;
       }
     }
   }

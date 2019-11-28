@@ -24,9 +24,9 @@
                         <xsd:element name="b" type="xsd:string" />
                         <xsd:sequence minOccurs="0" maxOccurs="unbounded">
                             <xsd:element name="c" type="xsd:string" />
-                            <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                            <xsd:sequence>
                                 <xsd:element name="d" type="xsd:string" />
-                                <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                                <xsd:sequence maxOccurs="unbounded">
                                     <xsd:element name="e" type="xsd:string" />
                                 </xsd:sequence>
                             </xsd:sequence>
