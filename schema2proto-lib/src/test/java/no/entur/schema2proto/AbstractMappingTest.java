@@ -156,7 +156,7 @@ public abstract class AbstractMappingTest {
 	}
 
 	public void modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom,
-			List<NewEnumConstant> newEnumValues) throws IOException, InvalidProtobufException {
+			List<NewEnumConstant> newEnumValues, boolean includeBaseTypes) throws IOException, InvalidProtobufException {
 
 		FileUtils.deleteDirectory(generatedRootFolder);
 		generatedRootFolder.mkdirs();
@@ -180,6 +180,8 @@ public abstract class AbstractMappingTest {
 		if (newEnumValues != null) {
 			configuration.newEnumConstants = newEnumValues;
 		}
+
+		configuration.includeBaseTypes = includeBaseTypes;
 
 		ModifyProto processor = new ModifyProto();
 		processor.modifyProto(configuration);

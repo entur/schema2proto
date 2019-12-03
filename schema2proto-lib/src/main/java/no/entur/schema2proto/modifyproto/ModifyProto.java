@@ -121,6 +121,8 @@ public class ModifyProto {
 				configuration.newEnumConstants = new ArrayList<>(config.newEnumConstants);
 			}
 
+			configuration.includeBaseTypes = config.includeBaseTypes;
+
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(
 						config.customImportLocations.stream().filter(e -> StringUtils.trimToNull(e) != null).collect(Collectors.toList()));
@@ -167,7 +169,13 @@ public class ModifyProto {
 		initialIdentifierSet.exclude(configuration.excludes);
 		initialIdentifierSet.include(configuration.includes);
 
-		IdentifierSet finalIterationIdentifiers = followOneMoreLevel(initialIdentifierSet, schema);
+		IdentifierSet finalIterationIdentifiers;
+
+		if (configuration.includeBaseTypes) {
+			finalIterationIdentifiers = followOneMoreLevel(initialIdentifierSet, schema);
+		} else {
+			finalIterationIdentifiers = initialIdentifierSet.build();
+		}
 		Schema prunedSchema = schema.prune(finalIterationIdentifiers);
 		for (String s : finalIterationIdentifiers.unusedExcludes()) {
 			LOGGER.warn("Unused exclude: (already excluded elsewhere or explicitly included?) " + s);
