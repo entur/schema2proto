@@ -1,0 +1,23 @@
+// /home/erlend/Projects/abt/schema2proto/schema2proto-lib/src/test/resources/modify/input/xsdbasetype/simple.proto
+syntax = "proto3";
+
+message B {
+  option (xsd.base_type) = "A";
+
+  LangType lang = 1;
+  // SimpleContent value of element
+  string value = 2;
+  D field_d = 3;
+
+  message D {
+    option (xsd.base_type) = "C";
+
+    uint64 field_d = 1;
+  }
+}
+enum LangType {
+  // Default
+  LANG_TYPE_UNSPECIFIED = 0;
+  LANG_TYPE_A = 1;
+  LANG_TYPE_B = 2;
+}
