@@ -90,6 +90,7 @@ jobs:
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
+      - checkout
       - attach_workspace:
           at: ../
       - run: *test-unleash-plugin
