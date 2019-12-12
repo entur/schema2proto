@@ -17,7 +17,7 @@ aliases:
 
   - &test-unleash-plugin
     command: |
-      mvn unleash:perform -s /tools/m2/settings.xml
+      mvn unleash:perform -s /tools/m2/settings.xml -B
 
 
 
