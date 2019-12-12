@@ -15,12 +15,6 @@ aliases:
         -Dsonar.host.url=https://sonarcloud.io \
         -Dsonar.login=${ENTUR_SONAR_PASSWORD}
 
-  - &test-unleash-plugin
-    command: |
-      mvn unleash:perform -s /tools/m2/settings.xml -B
-
-
-
 jobs:
   test:
     docker:
@@ -81,24 +75,6 @@ jobs:
             - ~/.m2
           key: cache-dependencies-{{ checksum "pom.xml" }}-deploy
 
-  test-unleash-plugin:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
-    environment:
-      MAVEN_OPTS: -Xmx3G
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ../
-      - run: *test-unleash-plugin
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: cache-dependencies-{{ checksum "pom.xml" }}-deploy
-
   sonar:
     docker:
       - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
@@ -140,10 +116,3 @@ workflows:
           filters:
             branches:
               only: master
-      - test-unleash-plugin:
-          context: org-carbon
-          requires:
-            - test
-          filters:
-            branches:
-              only: develop
