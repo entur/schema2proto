@@ -45,7 +45,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		List<String> excludes = new ArrayList<>();
 		excludes.add("A");
 
-		modifyProto(source, null, excludes, null, null, null);
+		modifyProto(source, null, excludes, null, null, null, false);
 
 		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
@@ -59,23 +59,37 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		List<String> includes = new ArrayList<>();
 		includes.add("A");
-		modifyProto(source, includes, null, null, null, null);
+		modifyProto(source, includes, null, null, null, null, false);
 
 		compareExpectedAndGenerated(expected, "only_a.proto", generatedRootFolder, "simple.proto");
 
 	}
 
 	@Test
-	public void testWhitelistMessageTypeWithBaseTypeOption() throws IOException, InvalidProtobufException {
+	public void testWhitelistMessageTypeWithIncludeBaseTypeOptionEnabled() throws IOException, InvalidProtobufException {
 
 		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
 
 		List<String> includes = new ArrayList<>();
 		includes.add("B");
-		modifyProto(source, includes, null, null, null, null);
+		modifyProto(source, includes, null, null, null, null, true);
 
-		compareExpectedAndGenerated(expected, "simple.proto", generatedRootFolder, "simple.proto");
+		compareExpectedAndGenerated(expected, "enabled.proto", generatedRootFolder, "simple.proto");
+
+	}
+
+	@Test
+	public void testWhitelistMessageTypeWithIncludeBaseTypeOptionDisabled() throws IOException, InvalidProtobufException {
+
+		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
+
+		List<String> includes = new ArrayList<>();
+		includes.add("B");
+		modifyProto(source, includes, null, null, null, null, false);
+
+		compareExpectedAndGenerated(expected, "disabled.proto", generatedRootFolder, "simple.proto");
 
 	}
 
@@ -87,7 +101,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		List<String> excludes = new ArrayList<>();
 		excludes.add("LangType");
-		modifyProto(source, null, excludes, null, null, null);
+		modifyProto(source, null, excludes, null, null, null, false);
 		compareExpectedAndGenerated(expected, "no_langtype.proto", generatedRootFolder, "simple.proto");
 	}
 
@@ -99,7 +113,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		List<String> excludes = new ArrayList<>();
 		excludes.add("package.ExcludeMessage");
 		excludes.add("package.ExcludeType");
-		modifyProto(source, null, excludes, null, null, null);
+		modifyProto(source, null, excludes, null, null, null, false);
 		compareExpectedAndGenerated(expected, "package/no_exclusions.proto", generatedRootFolder, "package/importsexcluded.proto");
 
 	}
@@ -112,7 +126,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		List<String> includes = new ArrayList<>();
 		includes.add("B");
-		modifyProto(source, includes, null, null, null, null);
+		modifyProto(source, includes, null, null, null, null, false);
 
 		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
@@ -126,7 +140,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		List<String> includes = new ArrayList<>();
 		includes.add("package.B");
-		modifyProto(source, includes, null, null, null, null);
+		modifyProto(source, includes, null, null, null, null, false);
 
 		compareExpectedAndGenerated(expected, "package/insidepackage.proto", generatedRootFolder, "package/simple.proto");
 
@@ -149,7 +163,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		newField.type = "B";
 		newFields.add(newField);
 
-		modifyProto(source, null, null, newFields, null, null);
+		modifyProto(source, null, null, newFields, null, null, false);
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
 
@@ -173,7 +187,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		newFields.add(newField);
 
 		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, null, null, newFields, null, null);
+		modifyProto(source, null, null, newFields, null, null, false);
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
 
@@ -192,7 +206,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		m.protoFile = "mergefrom.proto";
 
 		mergeFrom.add(m);
-		modifyProto(source, null, null, null, mergeFrom, null);
+		modifyProto(source, null, null, null, mergeFrom, null, false);
 
 		compareExpectedAndGenerated(expected, "mergefrom.proto", generatedRootFolder, "simple.proto");
 

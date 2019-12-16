@@ -35,6 +35,9 @@ includes:
   - A
   - B
 
+# Include all types that are used as base types for included types: true|false.
+includeBaseTypes: true
+
 # See doc for includes field
 excludes:
   - LangType

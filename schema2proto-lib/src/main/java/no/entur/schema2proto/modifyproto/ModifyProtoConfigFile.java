@@ -38,4 +38,5 @@ public class ModifyProtoConfigFile {
 	public List<MergeFrom> mergeFrom;
 	public List<String> customImportLocations;
 	public List<NewEnumConstant> newEnumConstants;
+	public boolean includeBaseTypes;
 }

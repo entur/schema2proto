@@ -37,4 +37,5 @@ public class ModifyProtoConfiguration {
 	public List<MergeFrom> mergeFrom = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
 	public List<NewEnumConstant> newEnumConstants = new ArrayList<>();
+	public boolean includeBaseTypes = false;
 }
