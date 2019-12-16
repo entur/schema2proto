@@ -3,7 +3,7 @@
 
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.0-alpha-3-SNAPSHOT</version>
+    <version>1.0-alpha-4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Schema 2 proto parent pom</name>
@@ -125,14 +125,6 @@
                     <groupId>com.itemis.maven.plugins</groupId>
                     <artifactId>unleash-maven-plugin</artifactId>
                     <version>2.10.9.abt.workflow</version>
-                    <configuration>
-                        <additionalDeploymentRepositories>
-                            <repository>
-                                <id>github</id>
-                                <url>https://maven.pkg.github.com/entur/schema2proto</url>
-                            </repository>
-                        </additionalDeploymentRepositories>
-                    </configuration>
                 </plugin>
 
             </plugins>
