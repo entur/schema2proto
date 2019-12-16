@@ -124,7 +124,7 @@
                 <plugin>
                     <groupId>com.itemis.maven.plugins</groupId>
                     <artifactId>unleash-maven-plugin</artifactId>
-                    <version>2.10.8.abt.workflow</version>
+                    <version>2.10.9.abt.workflow</version>
                     <configuration>
                         <additionalDeploymentRepositories>
                             <repository>
