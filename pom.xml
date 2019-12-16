@@ -124,7 +124,7 @@
                 <plugin>
                     <groupId>com.itemis.maven.plugins</groupId>
                     <artifactId>unleash-maven-plugin</artifactId>
-                    <version>2.10.3.abt.workflow</version>
+                    <version>2.10.4.abt.workflow</version>
                     <configuration>
                         <additionalDeploymentRepositories>
                             <repository>
@@ -133,13 +133,6 @@
                             </repository>
                         </additionalDeploymentRepositories>
                     </configuration>
-                    <dependencies>
-                        <dependency>
-                            <groupId>com.itemis.maven.plugins</groupId>
-                            <artifactId>unleash-scm-provider-git</artifactId>
-                            <version>2.3.0</version>
-                        </dependency>
-                    </dependencies>
                 </plugin>
 
             </plugins>
