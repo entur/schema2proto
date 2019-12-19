@@ -124,9 +124,23 @@
                 <plugin>
                     <groupId>com.itemis.maven.plugins</groupId>
                     <artifactId>unleash-maven-plugin</artifactId>
-                    <version>2.10.9.abt.workflow</version>
+                    <version>2.10.0</version>
+                    <configuration>
+                        <additionalDeploymentRepositories>
+                            <repository>
+                                <id>github</id>
+                                <url>https://maven.pkg.github.com/entur/schema2proto</url>
+                            </repository>
+                        </additionalDeploymentRepositories>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.itemis.maven.plugins</groupId>
+                            <artifactId>unleash-scm-provider-git</artifactId>
+                            <version>2.3.0</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
-
             </plugins>
         </pluginManagement>
 
