@@ -25,7 +25,7 @@ aliases:
         SNAPSHOT_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.6.0:exec)
         TAG_VERSION="${SNAPSHOT_VERSION/-SNAPSHOT/}"
         echo "Release version $TAG_VERSION"
-        mvn unleash:perform -B
+        mvn unleash:perform -B -s /tools/m2/settings.xml
         git checkout master
         git fetch --tags origin
         git merge $TAG_VERSION
@@ -149,7 +149,6 @@ workflows:
           filters:
             branches:
               only:
-                - master
                 - develop
       - release:
           context: org-carbon
