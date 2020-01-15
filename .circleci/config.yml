@@ -15,6 +15,25 @@ aliases:
         -Dsonar.host.url=https://sonarcloud.io \
         -Dsonar.login=${ENTUR_SONAR_PASSWORD}
 
+  - &release
+    name: Release
+    command: |
+      if [ "$(git log -1 --pretty=%B)" == "Start release" ]
+      then
+        echo "Start release"
+        mvn versions:use-releases
+        SNAPSHOT_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:1.6.0:exec)
+        TAG_VERSION="${SNAPSHOT_VERSION/-SNAPSHOT/}"
+        echo "Release version $TAG_VERSION"
+        mvn unleash:perform -B
+        git checkout master
+        git fetch --tags origin
+        git merge $TAG_VERSION
+        git push origin master
+      else
+        echo "Skipping release"
+      fi
+
 jobs:
   test:
     docker:
@@ -89,6 +108,20 @@ jobs:
           at: ../
       - run: *sonar-scan
 
+  release:
+    docker:
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
+    environment:
+      MAVEN_OPTS: -Xmx3G
+    steps:
+      #      - checkout
+      - attach_workspace:
+          at: ../
+      - run: *release
+
 workflows:
   version: 2
   nightly-sonar-analysis:
@@ -116,3 +149,10 @@ workflows:
           filters:
             branches:
               only: master
+      - release:
+          context: org-carbon
+          requires:
+            - test
+          filters:
+            branches:
+              only: develop
