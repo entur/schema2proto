@@ -26,9 +26,11 @@ aliases:
         TAG_VERSION="${SNAPSHOT_VERSION/-SNAPSHOT/}"
         echo "Release version $TAG_VERSION"
         mvn unleash:perform -B -s /tools/m2/settings.xml
+        git config --global user.email "circleci@entur.no"
+        git config --global user.name "circleci"
         git checkout master
         git fetch --tags origin
-        git merge $TAG_VERSION
+        git merge --no-edit $TAG_VERSION
         git push origin master
       else
         echo "Skipping release"
