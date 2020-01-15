@@ -117,7 +117,7 @@ jobs:
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
-      #      - checkout
+      - checkout
       - attach_workspace:
           at: ../
       - run: *release
@@ -148,7 +148,9 @@ workflows:
             - test
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - develop
       - release:
           context: org-carbon
           requires:
