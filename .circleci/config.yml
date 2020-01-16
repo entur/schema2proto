@@ -120,8 +120,6 @@ jobs:
       MAVEN_OPTS: -Xmx3G
     steps:
       - checkout
-      - attach_workspace:
-          at: ../
       - run: *release
 
 workflows:
