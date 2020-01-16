@@ -23,4 +23,6 @@ See code style [CODESTYLE.md](CODESTYLE.md)
 
 EUPL, see [LICENSE](LICENSE.txt) and https://en.wikipedia.org/wiki/European_Union_Public_Licence
 
-The schema2proto-wire module is a modified copy from https://github.com/square/wire/wire-schema 
+The schema2proto-wire module is a modified copy from https://github.com/square/wire/wire-schema
+
+.
