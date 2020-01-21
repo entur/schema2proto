@@ -199,11 +199,11 @@ public class ModifyProto {
 		Set<String> emptyImportLocations = protosLoaded.stream()
 				.map(prunedSchema::protoFile)
 				.filter(Objects::nonNull)
-				.filter(p -> p.types().isEmpty())
+				.filter(p -> isEmptyFile(p))
 				.map(p -> p.location().getPath())
 				.collect(Collectors.toSet());
 
-		protosLoaded.stream().map(prunedSchema::protoFile).filter(Objects::nonNull).filter(p -> !p.types().isEmpty()).forEach(file -> {
+		protosLoaded.stream().map(prunedSchema::protoFile).filter(Objects::nonNull).filter(p -> !isEmptyFile(p)).forEach(file -> {
 			file.imports().removeIf(emptyImportLocations::contains);
 			file.publicImports().removeIf(emptyImportLocations::contains);
 			File outputFile = new File(configuration.outputDirectory, file.location().getPath());
@@ -217,6 +217,10 @@ public class ModifyProto {
 
 		});
 
+	}
+
+	private boolean isEmptyFile(ProtoFile p) {
+		return p.types().isEmpty() && p.getExtendList().isEmpty();
 	}
 
 	private IdentifierSet followOneMoreLevel(IdentifierSet.Builder identifierSetBuilder, Schema schema) {
