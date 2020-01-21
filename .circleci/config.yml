@@ -27,7 +27,7 @@ aliases:
         git pull --no-edit
         git checkout develop
         mvn versions:use-releases
-        mvn -B gitflow:release-start gitflow:release-finish -DpostReleaseGoals=deploy -s /tools/m2/settings.xml
+        mvn -B gitflow:release-start gitflow:release-finish -DpostReleaseGoals=deploy -DskipTests -s /tools/m2/settings.xml
       else
         echo "Skipping release"
       fi
