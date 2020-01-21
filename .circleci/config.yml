@@ -4,7 +4,7 @@ aliases:
     name: Trigger downstream builds
     command: |
       echo 'export CIRCLE_API_TOKEN="$CIRCLE_API_USER_TOKEN"' >> $BASH_ENV
-      /tools/downstream_single_trigger.sh "gh/entur/netex-protobuf" "master"
+      /tools/downstream_single_trigger.sh "gh/entur/netex-protobuf" "develop"
 
   - &sonar-scan
     command: |
