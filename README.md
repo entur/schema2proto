@@ -25,4 +25,4 @@ EUPL, see [LICENSE](LICENSE.txt) and https://en.wikipedia.org/wiki/European_Unio
 
 The schema2proto-wire module is a modified copy from https://github.com/square/wire/wire-schema
 
-.
+..
