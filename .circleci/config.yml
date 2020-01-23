@@ -8,7 +8,7 @@ aliases:
 
   - &sonar-scan
     command: |
-      mvn sonar:sonar -s /tools/m2/settings.xml \
+      mvn sonar:sonar \
         -Dsonar.projectKey=${CIRCLE_PROJECT_REPONAME} \
         -Dsonar.organization=enturas-github \
         -Dsonar.projectName=${CIRCLE_PROJECT_REPONAME} \
@@ -27,30 +27,118 @@ aliases:
         git pull --no-edit
         git checkout develop
         mvn versions:use-releases
-        mvn -B gitflow:release-start gitflow:release-finish -s /tools/m2/settings.xml -DskipTests=true -Dspotless.check.skip=true
-        git checkout master
-        mvn deploy -s /tools/m2/settings.xml -DskipTests -Dspotless.check.skip=true
+        mvn -B gitflow:release-start gitflow:release-finish -DskipTests=true -Dspotless.check.skip=true -DpostReleaseGoals=deploy -DargLine=-Prelease
       else
         echo "Skipping release"
       fi
 
+  - &import_gpg_key
+    name: Configure GPG private key for signing project artifacts in OSS Sonatype
+    command: |
+      echo $SONATYPE_GPG_KEY_BASE64 | base64 --decode | gpg --batch --no-tty --import --yes
+
+  - &maven-settings-file
+      "\"<settings xsi:schemaLocation='http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd' xmlns='http://maven.apache.org/SETTINGS/1.1.0'
+                  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+                <servers>
+                <server>
+                       <username>$SONATYPE_USERNAME</username>
+                       <password>$SONATYPE_PASSWORD</password>
+                       <id>ossrh</id>
+                     </server>
+                  <server>
+                    <username>$entur_artifactory_user</username>
+                    <password>$entur_artifactory_password</password>
+                    <id>central</id>
+                  </server>
+                  <server>
+                    <username>$entur_artifactory_user</username>
+                    <password>$entur_artifactory_password</password>
+                    <id>snapshots</id>
+                  </server>
+                </servers>
+                <profiles>
+            <profile>
+              <repositories>
+                <repository>
+                  <snapshots>
+                    <enabled>false</enabled>
+                  </snapshots>
+                  <id>central</id>
+                  <name>entur-team-kontobasert-billettering-release</name>
+                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-release</url>
+                </repository>
+                <repository>
+                  <snapshots />
+                  <id>snapshots</id>
+                  <name>entur-team-kontobasert-billettering-snapshot</name>
+                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-snapshot</url>
+                </repository>
+              </repositories>
+              <pluginRepositories>
+                <pluginRepository>
+                  <snapshots>
+                    <enabled>false</enabled>
+                  </snapshots>
+                  <id>central</id>
+                  <name>entur-team-kontobasert-billettering-release</name>
+                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-release</url>
+                </pluginRepository>
+                <pluginRepository>
+                  <snapshots />
+                  <id>snapshots</id>
+                  <name>entur-team-kontobasert-billettering-snapshot</name>
+                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-snapshot</url>
+                </pluginRepository>
+              </pluginRepositories>
+              <id>artifactory</id>
+            </profile>
+                </profiles>
+                <activeProfiles>
+                  <activeProfile>artifactory</activeProfile>
+                </activeProfiles>
+              </settings>\""
+
+
+    - &circleci-container-config
+      docker:
+         - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
+          auth:
+            username: _json_key
+            password: $GCLOUD_SERVICE_KEY
+
+    - &java-container-config
+      docker:
+        - image: circleci/openjdk:11-jdk
+
+
+  commands:
+    generate-maven-settings-file:
+      parameters:
+        settings-file:
+          type: string
+      steps:
+        - run:
+            name: Generate Maven Settings File
+            command: |
+              mkdir -p ~/.m2
+              echo -e << parameters.settings-file >> > ~/.m2/settings.xml
+
 jobs:
   test:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
+    <<: *java-container-config
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
       - checkout
+      - generate-maven-settings-file:
+          settings-file: *maven-settings-file
       - restore_cache:
           keys:
             - cache-dependencies-{{ checksum "pom.xml" }}-deploy
             - cache-dependencies-{{ checksum "pom.xml" }}
             - cache-dependencies-static
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U -s /tools/m2/settings.xml
+      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U
       - save_cache:
           paths:
             - ~/.m2
@@ -60,7 +148,7 @@ jobs:
             - ~/.m2
           key: cache-dependencies-static
       # Cannot use -o because of snapshot dependencies. Using deploy &  -Dmaven.deploy.skip=true to download ALL necessary dependencies
-      - run: mvn deploy -s /tools/m2/settings.xml  -Dmaven.deploy.skip=true
+      - run: mvn deploy -Dmaven.deploy.skip=true
       - persist_to_workspace:
           root: ../
           paths:
@@ -76,51 +164,50 @@ jobs:
           path: ~/junit
       - store_artifacts:
           path: ~/junit
+
   deploy-artifactory:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
+    <<: *java-container-config
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
+      - generate-maven-settings-file:
+          settings-file: *maven-settings-file
       - attach_workspace:
           at: ../
-      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests -Dspotless.check.skip=true
-      - run: *post_build
+      - run: mvn deploy -DskipTests -Dspotless.check.skip=true
       - save_cache:
           paths:
             - ~/.m2
           key: cache-dependencies-{{ checksum "pom.xml" }}-deploy
 
   sonar:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
+    <<: *java-container-config
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
-      #      - checkout
+      - generate-maven-settings-file:
+          settings-file: *maven-settings-file
       - attach_workspace:
           at: ../
       - run: *sonar-scan
 
   release:
-    docker:
-      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
-        auth:
-          username: _json_key
-          password: $GCLOUD_SERVICE_KEY
+    <<: *java-container-config
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
       - checkout
+      - generate-maven-settings-file:
+          settings-file: *maven-settings-file
       - attach_workspace:
           at: ../
+      - run: *import_gpg_key
       - run: *release
+
+  postBuild:
+    <<: *circleci-container-config
+    steps:
+      - run: *post_build
 
 workflows:
   version: 2
@@ -133,17 +220,17 @@ workflows:
               only: master
     jobs:
       - test:
-          context: org-carbon
+          context: org-default-build
       - sonar:
-          context: org-carbon
+          context: org-default-build
           requires:
             - test
   build_test_deploy:
     jobs:
       - test:
-          context: org-carbon
+          context: org-default-build
       - deploy-artifactory:
-          context: org-carbon
+          context: org-default-build
           requires:
             - test
           filters:
@@ -151,9 +238,17 @@ workflows:
               only:
                 - develop
       - release:
-          context: org-carbon
+          context: org-default-build
           requires:
             - test
+          filters:
+            branches:
+              only: develop
+
+      - postBuild:
+          context: org-carbon
+          requires:
+            - deploy-artifactory
           filters:
             branches:
               only: develop
