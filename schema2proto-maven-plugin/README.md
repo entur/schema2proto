@@ -7,7 +7,7 @@
 In your `build` section add:
 
 2 mandatory parameters:
-* `configFile` path to conversion config file. See [../schema2proto-lib/example_config/generateproto.yml] for example
+* `configFile` path to conversion config file. See https://github.com/entur/schema2proto/blob/master/schema2proto-lib/example_config/generateproto.yml for example
 * `xsdFile` path to xsd file to convert
 
 ```
@@ -38,7 +38,7 @@ You can add, remove and modify both messages and message fields in proto files
 In your `build` section add:
 
 2 mandatory parameters:
-* `configFile` path to modify config file. See [../schema2proto-lib/example_config/modifyproto.yml] for example
+* `configFile` path to modify config file. See https://github.com/entur/schema2proto/blob/master/schema2proto-lib/example_config/modifyproto.yml for example
 
 ```
     <plugin>
