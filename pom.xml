@@ -21,7 +21,6 @@
     <scm>
         <connection>scm:git:ssh://git@github.com/entur/schema2proto.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/entur/schema2proto.git</developerConnection>
-<tag>HEAD</tag>
     </scm>
 
 
