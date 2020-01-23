@@ -100,16 +100,16 @@ aliases:
               </settings>\""
 
 
-    - &circleci-container-config
-      docker:
-         - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
-          auth:
-            username: _json_key
-            password: $GCLOUD_SERVICE_KEY
+  - &circleci-container-config
+    docker:
+      - image: eu.gcr.io/carbon-1287/circleci-toolbox-image
+        auth:
+          username: _json_key
+          password: $GCLOUD_SERVICE_KEY
 
-    - &java-container-config
-      docker:
-        - image: circleci/openjdk:11-jdk
+  - &java-container-config
+    docker:
+      - image: circleci/openjdk:11-jdk
 
 
   commands:
