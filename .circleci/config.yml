@@ -1,10 +1,10 @@
 version: 2
 aliases:
-  - &post_build
-    name: Trigger downstream builds
-    command: |
-      echo 'export CIRCLE_API_TOKEN="$CIRCLE_API_USER_TOKEN"' >> $BASH_ENV
-      /tools/downstream_single_trigger.sh "gh/entur/netex-protobuf" "develop"
+ - &post_build
+   name: Trigger downstream builds
+   command: |
+     echo 'export CIRCLE_API_TOKEN="$CIRCLE_API_USER_TOKEN"' >> $BASH_ENV
+     /tools/downstream_single_trigger.sh "gh/entur/netex-protobuf" "develop"
 
   - &sonar-scan
     command: |
@@ -112,17 +112,17 @@ aliases:
       - image: circleci/openjdk:11-jdk
 
 
-  commands:
-    generate-maven-settings-file:
-      parameters:
-        settings-file:
-          type: string
-      steps:
-        - run:
-            name: Generate Maven Settings File
-            command: |
-              mkdir -p ~/.m2
-              echo -e << parameters.settings-file >> > ~/.m2/settings.xml
+commands:
+  generate-maven-settings-file:
+    parameters:
+      settings-file:
+        type: string
+    steps:
+      - run:
+          name: Generate Maven Settings File
+          command: |
+            mkdir -p ~/.m2
+            echo -e << parameters.settings-file >> > ~/.m2/settings.xml
 
 jobs:
   test:
