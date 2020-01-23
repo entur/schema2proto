@@ -25,16 +25,16 @@
 
 
     <distributionManagement>
-        <repository>
-            <id>central</id>
-            <name>entur-team-kontobasert-billettering-release</name>
-            <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-release</url>
-        </repository>
         <snapshotRepository>
-            <id>snapshots</id>
-            <name>entur2-snapshots</name>
-            <url>https://entur2.jfrog.io/entur2/libs-snapshot-local</url>
+            <id>ossrh</id>
+            <name>Sonatype snapshot</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <name>Sonatype release</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
     </distributionManagement>
 
     <modules>
