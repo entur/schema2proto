@@ -4,6 +4,8 @@ This tool converts XML Schema files (.xsd) to Protocol Buffers (.proto). It was 
 
 You can also use it to modify proto files by removing unnecessary packages, messages and fields
 
+NOTE: This project depend on an artifact xsom-2.4.0-b190812-entur.jar . This artifact is not published to any repo (yet) but can be built from https://github.com/entur/jaxb-ri/tree/master/jaxb-ri/xsom .
+
 ## Usage
 
 ### Standalone
