@@ -111,6 +111,15 @@ aliases:
     docker:
       - image: circleci/openjdk:11-jdk
 
+  - &sonar-scan
+    command: |
+      mvn sonar:sonar \
+        -Dsonar.projectKey=${CIRCLE_PROJECT_REPONAME} \
+        -Dsonar.organization=enturas-github \
+        -Dsonar.projectName=${CIRCLE_PROJECT_REPONAME} \
+        -Dsonar.host.url=https://sonarcloud.io \
+        -Dsonar.login=${ENTUR_SONAR_PASSWORD}
+
 
 commands:
   generate-maven-settings-file:
