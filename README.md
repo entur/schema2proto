@@ -6,7 +6,7 @@ This tool does 2 things:
 * Modifies existing proto files by adding, modifying and removing fields, messages etc. Also support for merging proto files using the same package
 
 NOTE: This project depend on an artifact xsom-2.4.0-b190812-entur.jar . This artifact is not published to any repo (yet) but can be downloaded from
- https://github.com/entur/schema2proto/tree/develop/xsom-entur-jar or built from https://github.com/entur/jaxb-ri/tree/master/jaxb-ri/xsom .
+ https://github.com/entur/schema2proto/tree/develop/xsom-entur-jar or built from https://github.com/entur/jaxb-ri/tree/master/jaxb-ri/xsom . You must install it in your local maven repo.
 
 ## Usage
 
