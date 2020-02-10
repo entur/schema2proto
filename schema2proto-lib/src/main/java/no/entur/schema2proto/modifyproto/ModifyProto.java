@@ -347,11 +347,9 @@ public class ModifyProto {
 			int tag = newField.fieldNumber;
 
 			String fieldPackage = StringUtils.substringBeforeLast(newField.type, ".");
-			String fieldType = StringUtils.substringAfterLast(newField.type, ".");
 
 			if (fieldPackage.equals(newField.type)) {
 				// no package
-				fieldType = fieldPackage;
 				fieldPackage = null;
 			}
 
@@ -361,7 +359,7 @@ public class ModifyProto {
 			}
 			Location location = new Location("", "", -1, -1);
 
-			Field field = new Field(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null, fieldType,
+			Field field = new Field(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null, newField.type,
 					options, false, false);
 			List<Field> updatedFields = new ArrayList<>(type.fields());
 			updatedFields.add(field);
