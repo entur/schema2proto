@@ -46,10 +46,7 @@ import com.github.difflib.patch.Patch;
 import no.entur.schema2proto.generateproto.Schema2Proto;
 import no.entur.schema2proto.modifyproto.InvalidProtobufException;
 import no.entur.schema2proto.modifyproto.ModifyProto;
-import no.entur.schema2proto.modifyproto.config.MergeFrom;
-import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
-import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
-import no.entur.schema2proto.modifyproto.config.NewField;
+import no.entur.schema2proto.modifyproto.config.*;
 
 public abstract class AbstractMappingTest {
 
@@ -156,7 +153,7 @@ public abstract class AbstractMappingTest {
 	}
 
 	public void modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom,
-			List<NewEnumConstant> newEnumValues, boolean includeBaseTypes) throws IOException, InvalidProtobufException {
+			List<NewEnumConstant> newEnumValues, boolean includeBaseTypes, List<FieldOption> fieldOptions) throws IOException, InvalidProtobufException {
 
 		FileUtils.deleteDirectory(generatedRootFolder);
 		generatedRootFolder.mkdirs();
@@ -179,6 +176,9 @@ public abstract class AbstractMappingTest {
 		}
 		if (newEnumValues != null) {
 			configuration.newEnumConstants = newEnumValues;
+		}
+		if (fieldOptions != null) {
+			configuration.fieldOptions = fieldOptions;
 		}
 
 		configuration.includeBaseTypes = includeBaseTypes;

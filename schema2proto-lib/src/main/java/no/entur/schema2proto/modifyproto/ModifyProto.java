@@ -58,13 +58,12 @@ import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
+import com.squareup.wire.schema.internal.parser.OptionReader;
+import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.generateproto.Schema2Proto;
-import no.entur.schema2proto.modifyproto.config.MergeFrom;
-import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
-import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
-import no.entur.schema2proto.modifyproto.config.NewField;
+import no.entur.schema2proto.modifyproto.config.*;
 
 public class ModifyProto {
 
@@ -81,6 +80,7 @@ public class ModifyProto {
 			TypeDescription customTypeDescription = new TypeDescription(ModifyProtoConfigFile.class);
 			customTypeDescription.addPropertyParameters("newFields", NewField.class);
 			customTypeDescription.addPropertyParameters("mergeFrom", MergeFrom.class);
+			customTypeDescription.addPropertyParameters("valdiationRules", FieldOption.class);
 			constructor.addTypeDescription(customTypeDescription);
 			Yaml yaml = new Yaml(constructor);
 
@@ -119,6 +119,10 @@ public class ModifyProto {
 
 			if (config.newEnumConstants != null) {
 				configuration.newEnumConstants = new ArrayList<>(config.newEnumConstants);
+			}
+
+			if (config.fieldOptions != null) {
+				configuration.fieldOptions = new ArrayList<>(config.fieldOptions);
 			}
 
 			configuration.includeBaseTypes = config.includeBaseTypes;
@@ -194,6 +198,10 @@ public class ModifyProto {
 
 		for (MergeFrom mergeFrom : configuration.mergeFrom) {
 			mergeFromFile(mergeFrom, prunedSchema, configuration);
+		}
+
+		for (FieldOption fieldOption : configuration.fieldOptions) {
+			addFieldOption(fieldOption, prunedSchema);
 		}
 
 		Set<String> emptyImportLocations = protosLoaded.stream()
@@ -378,6 +386,23 @@ public class ModifyProto {
 			}
 
 		}
+
+	}
+
+	public void addFieldOption(FieldOption fieldOption, Schema prunedSchema) throws InvalidProtobufException {
+		MessageType type = (MessageType) prunedSchema.getType(fieldOption.targetMessageType);
+		if (type == null) {
+			throw new InvalidProtobufException("Did not find existing type " + fieldOption.targetMessageType);
+		}
+		Field field = type.field(fieldOption.field);
+		if (field == null) {
+			throw new InvalidProtobufException("Did not find existing field " + fieldOption.field);
+		}
+		if (StringUtils.isEmpty(fieldOption.option)) {
+			throw new InvalidProtobufException("Missing option for field " + fieldOption.field);
+		}
+		OptionReader reader = new OptionReader(new SyntaxReader(fieldOption.option.toCharArray(), null));
+		reader.readOptions().forEach(option -> field.options().add(option));
 
 	}
 
