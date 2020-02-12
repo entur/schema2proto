@@ -51,33 +51,24 @@ public class PGVRuleFactory {
 		defaultValidationRulesForBasicTypes.putAll(getValidationRuleForBasicTypes());
 
 	}
-
 	public List<OptionElement> getValidationRule(XSParticle parentParticle) {
 
 		List<OptionElement> validationRules = new ArrayList<>();
 
 		if (configuration.includeValidationRules) {
-
-			int minOccurs = 0; // Default
-			int maxOccurs = 1; // Default
-
-			if (parentParticle.getMinOccurs() != null) {
-				minOccurs = parentParticle.getMinOccurs().intValue();
-			}
-
-			if (parentParticle.getMaxOccurs() != null) {
-				maxOccurs = parentParticle.getMaxOccurs().intValue();
-			}
+			int minOccurs = parentParticle.getMinOccurs() != null ? parentParticle.getMinOccurs().intValue() : 0; // Default
+			int maxOccurs = parentParticle.getMaxOccurs() != null && parentParticle.getMaxOccurs().intValue() != 0 ? parentParticle.getMaxOccurs().intValue()
+					: 1; // Default
 
 			if (minOccurs == 1 && maxOccurs == 1) {
-
-				/*
-				 * OptionElement option = new OptionElement("message.required", OptionElement.Kind.BOOLEAN, true, false); OptionElement e = new
-				 * OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true); return e;
-				 */
-
-				// validationRules.add(e);
+				validationRules.add(new OptionElement("(validate.rules).message.required", OptionElement.Kind.BOOLEAN, true, false));
+			} else if (parentParticle.isRepeated()) {
+				Map<String, Object> minMaxParams = new HashMap<>();
+				minMaxParams.put("min_items", minOccurs);
+				minMaxParams.put("max_items", maxOccurs == -1 ? Integer.MAX_VALUE: maxOccurs);
+				validationRules.add(new OptionElement("(validate.rules).repeated", OptionElement.Kind.MAP, minMaxParams, false));
 			}
+
 		}
 		return validationRules;
 
