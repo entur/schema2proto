@@ -63,7 +63,7 @@ public class PGVRuleFactory {
 
 			if (minOccurs == 1 && maxOccurs == 1) {
 				validationRules.add(new OptionElement("(validate.rules).message.required", OptionElement.Kind.BOOLEAN, true, false));
-			} else if (parentParticle.isRepeated()) {
+			} else if (parentParticle.isRepeated() && minOccurs > 0) {
 				Map<String, Integer> minMaxParams = new HashMap<>();
 				minMaxParams.put("min_items", minOccurs);
 				if (maxOccurs > 1) {
