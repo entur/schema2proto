@@ -53,6 +53,7 @@ public class PGVRuleFactory {
 	}
 
 	public List<OptionElement> getValidationRule(XSParticle parentParticle) {
+		boolean addRepeatedRules = false;
 
 		List<OptionElement> validationRules = new ArrayList<>();
 
@@ -63,7 +64,7 @@ public class PGVRuleFactory {
 
 			if (minOccurs == 1 && maxOccurs == 1) {
 				validationRules.add(new OptionElement("(validate.rules).message.required", OptionElement.Kind.BOOLEAN, true, false));
-			} else if (parentParticle.isRepeated() && minOccurs > 0) {
+			} else if (parentParticle.isRepeated() && addRepeatedRules) {
 				Map<String, Integer> minMaxParams = new HashMap<>();
 				minMaxParams.put("min_items", minOccurs);
 				if (maxOccurs > 1) {
