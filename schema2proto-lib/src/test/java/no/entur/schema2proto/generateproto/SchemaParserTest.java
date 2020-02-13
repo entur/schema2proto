@@ -25,8 +25,6 @@ package no.entur.schema2proto.generateproto;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -81,15 +79,17 @@ public class SchemaParserTest extends AbstractMappingTest {
 
 	@Test
 	public void testBasicExtensionBaseComposition() throws IOException {
-		Map<String, Object> options = new HashMap<>();
-		generateProtobuf("basic/extensionbase.xsd", null, null, null, true, options);
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.inheritanceToComposition = true;
+		generateProtobuf("basic/extensionbase.xsd", configuration);
 		compareExpectedAndGenerated(expectedRootFolder, "default/extensionbase_composition.proto", generatedRootFolder, "default/default.proto");
 	}
 
 	@Test
 	public void testBasicInheritanceToComposition() throws IOException {
-		Map<String, Object> options = new HashMap<>();
-		generateProtobuf("basic/inheritancetocomposition.xsd", null, null, null, true, options);
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.inheritanceToComposition = true;
+		generateProtobuf("basic/inheritancetocomposition.xsd", configuration);
 		compareExpectedAndGenerated(expectedRootFolder, "default/inheritancetocomposition.proto", generatedRootFolder, "default/default.proto");
 	}
 
@@ -131,9 +131,9 @@ public class SchemaParserTest extends AbstractMappingTest {
 
 	@Test
 	public void testSkipEmptyTypeInheritance() throws IOException {
-		Map<String, Object> options = new HashMap<>();
-		options.put("skipEmptyTypeInheritance", true);
-		generateProtobufNoTypeOrNameMappings("basic/skipemptytypeinheritance.xsd", options);
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.skipEmptyTypeInheritance = true;
+		generateProtobufNoTypeOrNameMappings("basic/skipemptytypeinheritance.xsd", configuration);
 		compareExpectedAndGenerated(expectedRootFolder, "default/skipemptytypeinheritance.proto", generatedRootFolder, "default/default.proto");
 	}
 
@@ -193,9 +193,9 @@ public class SchemaParserTest extends AbstractMappingTest {
 
 	// @Test
 	public void testIncludeXsdOptions() throws IOException {
-		Map<String, Object> options = new HashMap<>();
-		options.put("includeXsdOptions", true);
-		generateProtobufNoTypeOrNameMappings("basic/xsdoption.xsd", options);
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.includeXsdOptions = true;
+		generateProtobufNoTypeOrNameMappings("basic/xsdoption.xsd", configuration);
 		compareExpectedAndGenerated(expectedRootFolder, "default/xsdoption.proto", generatedRootFolder, "default/default.proto");
 	}
 

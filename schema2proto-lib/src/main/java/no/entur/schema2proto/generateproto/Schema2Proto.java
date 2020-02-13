@@ -84,34 +84,38 @@ public class Schema2Proto {
 			printUsage(commandLineOptions);
 		} else {
 			try {
-
 				CommandLineParser parser = new DefaultParser();
 				CommandLine cmd = parser.parse(commandLineOptions, args);
-
 				Schema2ProtoConfiguration configuration = getConfiguration(cmd);
-
-				SchemaParser xp = new SchemaParser(configuration);
-
-				LOGGER.info("Starting to parse {}", configuration.xsdFile);
-				Map<String, ProtoFile> packageToFiles = xp.parse();
-				List<LocalType> localTypes = xp.getLocalTypes();
-
-				TypeAndNameMapper pbm = new TypeAndNameMapper(configuration);
-				ProtoSerializer serializer = new ProtoSerializer(configuration, pbm);
-				serializer.serialize(packageToFiles, localTypes);
-
-				LOGGER.info("Done");
+				parseAndSerialize(configuration);
 			} catch (InvalidConfigurationException | ParseException e) {
 				printUsage(commandLineOptions);
 				throw new ConversionException("Error parsing command line options", e);
-			} catch (InvalidXSDException e) {
-				throw new ConversionException("Error converting xsdFile to proto", e);
 			} catch (com.squareup.wire.schema.SchemaException e) {
 				throw new ConversionException("Generated proto files did not link", e);
-			} catch (SAXException e) {
-				throw new ConversionException("Error parsing provided xsd. Correct xsd and retry", e);
 			}
 		}
+	}
+
+	public static void parseAndSerialize(Schema2ProtoConfiguration configuration) throws IOException, InvalidConfigurationException {
+		try {
+			SchemaParser xp = new SchemaParser(configuration);
+
+			LOGGER.info("Starting to parse {}", configuration.xsdFile);
+			Map<String, ProtoFile> packageToFiles = xp.parse();
+			List<LocalType> localTypes = xp.getLocalTypes();
+
+			TypeAndNameMapper pbm = new TypeAndNameMapper(configuration);
+			ProtoSerializer serializer = new ProtoSerializer(configuration, pbm);
+			serializer.serialize(packageToFiles, localTypes);
+
+			LOGGER.info("Done");
+		} catch (InvalidXSDException e) {
+			throw new ConversionException("Error converting xsdFile to proto", e);
+		} catch (SAXException e) {
+			throw new ConversionException("Error parsing provided xsd. Correct xsd and retry", e);
+		}
+
 	}
 
 	public static void main(String[] args) {

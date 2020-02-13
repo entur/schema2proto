@@ -25,8 +25,10 @@ package no.entur.schema2proto.generateproto;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -99,12 +101,22 @@ public class Schema2ProtoTest extends AbstractMappingTest {
 
 	@Test
 	public void fieldAndMessageRenaming() throws IOException {
-		Map<String, Object> options = new HashMap<>();
-		generateProtobuf("complexTypeRenaming.xsd",
-				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName",
-				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName",
-				"org.myrecipies", false, options);
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.customTypeMappings = toMap(
+				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName");
+		configuration.customNameMappings = toMap(
+				"^ElementListOriginalNameType$:ElementListNewNameType,^ElementInListOfComplexTypeOriginalName$:ElementInListOfComplexTypeNewName,^ComplexTypeOriginalName$:ComplexTypeNewName,^ElementInListOriginalName$:ElementInListNewName");
+		configuration.forceProtoPackage = "org.myrecipies";
+		configuration.inheritanceToComposition = false;
+
+		generateProtobuf("complexTypeRenaming.xsd", configuration);
 		compareExpectedAndGenerated(expectedRootFolder, "default/complexTypeRenaming.proto", generatedRootFolder, "org/myrecipies/org_myrecipies.proto");
+	}
+
+	private Map<Pattern, String> toMap(String data) {
+		return Arrays.stream(data.split(","))
+				.map(entry -> entry.split(":"))
+				.collect(Collectors.toMap(strings -> Pattern.compile(strings[0]), strings -> strings[1]));
 	}
 
 }
