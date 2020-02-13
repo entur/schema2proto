@@ -66,7 +66,7 @@ public class PGVRuleFactory {
 			} else if (parentParticle.isRepeated()) {
 				Map<String, Object> minMaxParams = new HashMap<>();
 				minMaxParams.put("min_items", minOccurs);
-				if(maxOccurs > 1){
+				if (maxOccurs > 1) {
 					minMaxParams.put("max_items", maxOccurs);
 				}
 				validationRules.add(new OptionElement("(validate.rules).repeated", OptionElement.Kind.MAP, minMaxParams, false));
