@@ -54,7 +54,17 @@ public class GenerateValidationRulesTest extends AbstractMappingTest {
 		Assertions.assertEquals(generated,
 				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"validate/validate.proto\";\n" + "\n"
 						+ "message TestRangeDecimal {\n" + "  repeated double value = 1 [\n" + "    (validate.rules).repeated = {\n" + "      min_items: 1,\n"
-						+ "      max_items: 2147483647\n" + "    }\n" + "  ];\n" + "}\n");
+						+ "      max_items: 7\n" + "    }\n" + "  ];\n" + "}\n");
+	}
+
+	@Test
+	public void repeatedFieldUnbounded() throws IOException {
+		generateProtobuf("test-min-max-occurs-unbounded.xsd", null, null, "default", false, validationOptions());
+		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
+		Assertions.assertEquals(generated,
+				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"validate/validate.proto\";\n" + "\n"
+						+ "message TestRangeDecimal {\n" + "  repeated double value = 1 [\n" + "    (validate.rules).repeated = {\n" + "      min_items: 1\n"
+						+ "    }\n" + "  ];\n" + "}\n");
 	}
 
 	private Map<String, Object> validationOptions() {

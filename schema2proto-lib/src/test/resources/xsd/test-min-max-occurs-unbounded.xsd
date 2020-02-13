@@ -2,7 +2,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
     <xsd:complexType name="TestRangeDecimal">
         <xsd:sequence>
-            <xsd:element name="value" minOccurs="1" maxOccurs="7">
+            <xsd:element name="value" minOccurs="1" maxOccurs="unbounded">
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:decimal">
                         <xsd:minInclusive value="0.0"/>
