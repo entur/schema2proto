@@ -211,7 +211,7 @@ workflows:
           cron: "0 2 * * *"
           filters:
             branches:
-              only: master
+              only: develop
     jobs:
       - test:
           context: org-default-build
