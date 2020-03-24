@@ -64,7 +64,7 @@ public class PGVRuleFactory {
 	public List<OptionElement> getValidationRule(XSParticle parentParticle) {
 		List<OptionElement> validationRules = new ArrayList<>();
 
-		if (configuration.includeValidationRules) {
+		if (false && configuration.includeValidationRules) { // TODO SKIP FOR NOW AS RULES ARE NOT COMPILING
 			int minOccurs = parentParticle.getMinOccurs() != null ? parentParticle.getMinOccurs().intValue() : 0; // Default
 			int maxOccurs = parentParticle.getMaxOccurs() != null && parentParticle.getMaxOccurs().intValue() != 0 ? parentParticle.getMaxOccurs().intValue()
 					: 1; // Default
