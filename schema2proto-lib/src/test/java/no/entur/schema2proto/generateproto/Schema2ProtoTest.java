@@ -1,5 +1,3 @@
-package no.entur.schema2proto.generateproto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,6 +20,7 @@ package no.entur.schema2proto.generateproto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto.generateproto;
 
 import java.io.File;
 import java.io.IOException;

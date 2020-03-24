@@ -1,5 +1,3 @@
-package no.entur.schema2proto.generateproto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,6 +20,7 @@ package no.entur.schema2proto.generateproto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto.generateproto;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,7 +33,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -64,7 +62,6 @@ import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.OneOf;
 import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
-import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
@@ -90,7 +87,7 @@ public class ProtoSerializer {
 
 	private Set<String> basicTypes = new HashSet<>();
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ProtoSerializer.class);
 
 	public ProtoSerializer(Schema2ProtoConfiguration configuration, TypeAndNameMapper marshaller) throws InvalidConfigurationException {
 		this.configuration = configuration;
@@ -101,14 +98,14 @@ public class ProtoSerializer {
 			if (!configuration.outputDirectory.mkdirs() && !configuration.outputDirectory.exists()) {
 				throw new InvalidConfigurationException("Could not create outputDirectory", null);
 			}
-			LOGGER.info("Writing proto files to " + configuration.outputDirectory.getAbsolutePath());
+			LOGGER.info("Writing proto files to {}", configuration.outputDirectory.getAbsolutePath());
 		}
 	}
 
 	public void serialize(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypes) throws InvalidXSDException, IOException {
 
 		// Remove temporary generated name suffix
-		replaceGeneratedTypePlaceholder(packageToProtoFileMap, SchemaParser.GENERATED_NAME_PLACEHOLDER, SchemaParser.TYPE_SUFFIX, localTypes);
+		replaceGeneratedTypePlaceholder(packageToProtoFileMap, SchemaParser.GENERATED_NAME_PLACEHOLDER, SchemaParser.TYPE_SUFFIX);
 
 		// Sort types in files
 		sortTypesInProtofile(packageToProtoFileMap);
@@ -205,7 +202,7 @@ public class ProtoSerializer {
 		}
 
 		// Parse and verify written proto files
-		parseWrittenFiles(writtenProtoFiles);
+		parseWrittenFiles();
 
 	}
 
@@ -245,12 +242,7 @@ public class ProtoSerializer {
 		if (packageName != null) {
 			protoFile = packageToProtoFileMap.get(packageName);
 		}
-		return protoFile.types()
-				.stream()
-				.filter(e -> e instanceof EnumType)
-				.filter(e -> ((EnumType) e).name().equals(elementType.getElementType()))
-				.findFirst()
-				.isPresent();
+		return protoFile.types().stream().filter(e -> e instanceof EnumType).anyMatch(e -> ((EnumType) e).name().equals(elementType.getElementType()));
 	}
 
 	private void removeUnwantedFields(Map<String, ProtoFile> packageToProtoFileMap) {
@@ -284,7 +276,7 @@ public class ProtoSerializer {
 				oneOf.updateDocumentation(documentation);
 			}
 
-			if (oneOf.fields().size() == 0) {
+			if (oneOf.fields().isEmpty()) {
 				// remove oneof
 				oneOfsToRemove.add(oneOf);
 			}
@@ -334,25 +326,24 @@ public class ProtoSerializer {
 		return pathName.replace(".proto", "").replace('/', '.');
 	}
 
-	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix,
-			List<LocalType> localTypes) {
+	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix) {
 
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
 			replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, protoFile.getValue().types(),
-					protoFile.getValue().packageName(), localTypes);
+					protoFile.getValue().packageName());
 		}
 	}
 
 	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder, String newTypeSuffix,
-			List<Type> types, String packageName, List<LocalType> localTypes) {
+			List<Type> types, String packageName) {
 		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
 		for (Type type : types) {
 			// Recurse into nested types
-			replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, type.nestedTypes(), packageName, localTypes);
+			replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, type.nestedTypes(), packageName);
 
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
-				replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, packageName, usedNames, mt, localTypes);
+				replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, packageName, usedNames, mt);
 
 			} else if (type instanceof EnumType) {
 				EnumType et = (EnumType) type;
@@ -364,7 +355,7 @@ public class ProtoSerializer {
 						usedNames.add(newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
-						LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+						LOGGER.warn("Cannot rename enum {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 					}
 				}
 			}
@@ -372,7 +363,7 @@ public class ProtoSerializer {
 	}
 
 	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder, String newTypeSuffix,
-			String packageName, Set<String> usedNames, MessageType mt, List<LocalType> localTypes) {
+			String packageName, Set<String> usedNames, MessageType mt) {
 		String messageName = mt.getName();
 		if (messageName.contains(generatedRandomTypePlaceholder)) {
 			String newMessageName = messageName.replaceAll(generatedRandomTypePlaceholder, newTypeSuffix);
@@ -381,7 +372,7 @@ public class ProtoSerializer {
 				usedNames.add(newMessageName);
 				updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 			} else {
-				LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+				LOGGER.warn("Cannot rename message {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 			}
 		}
 	}
@@ -413,7 +404,7 @@ public class ProtoSerializer {
 						usedNames.add(newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
-						LOGGER.warn("Cannot uppercase enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+						LOGGER.warn("Cannot uppercase enum {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 					}
 				}
 			}
@@ -429,7 +420,7 @@ public class ProtoSerializer {
 				usedNames.add(newMessageName);
 				updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 			} else {
-				LOGGER.warn("Cannot uppercase message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+				LOGGER.warn("Cannot uppercase message {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 			}
 		}
 	}
@@ -480,12 +471,12 @@ public class ProtoSerializer {
 		case "-":
 			return "minus";
 		default:
-			return name.replaceAll("-", "");
+			return name.replace("-", "");
 		}
 
 	}
 
-	private void parseWrittenFiles(List<File> writtenProtoFiles) throws IOException {
+	private void parseWrittenFiles() throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
 
 		try {
@@ -503,13 +494,13 @@ public class ProtoSerializer {
 			schemaLoader.addSource(configuration.outputDirectory);
 
 			for (Path s : schemaLoader.sources()) {
-				LOGGER.debug("Linking proto from path " + s);
+				LOGGER.debug("Linking proto from path {}", s);
 			}
 			for (String s : schemaLoader.protos()) {
-				LOGGER.debug("Linking proto " + s);
+				LOGGER.debug("Linking proto {}", s);
 			}
 
-			Schema schema = schemaLoader.load();
+			schemaLoader.load();
 		} catch (IOException e) {
 			LOGGER.error("Parsing of written output failed, the proto files are not valid", e);
 			throw e;
@@ -523,16 +514,11 @@ public class ProtoSerializer {
 	 * LOGGER.error("Linking failed, the proto file is not valid", e); }
 	 *
 	 * }
+	 * 
+	 * public static <T> Iterable<T> getIterableFromIterator(Iterator<T> iterator) { return new Iterable<T>() {
+	 * 
+	 * @Override public Iterator<T> iterator() { return iterator; } }; }
 	 */
-	public static <T> Iterable<T> getIterableFromIterator(Iterator<T> iterator) {
-		return new Iterable<T>() {
-			@Override
-			public Iterator<T> iterator() {
-				return iterator;
-			}
-		};
-	}
-
 	private void computeFilenames(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
 			ProtoFile file = protoFile.getValue();
@@ -570,7 +556,7 @@ public class ProtoSerializer {
 			fileImports.addAll(file.imports());
 			for (int i = 0; i < fileImports.size(); i++) {
 				// Removing path-info from fileimport
-				fileImports.set(i, fileImports.get(i).substring(fileImports.get(i).lastIndexOf("/") + 1));
+				fileImports.set(i, fileImports.get(i).substring(fileImports.get(i).lastIndexOf('/') + 1));
 			}
 			imports.put(file.toString(), fileImports);
 		}
@@ -689,7 +675,7 @@ public class ProtoSerializer {
 				if (fileToImport != null) {
 					imports.add(getPathFromPackageName(packageName) + "/" + fileToImport.location().getPath());
 				} else {
-					LOGGER.error("Tried to create import for field packageName " + packageName + ", but no such protofile exist");
+					LOGGER.error("Tried to create import for field packageName {}, but no such protofile exist", packageName);
 				}
 			}
 		}
@@ -726,21 +712,18 @@ public class ProtoSerializer {
 				// TODO must this be done for nested types as well or handled differently?
 				for (Field field : mt.fieldsAndOneOfFields()) {
 					String fieldElementType = StringUtils.trimToNull(field.getElementType());
-					if (fieldElementType != null) {
-						if (fieldElementType.contains(".")) {
-							for (String pkg : packageToProtoFileMap.keySet()) {
-								if (!fieldElementType.equals(pkg)) {
-									String rootFieldElementType = fieldElementType.split("\\.")[0];
-									if (pkg.contains("." + rootFieldElementType + ".")) {
-										// elementType should only be prepended when root-package of elementType matches a non-root package
-										field.updateElementType("." + fieldElementType);
-									}
+					if (fieldElementType != null && fieldElementType.contains(".")) {
+						for (String pkg : packageToProtoFileMap.keySet()) {
+							if (!fieldElementType.equals(pkg)) {
+								String rootFieldElementType = fieldElementType.split("\\.")[0];
+								if (pkg.contains("." + rootFieldElementType + ".")) {
+									// elementType should only be prepended when root-package of elementType matches a non-root package
+									field.updateElementType("." + fieldElementType);
 								}
 							}
 						}
 					}
 				}
-
 			});
 		}
 	}
@@ -752,7 +735,7 @@ public class ProtoSerializer {
 	}
 
 	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap, List<Type> types, String packageName) {
-		if (types.size() > 0) {
+		if (!types.isEmpty()) {
 			Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
 			for (Type type : types) {
 				if (type instanceof MessageType) {
@@ -769,7 +752,7 @@ public class ProtoSerializer {
 							usedNames.add(newMessageName);
 							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 						} else {
-							LOGGER.warn("Cannot rename message " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+							LOGGER.warn("Cannot rename message {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 						}
 
 					}
@@ -786,7 +769,7 @@ public class ProtoSerializer {
 							usedNames.add(newMessageName);
 							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 						} else {
-							LOGGER.warn("Cannot rename enum " + messageName + " to " + newMessageName + " as type already exist! Renaming ignored");
+							LOGGER.warn("Cannot rename enum {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 						}
 					}
 				}
@@ -800,7 +783,7 @@ public class ProtoSerializer {
 			if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
 				String newFieldType = typeAndFieldNameMapper.translateType(field.getElementType());
 				if (!newFieldType.equals(field.getElementType())) {
-					LOGGER.debug("Replacing basicType " + field.getElementType() + " with " + newFieldType);
+					LOGGER.debug("Replacing basicType {} with {}", field.getElementType(), newFieldType);
 					field.updateElementType(newFieldType);
 				}
 			}
@@ -839,16 +822,9 @@ public class ProtoSerializer {
 	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, List<Type> types, String currentMessageTypePackage) {
 		for (Type type : types) {
 			updateTypeReferences(packageNameOfType, oldName, newName, type.nestedTypes(), currentMessageTypePackage);
-
 			if (type instanceof MessageType) {
 				MessageType mt = (MessageType) type;
-
-				/*
-				 * mt.nestedTypes() .stream() .filter(e -> e instanceof MessageType) .forEach(e -> updateTypeReferences(packageNameOfType, oldName, newName,
-				 * (MessageType) e, ((MessageType) e).fieldsAndOneOfFields(), currentMessageTypePackage));
-				 */
 				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fieldsAndOneOfFields(), currentMessageTypePackage);
-
 			}
 		}
 	}
@@ -860,7 +836,7 @@ public class ProtoSerializer {
 				String fieldType = field.getElementType();
 				if (fieldType.equals(oldName)) {
 					field.updateElementType(newName);
-					LOGGER.debug("Updating field " + oldName + " in type " + mt.getName() + " to " + newName);
+					LOGGER.debug("Updating field {} in type {} to {}", oldName, mt.getName(), newName);
 				}
 			}
 		}
@@ -1037,7 +1013,7 @@ public class ProtoSerializer {
 		XSComplexType enclosingComplexType;
 		String messageName;
 
-		public ComponentMessageWrapper(XSComponent xsComponent, XSComplexType enclosingComplexType, String messageName, String enclosingMessageName) {
+		public ComponentMessageWrapper(XSComponent xsComponent, XSComplexType enclosingComplexType, String messageName) {
 			this.xsComponent = xsComponent;
 			this.enclosingComplexType = enclosingComplexType;
 			this.messageName = messageName;
@@ -1054,7 +1030,7 @@ public class ProtoSerializer {
 	private void moveReusedLocalTypesToGlobal(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypesAllPackages) {
 		LOGGER.debug("Reorganizing embedded local types into global if reused");
 
-		localTypesAllPackages.forEach(e -> LOGGER.debug(e.enclosingType.getName() + " -> " + e.localType.getName()));
+		localTypesAllPackages.forEach(e -> LOGGER.debug("{} -> {}", e.enclosingType.getName(), e.localType.getName()));
 
 		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
 
@@ -1066,8 +1042,7 @@ public class ProtoSerializer {
 			List<LocalType> localTypes = localTypesAllPackages.stream().filter(e -> e.targetPackage.equals(currentPackageName)).collect(Collectors.toList());
 
 			localTypes.forEach(e -> {
-				ComponentMessageWrapper wrapper = new ComponentMessageWrapper(e.xsComponent, e.enclosingComplexType, e.localType.getName(),
-						e.enclosingType.getName());
+				ComponentMessageWrapper wrapper = new ComponentMessageWrapper(e.xsComponent, e.enclosingComplexType, e.localType.getName());
 
 				Integer count = seenComplexTypesWithSameName.get(wrapper);
 				if (count == null) {
@@ -1079,7 +1054,7 @@ public class ProtoSerializer {
 
 			});
 
-			seenComplexTypesWithSameName.forEach((key, value) -> LOGGER.debug(key + " :" + value));
+			seenComplexTypesWithSameName.forEach((key, value) -> LOGGER.debug("{} : {}", key, value));
 
 			seenComplexTypesWithSameName.entrySet().stream().filter(e -> e.getValue() > 1).forEach(e -> {
 
@@ -1113,7 +1088,7 @@ public class ProtoSerializer {
 					// DuplicateCheck
 					String candidateName = currentComponent.messageName;
 
-					if (usagesOtherComponentsSameTypeName.size() > 0) {
+					if (!usagesOtherComponentsSameTypeName.isEmpty()) {
 						Set<String> enclosingTypes = usagesThisComponent.stream().map(k -> k.enclosingComplexType.getName()).collect(Collectors.toSet());
 						if (enclosingTypes.size() > 1) {
 							throw new IllegalArgumentException(String.format(
@@ -1142,9 +1117,9 @@ public class ProtoSerializer {
 									y.referencingField.name(), previousElementType, localToBecomeGlobal.getName());
 						});
 					} else {
-						LOGGER.warn("Could not extract local type " + currentComponent.messageName + " from " + first.enclosingType.getName()
-								+ " using new global name " + candidateName
-								+ " due to an existing type with this name. This is a limitation of the current code but can be fixed with a better naming scheme");
+						LOGGER.warn(
+								"Could not extract local type {} from {} using new global name {} due to an existing type with this name. This is a limitation of the current code but can be fixed with a better naming scheme",
+								currentComponent.messageName, first.enclosingType.getName(), candidateName);
 					}
 				} else {
 					LOGGER.debug("Not extracting {} due to single enclosing type {}", first.localType.getName(), first.enclosingType.getName());
