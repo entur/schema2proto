@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.squareup.wire.schema;
-
 /*-
  * #%L
  * schema2proto-wire
@@ -24,12 +22,12 @@ package com.squareup.wire.schema;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,6 +35,7 @@ package com.squareup.wire.schema;
  * limitations under the Licence.
  * #L%
  */
+package com.squareup.wire.schema;
 
 /**
  * Identifies a field, enum or RPC on a declaring type. Members are encoded as strings containing a type name, a hash, and a member name, like
@@ -57,8 +56,9 @@ public final class ProtoMember {
 
 	public static ProtoMember get(String typeAndMember) {
 		int hash = typeAndMember.indexOf('#');
-		if (hash == -1)
+		if (hash == -1) {
 			throw new IllegalArgumentException("expected a '#' in " + typeAndMember);
+		}
 		ProtoType type = ProtoType.get(typeAndMember.substring(0, hash));
 		String member = typeAndMember.substring(hash + 1);
 		return new ProtoMember(type, member);

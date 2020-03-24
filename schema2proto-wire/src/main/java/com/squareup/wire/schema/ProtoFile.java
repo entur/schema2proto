@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.squareup.wire.schema;
 
 /*-
  * #%L
@@ -24,12 +23,12 @@ package com.squareup.wire.schema;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,6 +36,7 @@ package com.squareup.wire.schema;
  * limitations under the Licence.
  * #L%
  */
+package com.squareup.wire.schema;
 
 import static com.squareup.wire.schema.Options.FILE_OPTIONS;
 
@@ -257,8 +257,9 @@ public final class ProtoFile {
 
 		public static Syntax get(String string) {
 			for (Syntax syntax : values()) {
-				if (syntax.string.equals(string))
+				if (syntax.string.equals(string)) {
 					return syntax;
+				}
 			}
 			throw new IllegalArgumentException("unexpected syntax: " + string);
 		}

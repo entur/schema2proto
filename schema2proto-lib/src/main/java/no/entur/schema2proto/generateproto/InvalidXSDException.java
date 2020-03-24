@@ -1,5 +1,3 @@
-package no.entur.schema2proto.generateproto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,6 +20,7 @@ package no.entur.schema2proto.generateproto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto.generateproto;
 
 public class InvalidXSDException extends Exception {
 	private static final long serialVersionUID = -5971010798616188572L;

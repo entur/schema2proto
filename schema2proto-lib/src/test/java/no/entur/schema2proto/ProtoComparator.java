@@ -1,5 +1,3 @@
-package no.entur.schema2proto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,6 +20,7 @@ package no.entur.schema2proto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

@@ -19,7 +19,7 @@ package com.squareup.wire.schema;
  * #%L
  * schema2proto-wire
  * %%
- * Copyright (C) 2019 Entur
+ * Copyright (C) 2019 - 2020 Entur
  * %%
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
