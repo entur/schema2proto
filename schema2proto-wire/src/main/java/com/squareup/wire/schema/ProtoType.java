@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.squareup.wire.schema;
+
 /*-
  * #%L
  * schema2proto-wire
@@ -22,12 +24,12 @@
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- *
+ * 
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- *
+ * 
  * http://ec.europa.eu/idabc/eupl5
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,8 +37,6 @@
  * limitations under the Licence.
  * #L%
  */
-
-package com.squareup.wire.schema;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -68,63 +68,63 @@ public final class ProtoType {
 	private static final Map<String, ProtoType> SCALAR_TYPES;
 	static {
 		Map<String, ProtoType> scalarTypes = new LinkedHashMap<>();
-		scalarTypes.put(BOOL.typeName, BOOL);
-		scalarTypes.put(BYTES.typeName, BYTES);
-		scalarTypes.put(DOUBLE.typeName, DOUBLE);
-		scalarTypes.put(FLOAT.typeName, FLOAT);
-		scalarTypes.put(FIXED32.typeName, FIXED32);
-		scalarTypes.put(FIXED64.typeName, FIXED64);
-		scalarTypes.put(INT32.typeName, INT32);
-		scalarTypes.put(INT64.typeName, INT64);
-		scalarTypes.put(SFIXED32.typeName, SFIXED32);
-		scalarTypes.put(SFIXED64.typeName, SFIXED64);
-		scalarTypes.put(SINT32.typeName, SINT32);
-		scalarTypes.put(SINT64.typeName, SINT64);
-		scalarTypes.put(STRING.typeName, STRING);
-		scalarTypes.put(UINT32.typeName, UINT32);
-		scalarTypes.put(UINT64.typeName, UINT64);
+		scalarTypes.put(BOOL.string, BOOL);
+		scalarTypes.put(BYTES.string, BYTES);
+		scalarTypes.put(DOUBLE.string, DOUBLE);
+		scalarTypes.put(FLOAT.string, FLOAT);
+		scalarTypes.put(FIXED32.string, FIXED32);
+		scalarTypes.put(FIXED64.string, FIXED64);
+		scalarTypes.put(INT32.string, INT32);
+		scalarTypes.put(INT64.string, INT64);
+		scalarTypes.put(SFIXED32.string, SFIXED32);
+		scalarTypes.put(SFIXED64.string, SFIXED64);
+		scalarTypes.put(SINT32.string, SINT32);
+		scalarTypes.put(SINT64.string, SINT64);
+		scalarTypes.put(STRING.string, STRING);
+		scalarTypes.put(UINT32.string, UINT32);
+		scalarTypes.put(UINT64.string, UINT64);
 		SCALAR_TYPES = Collections.unmodifiableMap(scalarTypes);
 	}
 
 	private final boolean isScalar;
-	private final String typeName;
+	private final String string;
 	private final boolean isMap;
 	private final ProtoType keyType;
 	private final ProtoType valueType;
 
 	/** Creates a scalar or message type. */
-	private ProtoType(boolean isScalar, String typeName) {
-		checkNotNull(typeName, "typeName == null");
+	private ProtoType(boolean isScalar, String string) {
+		checkNotNull(string, "string == null");
 		this.isScalar = isScalar;
-		this.typeName = typeName;
+		this.string = string;
 		this.isMap = false;
 		this.keyType = null;
 		this.valueType = null;
 	}
 
 	/** Creates a map type. */
-	ProtoType(ProtoType keyType, ProtoType valueType, String typeName) {
+	ProtoType(ProtoType keyType, ProtoType valueType, String string) {
 		checkNotNull(keyType, "keyType == null");
 		checkNotNull(valueType, "valueType == null");
-		checkNotNull(typeName, "typeName == null");
+		checkNotNull(string, "string == null");
 		checkArgument(keyType.isScalar() && !keyType.equals(BYTES) && !keyType.equals(DOUBLE) && !keyType.equals(FLOAT),
 				"map key must be non-byte, non-floating point scalar: %s", keyType);
 		this.isScalar = false;
-		this.typeName = typeName;
+		this.string = string;
 		this.isMap = true;
 		this.keyType = keyType; // TODO restrict what's allowed here
 		this.valueType = valueType;
 	}
 
 	public String simpleName() {
-		int dot = typeName.lastIndexOf('.');
-		return typeName.substring(dot + 1);
+		int dot = string.lastIndexOf('.');
+		return string.substring(dot + 1);
 	}
 
 	/** Returns the enclosing type, or null if this type is not nested in another type. */
 	public String enclosingTypeOrPackage() {
-		int dot = typeName.lastIndexOf('.');
-		return dot == -1 ? null : typeName.substring(0, dot);
+		int dot = string.lastIndexOf('.');
+		return dot == -1 ? null : string.substring(0, dot);
 	}
 
 	public boolean isScalar() {
@@ -151,9 +151,8 @@ public final class ProtoType {
 
 	public static ProtoType get(String name) {
 		ProtoType scalar = SCALAR_TYPES.get(name);
-		if (scalar != null) {
+		if (scalar != null)
 			return scalar;
-		}
 
 		if (name == null || name.isEmpty() || name.contains("#")) {
 			throw new IllegalArgumentException("unexpected name: " + name);
@@ -161,9 +160,8 @@ public final class ProtoType {
 
 		if (name.startsWith("map<") && name.endsWith(">")) {
 			int comma = name.indexOf(',');
-			if (comma == -1) {
+			if (comma == -1)
 				throw new IllegalArgumentException("expected ',' in map type: " + name);
-			}
 			ProtoType key = get(name.substring(4, comma).trim());
 			ProtoType value = get(name.substring(comma + 1, name.length() - 1).trim());
 			return new ProtoType(key, value, name);
@@ -182,21 +180,21 @@ public final class ProtoType {
 		if (name == null || name.contains(".") || name.isEmpty()) {
 			throw new IllegalArgumentException("unexpected name: " + name);
 		}
-		return new ProtoType(false, typeName + '.' + name);
+		return new ProtoType(false, string + '.' + name);
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		return o instanceof ProtoType && typeName.equals(((ProtoType) o).typeName);
+		return o instanceof ProtoType && string.equals(((ProtoType) o).string);
 	}
 
 	@Override
 	public int hashCode() {
-		return typeName.hashCode();
+		return string.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		return typeName;
+		return string;
 	}
 }

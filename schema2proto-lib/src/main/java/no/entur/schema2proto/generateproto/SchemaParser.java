@@ -1,3 +1,5 @@
+package no.entur.schema2proto.generateproto;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -20,7 +22,6 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto;
 
 import static com.squareup.wire.schema.MessageType.XSD_MESSAGE_OPTIONS_PACKAGE;
 
@@ -92,8 +93,6 @@ public class SchemaParser implements ErrorHandler {
 	public static final String GENERATED_NAME_PLACEHOLDER = "GeneratedTypePlaceholder";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
-	private static final String DEFAULT_PROTO_PRIMITIVE = "string";
-	private static final String SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION = "SimpleContent value of element";
 
 	private final Map<String, ProtoFile> packageToProtoFileMap = new TreeMap<>();
 
@@ -121,7 +120,6 @@ public class SchemaParser implements ErrorHandler {
 
 	public Map<String, ProtoFile> parse() throws SAXException, IOException {
 
-		@SuppressWarnings("java:S2755") // Needs fix inside XSOM package
 		SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
 		saxParserFactory.setNamespaceAware(true);
 
@@ -167,13 +165,15 @@ public class SchemaParser implements ErrorHandler {
 
 	private Type getType(String namespace, String typeName) {
 		ProtoFile protoFileForNamespace = getProtoFileForNamespace(namespace);
-		for (Type type : protoFileForNamespace.types()) {
-			if (type instanceof MessageType) {
-				if (((MessageType) type).getName().equals(typeName)) {
-					return type;
+		for (Type t : protoFileForNamespace.types()) {
+			if (t instanceof MessageType) {
+				if (((MessageType) t).getName().equals(typeName)) {
+					return t;
 				}
-			} else if (type instanceof EnumType && ((EnumType) type).name().equals(typeName)) {
-				return type;
+			} else if (t instanceof EnumType) {
+				if (((EnumType) t).name().equals(typeName)) {
+					return t;
+				}
 			}
 		}
 
@@ -201,7 +201,7 @@ public class SchemaParser implements ErrorHandler {
 					if (elementDecl.getType().isLocal()) {
 						processElement(elementDecl, schemaSet);
 					} else {
-						LOGGER.debug("Skipping global element {} declaration with global type {}", elementDecl.getName(), elementDecl.getType().getName());
+						LOGGER.debug("Skipping global element " + elementDecl.getName() + " declaration with global type " + elementDecl.getType().getName());
 					}
 				}
 			}
@@ -223,8 +223,8 @@ public class SchemaParser implements ErrorHandler {
 			xs = el.getType().asSimpleType();
 			return processSimpleType(xs, el.getName());
 		} else {
-			LOGGER.info("Unhandled element {} at {} location {}/{}", el, el.getLocator().getSystemId(), el.getLocator().getLineNumber(),
-					el.getLocator().getColumnNumber());
+			LOGGER.info("Unhandled element " + el + " at " + el.getLocator().getSystemId() + " at line/col " + el.getLocator().getLineNumber() + "/"
+					+ el.getLocator().getColumnNumber());
 
 			return null;
 		}
@@ -234,7 +234,7 @@ public class SchemaParser implements ErrorHandler {
 
 		nestingLevel++;
 
-		LOGGER.debug("{} SimpleType {}", StringUtils.leftPad(" ", nestingLevel), xs);
+		LOGGER.debug(StringUtils.leftPad(" ", nestingLevel) + "SimpleType " + xs);
 
 		String typeName = xs.getName();
 
@@ -242,7 +242,7 @@ public class SchemaParser implements ErrorHandler {
 			typeName = elementName + GENERATED_NAME_PLACEHOLDER;
 		}
 
-		if (xs.isRestriction() && xs.getFacet(XSFacet.FACET_ENUMERATION) != null) {
+		if (xs.isRestriction() && xs.getFacet("enumeration") != null) {
 			createEnum(typeName, xs.asRestriction(), null);
 		}
 
@@ -302,7 +302,7 @@ public class SchemaParser implements ErrorHandler {
 
 				if (type.isSimpleType()) {
 
-					if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet(XSFacet.FACET_ENUMERATION) != null) {
+					if (type.asSimpleType().isRestriction() && type.asSimpleType().getFacet("enumeration") != null) {
 						String enumName = createEnum(currElementDecl.getName(), type.asSimpleType().asRestriction(), type.isGlobal() ? null : messageType);
 						Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, messageType.getNextFieldNum(), enumName,
 								fieldOptions, true);
@@ -398,7 +398,7 @@ public class SchemaParser implements ErrorHandler {
 
 		// First see if there are rules associated with attribute declaration
 		List<OptionElement> validationRule = ruleFactory.getValidationRule(attributeDecl);
-		if (!validationRule.isEmpty()) {
+		if (validationRule.size() > 0) {
 			optionElements.addAll(validationRule);
 		} else {
 			// Check attribute TYPE rules
@@ -424,8 +424,9 @@ public class SchemaParser implements ErrorHandler {
 					return findFieldType(type.asSimpleType().asRestriction().getBaseType());
 
 				} catch (ClassCastException e) {
-					LOGGER.warn("Error getting base type for restriction {}. Appears to be a bug in xsom. Fallback to string field type (best guess)", type);
-					return DEFAULT_PROTO_PRIMITIVE;
+					LOGGER.warn(
+							"Error getting base type for restriction " + type + ". Appears to be a bug in xsom. Fallback to string field type (best guess)");
+					return "string";
 				}
 
 				// findFieldType((findBaseType(restriction));
@@ -436,7 +437,7 @@ public class SchemaParser implements ErrorHandler {
 				XSSimpleType itemType = asList.getItemType();
 				typeName = itemType.getName();
 			} else if (type.asSimpleType().isUnion()) {
-				typeName = DEFAULT_PROTO_PRIMITIVE; // Union always resolves to string
+				typeName = "string"; // Union always resolves to string
 			} else {
 				typeName = type.asSimpleType().getBaseType().getName();
 			}
@@ -484,7 +485,7 @@ public class SchemaParser implements ErrorHandler {
 
 		nestingLevel++;
 
-		LOGGER.debug("{} ComplexType {}, proto {}", StringUtils.leftPad(" ", nestingLevel), complexType, messageType);
+		LOGGER.debug(StringUtils.leftPad(" ", nestingLevel) + "ComplexType " + complexType + ", proto " + messageType);
 
 		boolean isBaseLevel = messageType == null;
 
@@ -496,7 +497,7 @@ public class SchemaParser implements ErrorHandler {
 		if (messageType == null) {
 			if (configuration.skipEmptyTypeInheritance) {
 
-				while (complexType.getContentType().asParticle() == null && complexType.getAttributeUses().isEmpty()
+				while (complexType.getContentType().asParticle() == null && complexType.getAttributeUses().size() == 0
 						&& complexType.getBaseType().isComplexType()) {
 					// Empty complex type
 					complexType = complexType.getBaseType().asComplexType();
@@ -539,7 +540,7 @@ public class SchemaParser implements ErrorHandler {
 				// Add message type to file
 				messageType = new MessageType(ProtoType.get(typeName), location, doc, typeName, options);
 
-				if (complexType.isGlobal() || (complexType.getScope() != null && complexType.getScope().isGlobal())) {
+				if (complexType.isGlobal() | (complexType.getScope() != null && complexType.getScope().isGlobal())) {
 					/*
 					 * Type is global OR scope is global
 					 */
@@ -552,7 +553,7 @@ public class SchemaParser implements ErrorHandler {
 				elementDeclarationsPerMessageType.put(messageType, processedXmlObjects);
 
 			} else {
-				LOGGER.debug("{} Already processed ComplexType {}, ignored", StringUtils.leftPad(" ", nestingLevel), typeName);
+				LOGGER.debug(StringUtils.leftPad(" ", nestingLevel) + "Already processed ComplexType " + typeName + ", ignored");
 				nestingLevel--;
 				return messageType;
 			}
@@ -582,6 +583,7 @@ public class SchemaParser implements ErrorHandler {
 					List<OptionElement> optionElements = new ArrayList<>();
 					Options fieldOptions = new Options(Options.FIELD_OPTIONS, optionElements);
 					int tag = messageType.getNextFieldNum();
+					Label label = null;
 					Location fieldLocation = getLocation(complexType);
 
 					Field field = new Field(findPackageNameForType(parentMessageType), fieldLocation, null, "_" + parentMessageType.getName(), fieldDoc, tag,
@@ -589,7 +591,7 @@ public class SchemaParser implements ErrorHandler {
 
 					addField(messageType, field);
 				}
-				if (!parentTypes.isEmpty()) {
+				if (parentTypes.size() > 0) {
 					messageType.advanceFieldNum();
 				}
 			}
@@ -635,7 +637,7 @@ public class SchemaParser implements ErrorHandler {
 
 				String name;
 				if (xsSimpleType.isUnion()) {
-					name = DEFAULT_PROTO_PRIMITIVE;
+					name = "string";
 				} else {
 					name = xsSimpleType.getName();
 				}
@@ -650,23 +652,23 @@ public class SchemaParser implements ErrorHandler {
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
 					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, "value",
-							SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(), simpleTypeName, fieldOptions, true);
+							"SimpleContent value of element", messageType.getNextFieldNum(), simpleTypeName, fieldOptions, true);
 					addField(messageType, field);
 
 				} else if (basicTypes.contains(name)) {
-					Field field = new Field(null, fieldLocation, label, "value", SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(), name,
+					Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", messageType.getNextFieldNum(), name,
 							fieldOptions, true);
 					addField(messageType, field);
 
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
 					if (primitiveType != null) {
-						Field field = new Field(null, fieldLocation, label, "value", SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(),
+						Field field = new Field(null, fieldLocation, label, "value", "SimpleContent value of element", messageType.getNextFieldNum(),
 								primitiveType.getName(), fieldOptions, true);
 						addField(messageType, field);
 
 					} else {
-						LOGGER.warn("Unhandled simpleType {}", xsSimpleType);
+						LOGGER.warn("Unhandled simpleType " + xsSimpleType);
 					}
 				}
 			}
@@ -683,7 +685,7 @@ public class SchemaParser implements ErrorHandler {
 		} else {
 			if (!complexType.isGlobal()) {
 				return false;
-			} else if (!complexType.getElementDecls().isEmpty()) {
+			} else if (complexType.getElementDecls().size() > 0) {
 				long numAbstractElementDecls = complexType.getElementDecls().stream().map(XSElementDecl::isAbstract).count();
 				return complexType.getElementDecls().size() == numAbstractElementDecls;
 			} else {
@@ -752,7 +754,7 @@ public class SchemaParser implements ErrorHandler {
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 				Label label = type.isList() ? Label.REPEATED : null;
 
-				if (type.isRestriction() && type.getFacet(XSFacet.FACET_ENUMERATION) != null) {
+				if (type.isRestriction() && type.getFacet("enumeration") != null) {
 					String enumName = createEnum(fieldName, type.asRestriction(), decl.isLocal() ? messageType : null);
 
 					Field field = new Field(packageName, fieldLocation, label, fieldName, doc, tag, enumName, fieldOptions, false);
@@ -769,7 +771,7 @@ public class SchemaParser implements ErrorHandler {
 
 				}
 			} else {
-				LOGGER.error("Unhandled attribute use {}", attr.getDecl());
+				LOGGER.error("Unhandled attribute use " + attr.getDecl().toString());
 			}
 		}
 	}
@@ -907,22 +909,23 @@ public class SchemaParser implements ErrorHandler {
 
 	private String resolveDocumentationAnnotation(XSComponent xsComponent) {
 		String doc = "";
-		if (xsComponent.getAnnotation() != null && xsComponent.getAnnotation().getAnnotation() instanceof Node) {
-			Node annotationEl = (Node) xsComponent.getAnnotation().getAnnotation();
-			NodeList annotations = annotationEl.getChildNodes();
+		if (xsComponent.getAnnotation() != null && xsComponent.getAnnotation().getAnnotation() != null) {
+			if (xsComponent.getAnnotation().getAnnotation() instanceof Node) {
+				Node annotationEl = (Node) xsComponent.getAnnotation().getAnnotation();
+				NodeList annotations = annotationEl.getChildNodes();
 
-			for (int i = 0; i < annotations.getLength(); i++) {
-				Node annotation = annotations.item(i);
-				if ("documentation".equals(annotation.getLocalName())) {
+				for (int i = 0; i < annotations.getLength(); i++) {
+					Node annotation = annotations.item(i);
+					if ("documentation".equals(annotation.getLocalName())) {
 
-					NodeList childNodes = annotation.getChildNodes();
-					for (int j = 0; j < childNodes.getLength(); j++) {
-						if (childNodes.item(j) instanceof Text) {
-							doc = childNodes.item(j).getNodeValue();
+						NodeList childNodes = annotation.getChildNodes();
+						for (int j = 0; j < childNodes.getLength(); j++) {
+							if (childNodes.item(j) != null && childNodes.item(j) instanceof Text) {
+								doc = childNodes.item(j).getNodeValue();
+							}
 						}
 					}
 				}
-
 			}
 		}
 
@@ -933,11 +936,13 @@ public class SchemaParser implements ErrorHandler {
 			b.append(" ");
 		}
 
-		if (configuration.includeSourceLocationInDoc && xsComponent.getLocator() != null) {
-			Location loc = getLocation(xsComponent);
-			b.append(" [");
-			b.append(loc.withoutBase());
-			b.append("]");
+		if (configuration.includeSourceLocationInDoc) {
+			if (xsComponent != null && xsComponent.getLocator() != null) {
+				Location loc = getLocation(xsComponent);
+				b.append(" [");
+				b.append(loc.withoutBase());
+				b.append("]");
+			}
 		}
 		return StringUtils.trimToEmpty(b.toString());
 	}
@@ -1021,21 +1026,20 @@ public class SchemaParser implements ErrorHandler {
 
 	@Override
 	public void error(SAXParseException exception) {
-		handle(exception);
+		LOGGER.error(exception.getMessage() + " at " + exception.getSystemId());
+		exception.printStackTrace();
 	}
 
 	@Override
 	public void fatalError(SAXParseException exception) {
-		handle(exception);
+		LOGGER.error(exception.getMessage() + " at " + exception.getSystemId());
+		exception.printStackTrace();
 	}
 
 	@Override
 	public void warning(SAXParseException exception) {
-		handle(exception);
-	}
-
-	private void handle(SAXParseException exception) {
-		LOGGER.error("{} at {}", exception.getMessage(), exception.getSystemId(), exception);
+		LOGGER.warn(exception.getMessage() + " at " + exception.getSystemId());
+		exception.printStackTrace();
 	}
 
 	public List<LocalType> getLocalTypes() {

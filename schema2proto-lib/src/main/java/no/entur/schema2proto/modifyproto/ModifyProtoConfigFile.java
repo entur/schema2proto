@@ -1,3 +1,5 @@
+package no.entur.schema2proto.modifyproto;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -20,7 +22,6 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.modifyproto;
 
 import java.util.List;
 

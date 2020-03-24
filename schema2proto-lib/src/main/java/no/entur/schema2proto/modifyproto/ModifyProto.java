@@ -1,3 +1,5 @@
+package no.entur.schema2proto.modifyproto;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -20,7 +22,6 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.modifyproto;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -61,15 +62,12 @@ import com.squareup.wire.schema.internal.parser.OptionReader;
 import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
-import no.entur.schema2proto.modifyproto.config.FieldOption;
-import no.entur.schema2proto.modifyproto.config.MergeFrom;
-import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
-import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
-import no.entur.schema2proto.modifyproto.config.NewField;
+import no.entur.schema2proto.generateproto.Schema2Proto;
+import no.entur.schema2proto.modifyproto.config.*;
 
 public class ModifyProto {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ModifyProto.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
 	public void modifyProto(File configFile, File basedir) throws IOException, InvalidConfigurationException, InvalidProtobufException {
 
@@ -161,10 +159,10 @@ public class ModifyProto {
 		schemaLoader.addSource(configuration.inputDirectory);
 
 		for (Path s : schemaLoader.sources()) {
-			LOGGER.info("Linking proto from path {}", s);
+			LOGGER.info("Linking proto from path " + s);
 		}
 		for (String s : schemaLoader.protos()) {
-			LOGGER.info("Linking proto {}", s);
+			LOGGER.info("Linking proto " + s);
 		}
 
 		Schema schema = schemaLoader.load();
@@ -184,10 +182,10 @@ public class ModifyProto {
 		}
 		Schema prunedSchema = schema.prune(finalIterationIdentifiers);
 		for (String s : finalIterationIdentifiers.unusedExcludes()) {
-			LOGGER.warn("Unused exclude: {} (already excluded elsewhere or explicitly included?)", s);
+			LOGGER.warn("Unused exclude: (already excluded elsewhere or explicitly included?) " + s);
 		}
 		for (String s : finalIterationIdentifiers.unusedIncludes()) {
-			LOGGER.warn("Unused include: {} (already included elsewhere or explicitly excluded?) ", s);
+			LOGGER.warn("Unused include: (already included elsewhere or explicitly excluded?) " + s);
 		}
 
 		for (NewField newField : configuration.newFields) {
@@ -209,7 +207,7 @@ public class ModifyProto {
 		Set<String> emptyImportLocations = protosLoaded.stream()
 				.map(prunedSchema::protoFile)
 				.filter(Objects::nonNull)
-				.filter(this::isEmptyFile)
+				.filter(p -> isEmptyFile(p))
 				.map(p -> p.location().getPath())
 				.collect(Collectors.toSet());
 
@@ -223,7 +221,7 @@ public class ModifyProto {
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-			LOGGER.info("Wrote file {}", outputFile.getPath());
+			LOGGER.info("Wrote file " + outputFile.getPath());
 
 		});
 
@@ -333,7 +331,7 @@ public class ModifyProto {
 			// Duplicate check
 			Optional<EnumConstant> existing = enumType.constants()
 					.stream()
-					.filter(e -> e.getName().equals(enumConstant.getName()) || e.getTag() == enumConstant.getTag())
+					.filter(e -> e.getName().equals(enumConstant.getName().equals(e.getName()) || e.getTag() == enumConstant.getTag()))
 					.findFirst();
 			if (existing.isPresent()) {
 				throw new InvalidProtobufException("Enum constant already present: " + newEnumConstant);

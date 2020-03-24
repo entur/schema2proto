@@ -1,3 +1,5 @@
+package no.entur.schema2proto.generateproto;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -20,14 +22,8 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -143,7 +139,7 @@ public class TypeAndNameMapper {
 			}
 		}
 
-		type = type.replace("-", "");
+		type = type.replaceAll("-", "");
 
 		return type;
 
@@ -180,66 +176,66 @@ public class TypeAndNameMapper {
 
 	private Set<String> getReservedWords() {
 
-		Set<String> reservedWords = new HashSet<>();
-		reservedWords.add("abstract");
-		reservedWords.add("assert");
-		reservedWords.add("boolean");
-		reservedWords.add("break");
-		reservedWords.add("byte");
-		reservedWords.add("case");
-		reservedWords.add("catch");
-		reservedWords.add("char");
-		reservedWords.add("class");
-		reservedWords.add("const");
-		reservedWords.add("default");
+		Set<String> reservedJavaKeywords = new HashSet<>();
+		reservedJavaKeywords.add("abstract");
+		reservedJavaKeywords.add("assert");
+		reservedJavaKeywords.add("boolean");
+		reservedJavaKeywords.add("break");
+		reservedJavaKeywords.add("byte");
+		reservedJavaKeywords.add("case");
+		reservedJavaKeywords.add("catch");
+		reservedJavaKeywords.add("char");
+		reservedJavaKeywords.add("class");
+		reservedJavaKeywords.add("const");
+		reservedJavaKeywords.add("default");
 
-		reservedWords.add("do");
-		reservedWords.add("double");
-		reservedWords.add("else");
-		reservedWords.add("enum");
-		reservedWords.add("extends");
-		reservedWords.add("false");
-		reservedWords.add("final");
-		reservedWords.add("finally");
-		reservedWords.add("float");
-		reservedWords.add("for");
-		reservedWords.add("goto");
+		reservedJavaKeywords.add("do");
+		reservedJavaKeywords.add("double");
+		reservedJavaKeywords.add("else");
+		reservedJavaKeywords.add("enum");
+		reservedJavaKeywords.add("extends");
+		reservedJavaKeywords.add("false");
+		reservedJavaKeywords.add("final");
+		reservedJavaKeywords.add("finally");
+		reservedJavaKeywords.add("float");
+		reservedJavaKeywords.add("for");
+		reservedJavaKeywords.add("goto");
 
-		reservedWords.add("if");
-		reservedWords.add("implements");
-		reservedWords.add("import");
-		reservedWords.add("instanceof");
-		reservedWords.add("int");
-		reservedWords.add("interface");
-		reservedWords.add("long");
-		reservedWords.add("native");
-		reservedWords.add("new");
-		reservedWords.add("null");
-		reservedWords.add("package");
+		reservedJavaKeywords.add("if");
+		reservedJavaKeywords.add("implements");
+		reservedJavaKeywords.add("import");
+		reservedJavaKeywords.add("instanceof");
+		reservedJavaKeywords.add("int");
+		reservedJavaKeywords.add("interface");
+		reservedJavaKeywords.add("long");
+		reservedJavaKeywords.add("native");
+		reservedJavaKeywords.add("new");
+		reservedJavaKeywords.add("null");
+		reservedJavaKeywords.add("package");
 
-		reservedWords.add("private");
-		reservedWords.add("protected");
-		reservedWords.add("public");
-		reservedWords.add("return");
-		reservedWords.add("short");
-		reservedWords.add("static");
-		reservedWords.add("strictfp");
-		reservedWords.add("super");
-		reservedWords.add("switch");
-		reservedWords.add("synchronized");
+		reservedJavaKeywords.add("private");
+		reservedJavaKeywords.add("protected");
+		reservedJavaKeywords.add("public");
+		reservedJavaKeywords.add("return");
+		reservedJavaKeywords.add("short");
+		reservedJavaKeywords.add("static");
+		reservedJavaKeywords.add("strictfp");
+		reservedJavaKeywords.add("super");
+		reservedJavaKeywords.add("switch");
+		reservedJavaKeywords.add("synchronized");
 
-		reservedWords.add("this");
-		reservedWords.add("throw");
-		reservedWords.add("throws");
-		reservedWords.add("transient");
-		reservedWords.add("true");
-		reservedWords.add("try");
-		reservedWords.add("void");
-		reservedWords.add("volatile");
-		reservedWords.add("while");
-		reservedWords.add("continue");
+		reservedJavaKeywords.add("this");
+		reservedJavaKeywords.add("throw");
+		reservedJavaKeywords.add("throws");
+		reservedJavaKeywords.add("transient");
+		reservedJavaKeywords.add("true");
+		reservedJavaKeywords.add("try");
+		reservedJavaKeywords.add("void");
+		reservedJavaKeywords.add("volatile");
+		reservedJavaKeywords.add("while");
+		reservedJavaKeywords.add("continue");
 
-		return reservedWords;
+		return reservedJavaKeywords;
 	}
 
 	public String replaceType(String type) {

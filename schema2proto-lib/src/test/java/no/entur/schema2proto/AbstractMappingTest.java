@@ -1,3 +1,5 @@
+package no.entur.schema2proto;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -20,7 +22,6 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -44,7 +45,7 @@ import no.entur.schema2proto.generateproto.Schema2Proto;
 import no.entur.schema2proto.generateproto.Schema2ProtoConfiguration;
 import no.entur.schema2proto.modifyproto.InvalidProtobufException;
 import no.entur.schema2proto.modifyproto.ModifyProto;
-import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
+import no.entur.schema2proto.modifyproto.config.*;
 
 public abstract class AbstractMappingTest {
 

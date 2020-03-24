@@ -1,3 +1,14 @@
+package no.entur.schema2proto.generateproto;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -20,17 +31,6 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class NamespaceHelper {
 
@@ -42,20 +42,29 @@ public class NamespaceHelper {
 
 	public static String xmlNamespaceToProtoPackage(String namespace, String forceProtoPackage) {
 
-		String packageName;
+		String packageName = null;
 		if (forceProtoPackage != null) {
 			packageName = forceProtoPackage.toLowerCase();
 		} else if (StringUtils.trimToNull(namespace) == null) {
-			packageName = null;
+			packageName = null; // redundant;
 		} else {
 			packageName = namespaceToPackageNames.get(namespace);
 			if (packageName == null) {
 				try {
 					packageName = convertAsUrl(namespace);
 				} catch (MalformedURLException e) {
-					packageName = convertAsBrokenUrl(namespace);
-					LOGGER.warn("Unable to create decent package name from XML namespace {}, falling back to {} ", namespace, packageName, e);
+					LOGGER.warn("Unable to create decent package name from XML defaultProtoPackage " + namespace, e);
+					if (namespace.contains("://")) {
+						namespace = namespace.substring(namespace.indexOf("://") + 3);
+					}
+					namespace = namespace.replaceAll("/", ".").replace("-", ".");
+					if (namespace.startsWith("."))
+						namespace = namespace.substring(1);
+					if (namespace.endsWith("."))
+						namespace = namespace.substring(0, namespace.length() - 1);
+					packageName = namespace;
 				}
+
 				packageName = StringUtils.trimToNull(packageName).toLowerCase();
 
 				namespaceToPackageNames.put(namespace, packageName);
@@ -63,21 +72,6 @@ public class NamespaceHelper {
 		}
 
 		return packageName;
-	}
-
-	@NotNull
-	private static String convertAsBrokenUrl(String namespace) {
-		if (namespace.contains("://")) {
-			namespace = namespace.substring(namespace.indexOf("://") + 3);
-		}
-		namespace = namespace.replace("/", ".").replace("-", ".");
-		if (namespace.startsWith(".")) {
-			namespace = namespace.substring(1);
-		}
-		if (namespace.endsWith(".")) {
-			namespace = namespace.substring(0, namespace.length() - 1);
-		}
-		return namespace;
 	}
 
 	private static String convertAsUrl(String namespace) throws MalformedURLException {

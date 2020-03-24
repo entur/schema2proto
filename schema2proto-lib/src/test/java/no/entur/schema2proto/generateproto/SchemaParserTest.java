@@ -1,3 +1,5 @@
+package no.entur.schema2proto.generateproto;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -20,7 +22,6 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +30,6 @@ import org.junit.jupiter.api.Test;
 
 import no.entur.schema2proto.AbstractMappingTest;
 
-@SuppressWarnings("java:S2699")
 public class SchemaParserTest extends AbstractMappingTest {
 
 	private File expectedRootFolder = new File("src/test/resources/expectedproto/basic");

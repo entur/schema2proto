@@ -1,3 +1,5 @@
+package no.entur.schema2proto.generateproto;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -7,12 +9,12 @@
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- *
+ * 
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- *
+ * 
  * http://ec.europa.eu/idabc/eupl5
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,30 +22,19 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.squareup.wire.schema.internal.parser.OptionElement;
-import com.sun.xml.xsom.XSAttributeDecl;
-import com.sun.xml.xsom.XSFacet;
-import com.sun.xml.xsom.XSParticle;
-import com.sun.xml.xsom.XSRestrictionSimpleType;
-import com.sun.xml.xsom.XSSimpleType;
+import com.sun.xml.xsom.*;
 
 public class PGVRuleFactory {
 
 	public static final String VALIDATE_RULES_NAME = "validate.rules";
-	private static final String RULE_STRING_PATTERN = "string.pattern";
 	private final SchemaParser schemaParser;
 	private Schema2ProtoConfiguration configuration;
 	private final Set<String> basicTypes;
@@ -62,9 +53,11 @@ public class PGVRuleFactory {
 	}
 
 	public List<OptionElement> getValidationRule(XSParticle parentParticle) {
+		boolean addRules = false;
+
 		List<OptionElement> validationRules = new ArrayList<>();
 
-		if (configuration.includeValidationRules) {
+		if (configuration.includeValidationRules && addRules) {
 			int minOccurs = parentParticle.getMinOccurs() != null ? parentParticle.getMinOccurs().intValue() : 0; // Default
 			int maxOccurs = parentParticle.getMaxOccurs() != null && parentParticle.getMaxOccurs().intValue() != 0 ? parentParticle.getMaxOccurs().intValue()
 					: 1; // Default
@@ -90,7 +83,6 @@ public class PGVRuleFactory {
 		List<OptionElement> validationRules = new ArrayList<>();
 
 		if (configuration.includeValidationRules) {
-			// TODO
 		}
 		// TOOD check if optional
 		return validationRules;
@@ -110,7 +102,24 @@ public class PGVRuleFactory {
 				Collection<? extends XSFacet> declaredFacets = restriction.getDeclaredFacets();
 				String baseType = schemaParser.findFieldType(simpleType);
 				if ("string".equals(baseType)) {
-					addOptionForString(validationRules, declaredFacets);
+					Map<String, Object> parameters = new HashMap<>();
+					for (XSFacet facet : declaredFacets) {
+						switch (facet.getName()) {
+						case "pattern":
+							parameters.put("pattern", StringUtils.replace(facet.getValue().value, "\\", "\\\\")); // Add escaping of backslash
+							break;
+						case "minLength":
+							parameters.put("min_len", Integer.parseInt(facet.getValue().value));
+							break;
+						case "maxLength":
+							parameters.put("max_len", Integer.parseInt(facet.getValue().value));
+							break;
+
+						}
+					}
+					OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
+					OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
+					validationRules.add(e);
 				}
 
 				// TODO check baseType, add restrictions on it.
@@ -118,7 +127,7 @@ public class PGVRuleFactory {
 				// base rule, then select supported facets
 				// System.out.println("x");
 			} else {
-				LOGGER.warn("During validation rules extraction; Found anonymous simpleType that is not a restriction: {}", simpleType);
+				LOGGER.warn("During validation rules extraction; Found anonymous simpleType that is not a restriction", simpleType);
 
 			}
 
@@ -136,28 +145,6 @@ public class PGVRuleFactory {
 
 	}
 
-	private void addOptionForString(List<OptionElement> validationRules, Collection<? extends XSFacet> declaredFacets) {
-		Map<String, Object> parameters = new HashMap<>();
-		for (XSFacet facet : declaredFacets) {
-			switch (facet.getName()) {
-			case XSFacet.FACET_PATTERN:
-				parameters.put("pattern", StringUtils.replace(facet.getValue().value, "\\", "\\\\")); // Add escaping of backslash
-				break;
-			case XSFacet.FACET_MINLENGTH:
-				parameters.put("min_len", Integer.parseInt(facet.getValue().value));
-				break;
-			case XSFacet.FACET_MAXLENGTH:
-				parameters.put("max_len", Integer.parseInt(facet.getValue().value));
-				break;
-			default:
-				LOGGER.warn("Unhandled facet {}", facet.getName());
-			}
-		}
-		OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
-		OptionElement e = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
-		validationRules.add(e);
-	}
-
 	private List<OptionElement> getValidationRuleForBasicType(String name) {
 		List<OptionElement> validationRules = new ArrayList<>();
 		OptionElement validationRule = defaultValidationRulesForBasicTypes.get(name);
@@ -170,7 +157,7 @@ public class PGVRuleFactory {
 
 	public Map<String, OptionElement> getValidationRuleForBasicTypes() {
 
-		Map<String, OptionElement> typeToValidationRule = new HashMap<>();
+		Map<String, OptionElement> basicTypes = new HashMap<>();
 
 //        basicTypes.add("string");
 //        basicTypes.add("boolean");
@@ -182,11 +169,11 @@ public class PGVRuleFactory {
 //        basicTypes.add("time");
 //        basicTypes.add("date");
 
-		typeToValidationRule.put("gYearMonth", createOptionElement(RULE_STRING_PATTERN, OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
-		typeToValidationRule.put("gYear", createOptionElement(RULE_STRING_PATTERN, OptionElement.Kind.STRING, "[0-9]{4}"));
-		typeToValidationRule.put("gMonthDay", createOptionElement(RULE_STRING_PATTERN, OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
-		typeToValidationRule.put("gDay", createOptionElement(RULE_STRING_PATTERN, OptionElement.Kind.STRING, "[0-9]{2}")); // 1-31
-		typeToValidationRule.put("gMonth", createOptionElement(RULE_STRING_PATTERN, OptionElement.Kind.STRING, "[0-9]{2}")); // 1-12
+		basicTypes.put("gYearMonth", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
+		basicTypes.put("gYear", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}"));
+		basicTypes.put("gMonthDay", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{4}-[0-9]{2}"));
+		basicTypes.put("gDay", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{2}")); // 1-31
+		basicTypes.put("gMonth", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[0-9]{2}")); // 1-12
 
 //        basicTypes.add("hexBinary");
 //        basicTypes.add("base64Binary");
@@ -197,7 +184,7 @@ public class PGVRuleFactory {
 //        basicTypes.add("normalizedString");
 //        basicTypes.add("token");
 
-		typeToValidationRule.put("language", createOptionElement(RULE_STRING_PATTERN, OptionElement.Kind.STRING, "[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*"));
+		basicTypes.put("language", createOptionElement("string.pattern", OptionElement.Kind.STRING, "[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*"));
 
 //        basicTypes.put("IDREFS");
 //        basicTypes.put("ENTITIES");
@@ -211,30 +198,32 @@ public class PGVRuleFactory {
 
 //        basicTypes.put("integer");
 
-		typeToValidationRule.put("nonPositiveInteger", createOptionElement("sint32.lte", OptionElement.Kind.NUMBER, 0));
-		typeToValidationRule.put("negativeInteger", createOptionElement("sint32.lt", OptionElement.Kind.NUMBER, 0));
+		basicTypes.put("nonPositiveInteger", createOptionElement("sint32.lte", OptionElement.Kind.NUMBER, 0));
+		basicTypes.put("negativeInteger", createOptionElement("sint32.lt", OptionElement.Kind.NUMBER, 0));
 //        basicTypes.put("long");
 //        basicTypes.put("int");
 //        basicTypes.put("short");
 //        basicTypes.put("byte");
 
-		typeToValidationRule.put("nonNegativeInteger", createOptionElement("uint32.gte", OptionElement.Kind.NUMBER, 0));
+		basicTypes.put("nonNegativeInteger", createOptionElement("uint32.gte", OptionElement.Kind.NUMBER, 0));
 //        basicTypes.put("unsignedLong");
 //        basicTypes.put("unsignedInt");
 //        basicTypes.put("unsignedShort");
 //        basicTypes.put("unsignedByte");
-		typeToValidationRule.put("positiveInteger", createOptionElement("uint32.gt", OptionElement.Kind.NUMBER, 0));
+		basicTypes.put("positiveInteger", createOptionElement("uint32.gt", OptionElement.Kind.NUMBER, 0));
 
 //        basicTypes.put("anySimpleType");
 //        basicTypes.put("anyType");
 
-		return typeToValidationRule;
+		return basicTypes;
 
 	}
 
 	private OptionElement createOptionElement(String name, OptionElement.Kind kind, Object value) {
 		OptionElement option = new OptionElement(name, kind, value, false);
-		return new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
+		OptionElement wrapper = new OptionElement(VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
+
+		return wrapper;
 	}
 
 }
