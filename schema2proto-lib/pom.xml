@@ -1,30 +1,22 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
         <version>1.0-alpha-14-SNAPSHOT</version>
-
     </parent>
-
     <artifactId>schema2proto-lib</artifactId>
-
     <packaging>jar</packaging>
-
     <properties>
         <junit.jupiter.version>5.4.2</junit.jupiter.version>
     </properties>
-
     <dependencies>
-
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.6</version>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>xsom</artifactId>
@@ -39,9 +31,7 @@
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>1.23</version>
-
         </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -52,24 +42,10 @@
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.13</version>
         </dependency>
-
         <dependency>
             <groupId>no.entur</groupId>
             <artifactId>schema2proto-wire</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.java-diff-utils</groupId>
-            <artifactId>java-diff-utils</artifactId>
-            <version>4.0</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
@@ -92,24 +68,29 @@
             <artifactId>commons-cli</artifactId>
             <version>1.4</version>
         </dependency>
-
         <dependency>
             <groupId>io.envoyproxy.protoc-gen-validate</groupId>
             <artifactId>pgv-java-stub</artifactId>
             <version>0.2.0</version>
-
         </dependency>
         <dependency>
             <groupId>no.entur</groupId>
             <artifactId>schema2proto-xsdproto</artifactId>
             <version>${project.version}</version>
-
         </dependency>
-
-
+        <dependency>
+            <groupId>io.github.java-diff-utils</groupId>
+            <artifactId>java-diff-utils</artifactId>
+            <version>4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-
     <build>
         <plugins>
             <plugin>
@@ -121,25 +102,23 @@
                             <file>../codestyle/jdt_codestyle.xml</file>
                             <version>4.9.0</version>
                         </eclipse>
-                        <removeUnusedImports/>
+                        <removeUnusedImports></removeUnusedImports>
                         <importOrder>
                             <file>../codestyle/jdt.importorder</file>
                         </importOrder>
                     </java>
                 </configuration>
-
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.1</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <phase>package</phase>
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -152,9 +131,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
-
-
 </project>

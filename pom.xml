@@ -1,49 +1,26 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
     <version>1.0-alpha-14-SNAPSHOT</version>
     <packaging>pom</packaging>
-
     <name>Schema 2 proto parent pom</name>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <spotless.version>1.23.1</spotless.version>
-        <maven.version>3.3.9</maven.version>
-        <kotlin.version>1.3.31</kotlin.version>
-    </properties>
- 
-    <scm>
-        <connection>scm:git:ssh://git@github.com/entur/schema2proto.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/entur/schema2proto.git</developerConnection>
-    </scm>
-
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <name>Sonatype snapshot</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <name>Sonatype release</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
     <modules>
         <module>schema2proto-lib</module>
         <module>schema2proto-wire</module>
         <module>schema2proto-maven-plugin</module>
         <module>schema2proto-xsdproto</module>
     </modules>
-
+    <properties>
+        <kotlin.version>1.3.31</kotlin.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.version>3.3.9</maven.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spotless.version>1.23.1</spotless.version>
+    </properties>
     <build>
         <pluginManagement>
             <plugins>
@@ -67,7 +44,6 @@
                         <target>${maven.compiler.target}</target>
                     </configuration>
                 </plugin>
-
                 <plugin>
                     <groupId>com.diffplug.spotless</groupId>
                     <artifactId>spotless-maven-plugin</artifactId>
@@ -75,14 +51,13 @@
                     <executions>
                         <execution>
                             <id>codestyle_check</id>
-                            <phase>initialize</phase>
                             <goals>
                                 <goal>check</goal>
                             </goals>
+                            <phase>initialize</phase>
                         </execution>
                     </executions>
                 </plugin>
-
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>3.1.0</version>
@@ -91,7 +66,6 @@
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>3.0.2</version>
                 </plugin>
-
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>3.6.0</version>
@@ -121,7 +95,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
             <plugin>
                 <groupId>de.qaware.maven</groupId>
@@ -131,45 +104,44 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>check-license-header</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>update-file-header</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <includes>
                         <include>**/*.java</include>
                     </includes>
-
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>check-license-header</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <jvmTarget>1.8</jvmTarget>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <phase>test-compile</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.amashchenko.maven.plugin</groupId>
@@ -179,8 +151,46 @@
                     <allowSnapshots>false</allowSnapshots>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.github.ekryd.sortpom</groupId>
+                <artifactId>sortpom-maven-plugin</artifactId>
+                <version>2.11.0</version>
+                <configuration>
+                    <predefinedSortOrder>custom_1</predefinedSortOrder>
+                    <nrOfIndentSpace>4</nrOfIndentSpace>
+                    <lineSeparator>\n</lineSeparator>
+                    <sortProperties>true</sortProperties>
+                    <keepBlankLines>false</keepBlankLines>
+                    <createBackupFile>false</createBackupFile>
+                    <sortDependencies>scope</sortDependencies>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>sort</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+    <scm>
+        <connection>scm:git:ssh://git@github.com/entur/schema2proto.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/entur/schema2proto.git</developerConnection>
+    </scm>
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <name>Sonatype release</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>Sonatype snapshot</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
     <profiles>
         <profile>
             <id>release</id>
@@ -196,10 +206,10 @@
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
-                                <phase>verify</phase>
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
+                                <phase>verify</phase>
                                 <configuration>
                                     <passphrase>${env.SONATYPE_GPG_KEY_PASSWORD}</passphrase>
                                     <gpgArguments>
