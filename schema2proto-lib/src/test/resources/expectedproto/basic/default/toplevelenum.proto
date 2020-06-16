@@ -7,6 +7,6 @@ enum TopLevelEnum {
   // Default
   TOP_LEVEL_ENUM_UNSPECIFIED = 0;
   // enumVal1 doc
-  TOP_LEVEL_ENUM_ENUM_VAL1 = 1;
-  TOP_LEVEL_ENUM_ENUM_VAL2 = 2;
+  TOP_LEVEL_ENUM_ENUM_VAL_1 = 1;
+  TOP_LEVEL_ENUM_ENUM_VAL_2 = 2;
 }

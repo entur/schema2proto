@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:simpleType name="enum_with_underscore">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="val_withUnderscore"/>
+            <xs:enumeration value="with spaces"/>
+            <xs:enumeration value="With (special - chars)"/>
+            <xs:enumeration value="Alternative Distribution System (ADS)"/>
+            <xs:enumeration value="UpperCamelCase"/>
+            <xs:enumeration value="+"/>
+            <xs:enumeration value="-"/>
+            <xs:enumeration value="unspecified"/>
+            <xs:enumeration value=""/>
+            <xs:enumeration value="val1"/>
+            <xs:enumeration value="VAL_2"/>
+            <xs:enumeration value="VAL 3"/>
+            <xs:enumeration value="4 VAL"/>
+            <xs:enumeration value="5VAL"/>
+            <xs:enumeration value="6Val"/>
+            <xs:enumeration value="7val"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

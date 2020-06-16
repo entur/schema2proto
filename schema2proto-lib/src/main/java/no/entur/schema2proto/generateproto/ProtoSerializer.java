@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -397,8 +398,15 @@ public class ProtoSerializer {
 			} else if (type instanceof EnumType) {
 				EnumType et = (EnumType) type;
 				String messageName = et.name();
-				if (!Character.isUpperCase(messageName.charAt(0))) {
-					String newMessageName = StringUtils.capitalize(messageName);
+
+				String newMessageName = messageName;
+				try {
+					newMessageName = getCaseFormatName(messageName).to(CaseFormat.UPPER_CAMEL, messageName);
+				} catch (IllegalFormatException e) {
+					// Ignore
+				}
+
+				if (!newMessageName.equals(messageName)) {
 					if (!usedNames.contains(newMessageName)) {
 						et.updateName(newMessageName);
 						usedNames.add(newMessageName);
@@ -409,6 +417,37 @@ public class ProtoSerializer {
 				}
 			}
 		}
+	}
+
+	private CaseFormat getCaseFormatName(String s) throws IllegalFormatException {
+		if (s.contains("_")) {
+			if (s.toUpperCase().equals(s)) {
+				return CaseFormat.UPPER_UNDERSCORE;
+			}
+			if (s.toLowerCase().equals(s)) {
+				return CaseFormat.LOWER_UNDERSCORE;
+			}
+		} else if (s.contains("-")) {
+			if (s.toLowerCase().equals(s)) {
+				return CaseFormat.LOWER_HYPHEN;
+			}
+		} else {
+			if (Character.isLowerCase(s.charAt(0))) {
+				if (s.matches("([a-z]+[A-Z]+\\w+)+")) {
+					return CaseFormat.LOWER_CAMEL;
+				} else if (s.matches("[a-z]+")) {
+					return CaseFormat.LOWER_UNDERSCORE;
+				}
+			} else {
+				if (s.matches("([A-Z]+[a-z]+\\w+)+")) {
+					return CaseFormat.UPPER_CAMEL;
+				} else if (s.matches("[A-Z]+")) {
+					return CaseFormat.UPPER_UNDERSCORE;
+				}
+			}
+		}
+
+		throw new IllegalArgumentException(String.format("Couldn't find the case format of the given string '%s'", s));
 	}
 
 	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap, String packageName, Set<String> usedNames, MessageType mt) {
@@ -451,13 +490,9 @@ public class ProtoSerializer {
 		for (EnumConstant ec : e.constants()) {
 			String enumValue = escapeEnumValue(ec.getName());
 			if (enumValue.equalsIgnoreCase("UNSPECIFIED")) {
-				enumValue += "EnumValue";
+				enumValue = "UNSPECIFIED_ENUM_VALUE"; // Handle collision with UNSPECIFIED special value according to Google style guide
 			}
-			String uppercaseEnumValue = enumValue;
-			if (!StringUtils.isAllUpperCase(enumValue)) {
-				uppercaseEnumValue = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, enumValue);
-			}
-			ec.updateName(enumValuePrefix + uppercaseEnumValue);
+			ec.updateName(enumValuePrefix + enumValue);
 		}
 		EnumConstant unspecified = new EnumConstant(new Location("", "", 0, 0), enumValuePrefix + "UNSPECIFIED", 0, "Default",
 				new Options(Options.ENUM_VALUE_OPTIONS, optionElementsUnspecified));
@@ -465,13 +500,39 @@ public class ProtoSerializer {
 	}
 
 	private String escapeEnumValue(String name) {
-		switch (name) {
-		case "+":
-			return "plus";
-		case "-":
-			return "minus";
-		default:
-			return name.replace("-", "");
+		if (name.equals("")) {
+			return name;
+		}
+
+		try {
+			switch (name) {
+			case "+":
+				return "PLUS";
+			case "-":
+				return "MINUS";
+			default: {
+				// Replace any non standard characters with space
+				String transformationBasis = name.replaceAll("[^a-zA-Z0-9]+", " ").trim();
+				// Split by whitespace first
+				String[] parts = transformationBasis.split(" ");
+				List<String> modifiedParts = new ArrayList<>();
+				for (String part : parts) {
+					for (String s : StringUtils.splitByCharacterTypeCamelCase(part)) {
+						// Split by camel case as well as number
+						modifiedParts.add(s);
+					}
+				}
+
+				// Join all parts by underscore
+				transformationBasis = StringUtils.join(modifiedParts, "_");
+
+				// Uppercase everything
+				return transformationBasis.toUpperCase();
+			}
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Error escaping enum value {}, using original. May break proto file", name, e);
+			return name;
 		}
 
 	}
@@ -514,9 +575,9 @@ public class ProtoSerializer {
 	 * LOGGER.error("Linking failed, the proto file is not valid", e); }
 	 *
 	 * }
-	 * 
+	 *
 	 * public static <T> Iterable<T> getIterableFromIterator(Iterator<T> iterator) { return new Iterable<T>() {
-	 * 
+	 *
 	 * @Override public Iterator<T> iterator() { return iterator; } }; }
 	 */
 	private void computeFilenames(Map<String, ProtoFile> packageToProtoFileMap) {

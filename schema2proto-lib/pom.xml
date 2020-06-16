@@ -74,6 +74,11 @@
             <version>0.2.0</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.8</version>
+        </dependency>
+        <dependency>
             <groupId>no.entur</groupId>
             <artifactId>schema2proto-xsdproto</artifactId>
             <version>${project.version}</version>

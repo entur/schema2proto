@@ -54,6 +54,12 @@ public class SchemaParserTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void testEnumWithSpecialChars() throws IOException {
+		generateProtobufNoOptions("basic/enumspecialchars.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/enumspecialchars.proto", generatedRootFolder, "default/default.proto");
+	}
+
+	@Test
 	public void testAvoidDuplicateChoiceWrapper() throws IOException {
 		generateProtobufNoOptions("basic/duplicatechoicewrapper.xsd");
 		compareExpectedAndGenerated(expectedRootFolder, "default/duplicatechoicewrapper.proto", generatedRootFolder, "default/default.proto");

@@ -31,8 +31,8 @@ message TopLevelElementType {
       // Default
       EMBEDDED_ENUM_TYPE_UNSPECIFIED = 0;
       // embeddedEnumValue1 doc
-      EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE1 = 1;
-      EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE2 = 2;
+      EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE_1 = 1;
+      EMBEDDED_ENUM_TYPE_EMBEDDED_ENUM_VALUE_2 = 2;
     }
   }
 }
