@@ -11,6 +11,7 @@
         <module>schema2proto-wire</module>
         <module>schema2proto-maven-plugin</module>
         <module>schema2proto-xsdproto</module>
+        <module>schema2proto-xsom</module>
     </modules>
     <properties>
         <kotlin.version>1.3.31</kotlin.version>

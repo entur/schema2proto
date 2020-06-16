@@ -18,9 +18,9 @@
             <version>2.6</version>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>xsom</artifactId>
-            <version>2.4.0-b190812-entur</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>schema2proto-xsom</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
