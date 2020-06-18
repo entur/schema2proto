@@ -38,13 +38,13 @@ aliases:
                        <id>ossrh</id>
                      </server>
                   <server>
-                    <username>$entur_artifactory_user</username>
-                    <password>$entur_artifactory_password</password>
+                    <username>$ARTIFACTORY_USER</username>
+                    <password>$ARTIFACTORY_PASSWORD</password>
                     <id>central</id>
                   </server>
                   <server>
-                    <username>$entur_artifactory_user</username>
-                    <password>$entur_artifactory_password</password>
+                    <username>$ARTIFACTORY_USER</username>
+                    <password>$ARTIFACTORY_PASSWORD</password>
                     <id>snapshots</id>
                   </server>
                 </servers>
@@ -208,17 +208,17 @@ workflows:
   nightly-sonar-analysis:
     jobs:
       - test:
-          context: org-default-build
+          context: global
       - sonar:
-          context: org-default-build
+          context: global
           requires:
             - test
   build_test_deploy:
     jobs:
       - test:
-          context: org-default-build
+          context: global
       - deploy-artifactory:
-          context: org-default-build
+          context: global
           requires:
             - test
           filters:
@@ -226,7 +226,7 @@ workflows:
               only:
                 - develop
       - release:
-          context: org-default-build
+          context: global
           requires:
             - test
           filters:
