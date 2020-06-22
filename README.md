@@ -32,4 +32,3 @@ The schema2proto-xsom module is a modified copy from https://github.com/eclipse-
 
 The codebase was once based on https://github.com/tranchis/xsd2thrift but has been completely rewritten.
 
-  
