@@ -1,5 +1,3 @@
-package no.entur.schema2proto.modifyproto.config;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,6 +20,7 @@ package no.entur.schema2proto.modifyproto.config;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto.modifyproto.config;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,5 +36,7 @@ public class ModifyProtoConfiguration {
 	public List<MergeFrom> mergeFrom = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
 	public List<NewEnumConstant> newEnumConstants = new ArrayList<>();
+	public List<FieldOption> fieldOptions = new ArrayList<>();
 	public boolean includeBaseTypes = false;
+
 }

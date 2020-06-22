@@ -61,3 +61,5 @@ Single mandatory parameter:
 ```
 
 See example usage at https://github.com/entur/netex-protobuf
+
+.

@@ -1,5 +1,3 @@
-package no.entur.schema2proto.modifyproto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,9 +20,11 @@ package no.entur.schema2proto.modifyproto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto.modifyproto;
 
 import java.util.List;
 
+import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
 import no.entur.schema2proto.modifyproto.config.NewField;
@@ -39,4 +39,5 @@ public class ModifyProtoConfigFile {
 	public List<String> customImportLocations;
 	public List<NewEnumConstant> newEnumConstants;
 	public boolean includeBaseTypes;
+	public List<FieldOption> fieldOptions;
 }

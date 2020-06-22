@@ -1,5 +1,3 @@
-package no.entur.schema2proto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,15 +20,14 @@ package no.entur.schema2proto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,12 +41,10 @@ import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 
 import no.entur.schema2proto.generateproto.Schema2Proto;
+import no.entur.schema2proto.generateproto.Schema2ProtoConfiguration;
 import no.entur.schema2proto.modifyproto.InvalidProtobufException;
 import no.entur.schema2proto.modifyproto.ModifyProto;
-import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
-import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
-import no.entur.schema2proto.modifyproto.config.NewField;
 
 public abstract class AbstractMappingTest {
 
@@ -116,73 +111,33 @@ public abstract class AbstractMappingTest {
 	}
 
 	protected void generateProtobufNoOptions(String xsdFile) throws IOException {
-
-		Map<String, Object> options = new HashMap<>();
-		generateProtobuf(xsdFile, null, null, "default", false, options);
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.forceProtoPackage = "default";
+		generateProtobuf(xsdFile, configuration);
 	}
 
-	protected void generateProtobufNoTypeOrNameMappings(String xsdFile, Map<String, Object> additionalOptions) throws IOException {
-		generateProtobuf(xsdFile, null, null, "default", false, additionalOptions);
+	protected void generateProtobufNoTypeOrNameMappings(String xsdFile, Schema2ProtoConfiguration configuration) throws IOException {
+		configuration.forceProtoPackage = "default";
+		generateProtobuf(xsdFile, configuration);
 	}
 
-	protected void generateProtobuf(String xsdFile, String typeMappings, String nameMappings, String forcePackageName, boolean inheritanceToComposition,
-			Map<String, Object> additionalOptions) throws IOException {
-
+	protected void generateProtobuf(String xsdFile, Schema2ProtoConfiguration configuration) throws IOException {
 		FileUtils.deleteDirectory(generatedRootFolder);
 		generatedRootFolder.mkdirs();
-
-		List<String> args = new ArrayList<>();
-		args.add("--outputDirectory=" + generatedRootFolder.getPath());
-		if (forcePackageName != null) {
-			args.add("--forceProtoPackage=" + forcePackageName);
-		}
-		if (typeMappings != null) {
-			args.add("--customTypeMappings=" + typeMappings);
-		}
-		if (nameMappings != null) {
-			args.add("--customNameMappings=" + nameMappings);
-		}
-
-		args.add("--inheritanceToComposition=" + inheritanceToComposition);
-
-		for (Map.Entry<String, Object> entry : additionalOptions.entrySet()) {
-			args.add("--" + entry.getKey() + "=" + entry.getValue());
-		}
-
-		args.add("src/test/resources/xsd/" + xsdFile);
-
-		new Schema2Proto(args.toArray(new String[0]));
-
-	}
-
-	public void modifyProto(File sourceProtoFolder, List<String> includes, List<String> excludes, List<NewField> newFields, List<MergeFrom> mergeFrom,
-			List<NewEnumConstant> newEnumValues, boolean includeBaseTypes) throws IOException, InvalidProtobufException {
-
-		FileUtils.deleteDirectory(generatedRootFolder);
-		generatedRootFolder.mkdirs();
-
-		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
 		configuration.outputDirectory = generatedRootFolder;
-		configuration.inputDirectory = sourceProtoFolder;
+		configuration.xsdFile = new File("src/test/resources/xsd/" + xsdFile);
+		try {
+			Schema2Proto.parseAndSerialize(configuration);
+		} catch (InvalidConfigurationException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-		if (excludes != null) {
-			configuration.excludes = excludes;
-		}
-		if (includes != null) {
-			configuration.includes = includes;
-		}
-		if (newFields != null) {
-			configuration.newFields = newFields;
-		}
-		if (mergeFrom != null) {
-			configuration.mergeFrom = mergeFrom;
-		}
-		if (newEnumValues != null) {
-			configuration.newEnumConstants = newEnumValues;
-		}
+	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException {
 
-		configuration.includeBaseTypes = includeBaseTypes;
-
+		FileUtils.deleteDirectory(generatedRootFolder);
+		generatedRootFolder.mkdirs();
+		configuration.outputDirectory = generatedRootFolder;
 		ModifyProto processor = new ModifyProto();
 		processor.modifyProto(configuration);
 

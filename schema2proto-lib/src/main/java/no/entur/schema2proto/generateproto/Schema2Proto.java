@@ -1,6 +1,3 @@
-
-package no.entur.schema2proto.generateproto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -10,12 +7,12 @@ package no.entur.schema2proto.generateproto;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +20,8 @@ package no.entur.schema2proto.generateproto;
  * limitations under the Licence.
  * #L%
  */
+
+package no.entur.schema2proto.generateproto;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,34 +83,38 @@ public class Schema2Proto {
 			printUsage(commandLineOptions);
 		} else {
 			try {
-
 				CommandLineParser parser = new DefaultParser();
 				CommandLine cmd = parser.parse(commandLineOptions, args);
-
 				Schema2ProtoConfiguration configuration = getConfiguration(cmd);
-
-				SchemaParser xp = new SchemaParser(configuration);
-
-				LOGGER.info("Starting to parse {}", configuration.xsdFile);
-				Map<String, ProtoFile> packageToFiles = xp.parse();
-				List<LocalType> localTypes = xp.getLocalTypes();
-
-				TypeAndNameMapper pbm = new TypeAndNameMapper(configuration);
-				ProtoSerializer serializer = new ProtoSerializer(configuration, pbm);
-				serializer.serialize(packageToFiles, localTypes);
-
-				LOGGER.info("Done");
+				parseAndSerialize(configuration);
 			} catch (InvalidConfigurationException | ParseException e) {
 				printUsage(commandLineOptions);
 				throw new ConversionException("Error parsing command line options", e);
-			} catch (InvalidXSDException e) {
-				throw new ConversionException("Error converting xsdFile to proto", e);
 			} catch (com.squareup.wire.schema.SchemaException e) {
 				throw new ConversionException("Generated proto files did not link", e);
-			} catch (SAXException e) {
-				throw new ConversionException("Error parsing provided xsd. Correct xsd and retry", e);
 			}
 		}
+	}
+
+	public static void parseAndSerialize(Schema2ProtoConfiguration configuration) throws IOException, InvalidConfigurationException {
+		try {
+			SchemaParser xp = new SchemaParser(configuration);
+
+			LOGGER.info("Starting to parse {}", configuration.xsdFile);
+			Map<String, ProtoFile> packageToFiles = xp.parse();
+			List<LocalType> localTypes = xp.getLocalTypes();
+
+			TypeAndNameMapper pbm = new TypeAndNameMapper(configuration);
+			ProtoSerializer serializer = new ProtoSerializer(configuration, pbm);
+			serializer.serialize(packageToFiles, localTypes);
+
+			LOGGER.info("Done");
+		} catch (InvalidXSDException e) {
+			throw new ConversionException("Error converting xsdFile to proto", e);
+		} catch (SAXException e) {
+			throw new ConversionException("Error parsing provided xsd. Correct xsd and retry", e);
+		}
+
 	}
 
 	public static void main(String[] args) {
@@ -394,7 +397,7 @@ public class Schema2Proto {
 				if (colon > -1) {
 					options.put(mapping.substring(0, colon), mapping.substring(colon + 1));
 				} else {
-					LOGGER.error(mapping + " is not a option, use optionName:optionValue");
+					LOGGER.error("{} is not a option, use optionName:optionValue", mapping);
 				}
 			}
 		}
@@ -452,7 +455,7 @@ public class Schema2Proto {
 				if (colon > -1) {
 					customTypeMappings.put(Pattern.compile(mapping.substring(0, colon)), mapping.substring(colon + 1));
 				} else {
-					LOGGER.error(mapping + " is not a valid mapping - use schematype:outputtype/fieldname");
+					LOGGER.error("{} is not a valid mapping - use schematype:outputtype/fieldname", mapping);
 				}
 			}
 		}

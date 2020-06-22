@@ -1,5 +1,3 @@
-package no.entur.schema2proto.modifyproto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,16 +20,21 @@ package no.entur.schema2proto.modifyproto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto.modifyproto;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import no.entur.schema2proto.AbstractMappingTest;
+import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
+import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
 import no.entur.schema2proto.modifyproto.config.NewField;
 
 public class ModifyProtoTest extends AbstractMappingTest {
@@ -45,8 +48,10 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		List<String> excludes = new ArrayList<>();
 		excludes.add("A");
 
-		modifyProto(source, null, excludes, null, null, null, false);
-
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.excludes = excludes;
+		modifyProto(configuration);
 		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
 	}
@@ -57,9 +62,10 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
-		List<String> includes = new ArrayList<>();
-		includes.add("A");
-		modifyProto(source, includes, null, null, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("A");
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "only_a.proto", generatedRootFolder, "simple.proto");
 
@@ -71,9 +77,11 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
 
-		List<String> includes = new ArrayList<>();
-		includes.add("B");
-		modifyProto(source, includes, null, null, null, null, true);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("B");
+		configuration.includeBaseTypes = true;
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "enabled.proto", generatedRootFolder, "simple.proto");
 
@@ -85,9 +93,10 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
 
-		List<String> includes = new ArrayList<>();
-		includes.add("B");
-		modifyProto(source, includes, null, null, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("B");
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "disabled.proto", generatedRootFolder, "simple.proto");
 
@@ -99,9 +108,11 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
-		List<String> excludes = new ArrayList<>();
-		excludes.add("LangType");
-		modifyProto(source, null, excludes, null, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.excludes = Collections.singletonList("LangType");
+
+		modifyProto(configuration);
 		compareExpectedAndGenerated(expected, "no_langtype.proto", generatedRootFolder, "simple.proto");
 	}
 
@@ -110,10 +121,10 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/emptyfile").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/emptyfile").getCanonicalFile();
 
-		List<String> excludes = new ArrayList<>();
-		excludes.add("package.ExcludeMessage");
-		excludes.add("package.ExcludeType");
-		modifyProto(source, null, excludes, null, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.excludes = Arrays.asList("package.ExcludeMessage", "package.ExcludeType");
+		modifyProto(configuration);
 		compareExpectedAndGenerated(expected, "package/no_exclusions.proto", generatedRootFolder, "package/importsexcluded.proto");
 
 	}
@@ -124,9 +135,10 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
-		List<String> includes = new ArrayList<>();
-		includes.add("B");
-		modifyProto(source, includes, null, null, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("B");
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "missing_a.proto", generatedRootFolder, "simple.proto");
 
@@ -138,9 +150,10 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/withpackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/withpackagename").getCanonicalFile();
 
-		List<String> includes = new ArrayList<>();
-		includes.add("package.B");
-		modifyProto(source, includes, null, null, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("package.B");
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "package/insidepackage.proto", generatedRootFolder, "package/simple.proto");
 
@@ -152,8 +165,6 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 
-		List<NewField> newFields = new ArrayList<>();
-
 		NewField newField = new NewField();
 		newField.targetMessageType = "A";
 		// newField.importProto = "importpackage/p.proto";
@@ -161,11 +172,37 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		newField.fieldNumber = 100;
 		newField.name = "new_field";
 		newField.type = "B";
-		newFields.add(newField);
 
-		modifyProto(source, null, null, newFields, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(newField);
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
+
+	}
+
+	@Test
+	public void testAddFieldOption() throws IOException, InvalidProtobufException {
+
+		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
+
+		List<FieldOption> fieldOptions = new ArrayList<>();
+
+		FieldOption fieldOption = new FieldOption();
+		fieldOption.targetMessageType = "A";
+		fieldOption.field = "response_timestamp";
+		fieldOption.option = "[(validate.rules).uint64.gte = 20]";
+		fieldOptions.add(fieldOption);
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.fieldOptions = Collections.singletonList(fieldOption);
+
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addedFieldOption.proto", generatedRootFolder, "simple.proto");
 
 	}
 
@@ -186,8 +223,10 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		newField.type = "B";
 		newFields.add(newField);
 
-		List<MergeFrom> mergeFrom = new ArrayList<>();
-		modifyProto(source, null, null, newFields, null, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(newField);
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
 
@@ -200,16 +239,16 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
 		File mergefrom = new File("src/test/resources/modify/mergefrom/nopackagename").getCanonicalFile();
 
-		List<MergeFrom> mergeFrom = new ArrayList<>();
 		MergeFrom m = new MergeFrom();
 		m.sourceFolder = mergefrom;
 		m.protoFile = "mergefrom.proto";
 
-		mergeFrom.add(m);
-		modifyProto(source, null, null, null, mergeFrom, null, false);
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.mergeFrom = Collections.singletonList(m);
+		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "mergefrom.proto", generatedRootFolder, "simple.proto");
 
 	}
-
 }

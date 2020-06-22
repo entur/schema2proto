@@ -10,5 +10,5 @@ message A {
 enum E {
   // Default
   E_UNSPECIFIED = 0;
-  E_VAL1 = 1;
+  E_VAL_1 = 1;
 }

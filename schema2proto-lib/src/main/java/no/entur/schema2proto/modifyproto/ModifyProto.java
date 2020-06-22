@@ -1,5 +1,3 @@
-package no.entur.schema2proto.modifyproto;
-
 /*-
  * #%L
  * schema2proto-lib
@@ -22,6 +20,7 @@ package no.entur.schema2proto.modifyproto;
  * limitations under the Licence.
  * #L%
  */
+package no.entur.schema2proto.modifyproto;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -58,9 +57,11 @@ import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
+import com.squareup.wire.schema.internal.parser.OptionReader;
+import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
-import no.entur.schema2proto.generateproto.Schema2Proto;
+import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
 import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
@@ -68,7 +69,7 @@ import no.entur.schema2proto.modifyproto.config.NewField;
 
 public class ModifyProto {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ModifyProto.class);
 
 	public void modifyProto(File configFile, File basedir) throws IOException, InvalidConfigurationException, InvalidProtobufException {
 
@@ -81,6 +82,7 @@ public class ModifyProto {
 			TypeDescription customTypeDescription = new TypeDescription(ModifyProtoConfigFile.class);
 			customTypeDescription.addPropertyParameters("newFields", NewField.class);
 			customTypeDescription.addPropertyParameters("mergeFrom", MergeFrom.class);
+			customTypeDescription.addPropertyParameters("valdiationRules", FieldOption.class);
 			constructor.addTypeDescription(customTypeDescription);
 			Yaml yaml = new Yaml(constructor);
 
@@ -121,6 +123,10 @@ public class ModifyProto {
 				configuration.newEnumConstants = new ArrayList<>(config.newEnumConstants);
 			}
 
+			if (config.fieldOptions != null) {
+				configuration.fieldOptions = new ArrayList<>(config.fieldOptions);
+			}
+
 			configuration.includeBaseTypes = config.includeBaseTypes;
 
 			if (config.customImportLocations != null) {
@@ -155,10 +161,10 @@ public class ModifyProto {
 		schemaLoader.addSource(configuration.inputDirectory);
 
 		for (Path s : schemaLoader.sources()) {
-			LOGGER.info("Linking proto from path " + s);
+			LOGGER.info("Linking proto from path {}", s);
 		}
 		for (String s : schemaLoader.protos()) {
-			LOGGER.info("Linking proto " + s);
+			LOGGER.info("Linking proto {}", s);
 		}
 
 		Schema schema = schemaLoader.load();
@@ -178,10 +184,10 @@ public class ModifyProto {
 		}
 		Schema prunedSchema = schema.prune(finalIterationIdentifiers);
 		for (String s : finalIterationIdentifiers.unusedExcludes()) {
-			LOGGER.warn("Unused exclude: (already excluded elsewhere or explicitly included?) " + s);
+			LOGGER.warn("Unused exclude: {} (already excluded elsewhere or explicitly included?)", s);
 		}
 		for (String s : finalIterationIdentifiers.unusedIncludes()) {
-			LOGGER.warn("Unused include: (already included elsewhere or explicitly excluded?) " + s);
+			LOGGER.warn("Unused include: {} (already included elsewhere or explicitly excluded?) ", s);
 		}
 
 		for (NewField newField : configuration.newFields) {
@@ -196,10 +202,14 @@ public class ModifyProto {
 			mergeFromFile(mergeFrom, prunedSchema, configuration);
 		}
 
+		for (FieldOption fieldOption : configuration.fieldOptions) {
+			addFieldOption(fieldOption, prunedSchema);
+		}
+
 		Set<String> emptyImportLocations = protosLoaded.stream()
 				.map(prunedSchema::protoFile)
 				.filter(Objects::nonNull)
-				.filter(p -> isEmptyFile(p))
+				.filter(this::isEmptyFile)
 				.map(p -> p.location().getPath())
 				.collect(Collectors.toSet());
 
@@ -213,7 +223,7 @@ public class ModifyProto {
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-			LOGGER.info("Wrote file " + outputFile.getPath());
+			LOGGER.info("Wrote file {}", outputFile.getPath());
 
 		});
 
@@ -323,7 +333,7 @@ public class ModifyProto {
 			// Duplicate check
 			Optional<EnumConstant> existing = enumType.constants()
 					.stream()
-					.filter(e -> e.getName().equals(enumConstant.getName().equals(e.getName()) || e.getTag() == enumConstant.getTag()))
+					.filter(e -> e.getName().equals(enumConstant.getName()) || e.getTag() == enumConstant.getTag())
 					.findFirst();
 			if (existing.isPresent()) {
 				throw new InvalidProtobufException("Enum constant already present: " + newEnumConstant);
@@ -347,11 +357,9 @@ public class ModifyProto {
 			int tag = newField.fieldNumber;
 
 			String fieldPackage = StringUtils.substringBeforeLast(newField.type, ".");
-			String fieldType = StringUtils.substringAfterLast(newField.type, ".");
 
 			if (fieldPackage.equals(newField.type)) {
 				// no package
-				fieldType = fieldPackage;
 				fieldPackage = null;
 			}
 
@@ -361,7 +369,7 @@ public class ModifyProto {
 			}
 			Location location = new Location("", "", -1, -1);
 
-			Field field = new Field(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null, fieldType,
+			Field field = new Field(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null, newField.type,
 					options, false, false);
 			List<Field> updatedFields = new ArrayList<>(type.fields());
 			updatedFields.add(field);
@@ -380,6 +388,23 @@ public class ModifyProto {
 			}
 
 		}
+
+	}
+
+	public void addFieldOption(FieldOption fieldOption, Schema prunedSchema) throws InvalidProtobufException {
+		MessageType type = (MessageType) prunedSchema.getType(fieldOption.targetMessageType);
+		if (type == null) {
+			throw new InvalidProtobufException("Did not find existing type " + fieldOption.targetMessageType);
+		}
+		Field field = type.field(fieldOption.field);
+		if (field == null) {
+			throw new InvalidProtobufException("Did not find existing field " + fieldOption.field);
+		}
+		if (StringUtils.isEmpty(fieldOption.option)) {
+			throw new InvalidProtobufException("Missing option for field " + fieldOption.field);
+		}
+		OptionReader reader = new OptionReader(new SyntaxReader(fieldOption.option.toCharArray(), null));
+		reader.readOptions().forEach(option -> field.options().add(option));
 
 	}
 

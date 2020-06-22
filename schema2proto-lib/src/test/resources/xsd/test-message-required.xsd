@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+    <xsd:complexType name="TestRangeInt">
+        <xsd:sequence>
+            <xsd:element name="value">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:integer">
+                        <xsd:minInclusive value="0"/>
+                        <xsd:maxInclusive value="60"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
