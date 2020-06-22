@@ -5,9 +5,6 @@ This tool does 2 things:
 * Converts XML Schema files (.xsd) to Protocol Buffers (.proto). 
 * Modifies existing proto files by adding, modifying and removing fields, messages etc. Also support for merging proto files using the same package
 
-NOTE: This project depend on an artifact xsom-2.4.0-b190812-entur.jar . This artifact is not published to any repo (yet) but can be downloaded from
- https://github.com/entur/schema2proto/tree/develop/xsom-entur-jar or built from https://github.com/entur/jaxb-ri/tree/master/jaxb-ri/xsom . You must install it in your local maven repo.
-
 ## Usage
 
 ### Standalone (Only for converting XSD to PROTO)
@@ -27,6 +24,10 @@ See code style [CODESTYLE.md](CODESTYLE.md)
 
 EUPL, see [LICENSE](LICENSE.txt) and https://en.wikipedia.org/wiki/European_Union_Public_Licence
 
-The schema2proto-wire module is a modified copy from https://github.com/square/wire/tree/master/wire-schema
+The schema2proto-wire module is a modified copy from https://github.com/square/wire/tree/master/wire-schema that seems to have become https://github.com/square/wire/tree/master/wire-library/wire-schema now.
 
-The codebase was once based on xsd2thrift but has been completely rewritten.
+The schema2proto-xsom module is a modified copy from https://github.com/eclipse-ee4j/jaxb-ri/tree/master/jaxb-ri/xsom, see [original LICENSE](schema2proto-xsom/LICENSE.md)
+
+The codebase was once based on https://github.com/tranchis/xsd2thrift but has been completely rewritten.
+
+ 
