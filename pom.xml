@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.0-alpha-22</version>
+    <version>1.0-alpha-23</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - Xsd schema to protobuf</description>
@@ -283,8 +283,9 @@
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
+                            <detectJavaApiLink>false</detectJavaApiLink>
                             <doclint>none</doclint>
-                            <excludePackageNames>com.squareup.wire.*</excludePackageNames>
+                            <excludePackageNames>com.squareup.wire.*:com.sun.xml.xsom.*</excludePackageNames>
                         </configuration>
                         <executions>
                             <execution>
