@@ -3,9 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.0-alpha-16</version>
+    <version>1.0-alpha-17</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
+    <description>Schema2proto - Xsd schema to protobuf</description>
+
     <modules>
         <module>schema2proto-lib</module>
         <module>schema2proto-wire</module>
