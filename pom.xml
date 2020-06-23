@@ -284,7 +284,7 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <doclint>none</doclint>
-                            <excludePackageNames>com.squareup.wire.*</excludePackageNames>
+                            <excludePackageNames>com.squareup.wire.*,com.sun.xml.xsom.*</excludePackageNames>
                         </configuration>
                         <executions>
                             <execution>
