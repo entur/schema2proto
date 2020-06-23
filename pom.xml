@@ -6,6 +6,8 @@
     <version>1.0-alpha-17-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
+    <description>Schema2proto - Xsd schema to protobuf</description>
+
     <modules>
         <module>schema2proto-lib</module>
         <module>schema2proto-wire</module>
