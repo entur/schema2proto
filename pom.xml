@@ -284,7 +284,7 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <doclint>none</doclint>
-                            <detectJavaApiLink>false</detectJavaApiLink>
+                            <excludePackageNames>com.squareup.wire.*</excludePackageNames>
                         </configuration>
                         <executions>
                             <execution>
