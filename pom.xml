@@ -155,6 +155,7 @@
                 <configuration>
                     <allowSnapshots>false</allowSnapshots>
                     <skipTestProject>true</skipTestProject>
+                    <argLine>-Prelease -DskipTests=true</argLine>
                 </configuration>
             </plugin>
             <plugin>
