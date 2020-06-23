@@ -283,8 +283,9 @@
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
+                            <detectJavaApiLink>false</detectJavaApiLink>
                             <doclint>none</doclint>
-                            <excludePackageNames>com.squareup.wire.*,com.sun.xml.xsom.*</excludePackageNames>
+                            <excludePackageNames>com.squareup.wire.*:com.sun.xml.xsom.*</excludePackageNames>
                         </configuration>
                         <executions>
                             <execution>
