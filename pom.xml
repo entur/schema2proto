@@ -284,6 +284,7 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <doclint>none</doclint>
+                            <detectJavaApiLink>false</detectJavaApiLink>
                         </configuration>
                         <executions>
                             <execution>
