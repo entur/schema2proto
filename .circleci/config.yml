@@ -12,7 +12,7 @@ aliases:
         git pull --no-edit
         git checkout develop
         mvn versions:use-releases
-        mvn gitflow:release-start verify gitflow:release-finish -DskipTests=true -Dspotless.check.skip=true -Prelease -DpostReleaseGoals=deploy -DargLine=-Prelease -B
+        mvn gitflow:release-start gitflow:release-finish -DskipTests=true -Dspotless.check.skip=true -Prelease -DpostReleaseGoals=deploy -B
       else
         echo "Skipping release"
       fi
