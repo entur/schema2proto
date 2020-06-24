@@ -154,7 +154,7 @@
                 <version>1.14.0</version>
                 <configuration>
                     <allowSnapshots>false</allowSnapshots>
-                    <argLine>'-Prelease -DskipTests'</argLine>
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
             <plugin>
