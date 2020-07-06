@@ -36,14 +36,14 @@ class FieldElementTest {
                 tag = 1,
                 options = listOf(
                         OptionElement.create("default", Kind.ENUM, "TEST"),
-                        OptionElement.create("deprecated", Kind.BOOLEAN, "true")
+                        OptionElement.create("deprecated", Kind.BOOLEAN, true)
                 )
         )
 
         assertThat(field.options)
                 .containsOnly(
                         OptionElement.create("default", Kind.ENUM, "TEST"),
-                        OptionElement.create("deprecated", Kind.BOOLEAN, "true")
+                        OptionElement.create("deprecated", Kind.BOOLEAN, true)
                 )
     }
 

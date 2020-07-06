@@ -15,8 +15,8 @@
  */
 package com.squareup.wire.schema
 
-import com.squareup.wire.schema.internal.parser.EnumElement
 import com.squareup.wire.schema.Options.ENUM_OPTIONS
+import com.squareup.wire.schema.internal.parser.EnumElement
 
 class EnumType public constructor(
         private var protoType: ProtoType,
@@ -36,7 +36,7 @@ class EnumType public constructor(
     override fun options() = options
     override fun nestedTypes() = emptyList<Type>() // Enums do not allow nested type declarations.
 
-    fun allowAlias() = "true" == allowAlias
+    fun allowAlias() = allowAlias != null && allowAlias == true
 
     /** Returns the constant named `name`, or null if this enum has no such constant.  */
     fun constant(name: String) = constants.find { it.name == name }
@@ -60,7 +60,7 @@ class EnumType public constructor(
         var linker = linker
         linker = linker.withContext(this)
 
-        if ("true" != allowAlias) {
+        if (!allowAlias()) {
             validateTagUniqueness(linker)
         }
     }
@@ -122,7 +122,7 @@ class EnumType public constructor(
 
     fun updateName(newMessageName: String) {
         name = newMessageName;
-        protoType = ProtoType.get(protoType.enclosingTypeOrPackage(),newMessageName);
+        protoType = ProtoType.get(protoType.enclosingTypeOrPackage(), newMessageName);
     }
 
     companion object {

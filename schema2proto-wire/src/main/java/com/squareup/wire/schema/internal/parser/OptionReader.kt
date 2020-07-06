@@ -16,14 +16,8 @@
 package com.squareup.wire.schema.internal.parser
 
 import com.squareup.wire.schema.internal.parser.OptionElement.Kind
-import com.squareup.wire.schema.internal.parser.OptionElement.Kind.BOOLEAN
-import com.squareup.wire.schema.internal.parser.OptionElement.Kind.ENUM
-import com.squareup.wire.schema.internal.parser.OptionElement.Kind.LIST
-import com.squareup.wire.schema.internal.parser.OptionElement.Kind.MAP
-import com.squareup.wire.schema.internal.parser.OptionElement.Kind.NUMBER
-import com.squareup.wire.schema.internal.parser.OptionElement.Kind.STRING
-import java.util.ArrayList
-import java.util.LinkedHashMap
+import com.squareup.wire.schema.internal.parser.OptionElement.Kind.*
+import java.util.*
 
 class OptionReader(internal val reader: SyntaxReader) {
 
@@ -86,12 +80,12 @@ class OptionReader(internal val reader: SyntaxReader) {
             '"', '\'' -> return KindAndValue(STRING, reader.readString())
             else -> {
                 if (Character.isDigit(peeked) || peeked == '-') {
-                    return KindAndValue(NUMBER, reader.readWord())
+                    return KindAndValue(NUMBER, reader.readBigDecimal())
                 }
                 val word = reader.readWord()
                 return when (word) {
-                    "true" -> KindAndValue(BOOLEAN, "true")
-                    "false" -> KindAndValue(BOOLEAN, "false")
+                    "true" -> KindAndValue(BOOLEAN, true)
+                    "false" -> KindAndValue(BOOLEAN, false)
                     else -> KindAndValue(ENUM, word)
                 }
             }

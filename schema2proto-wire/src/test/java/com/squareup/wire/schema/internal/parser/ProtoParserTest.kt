@@ -24,11 +24,9 @@ import com.squareup.wire.schema.ProtoFile
 import com.squareup.wire.schema.internal.Util
 import com.squareup.wire.schema.internal.parser.OptionElement.Kind
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
-
-import java.util.Arrays
-import java.util.LinkedHashMap
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import java.util.*
 
 class ProtoParserTest {
     internal var location = Location.get("file.proto")
@@ -1153,14 +1151,14 @@ class ProtoParserTest {
                                 location = location.at(5, 1),
                                 name = "Topping",
                                 documentation = "What's on my waffles.\nAlso works on pancakes.",
-                                options = listOf(OptionElement.create("max_choices", Kind.NUMBER, "2", true)),
+                                options = listOf(OptionElement.create("max_choices", Kind.NUMBER, "2".toBigDecimal(), true)),
                                 constants = listOf(
                                         EnumConstantElement(
                                                 location = location.at(8, 3),
                                                 name = "FRUIT",
                                                 tag = 1,
                                                 options = listOf(
-                                                        OptionElement.create("healthy", Kind.BOOLEAN, "true", true)
+                                                        OptionElement.create("healthy", Kind.BOOLEAN, true, true)
                                                 )
                                         ),
                                         EnumConstantElement(
@@ -1230,8 +1228,8 @@ class ProtoParserTest {
                                 name = "STRING",
                                 tag = 0,
                                 options = listOf(
-                                        OptionElement.create("opt_a", Kind.NUMBER, "1", true),
-                                        OptionElement.create("opt_b", Kind.NUMBER, "2", true)
+                                        OptionElement.create("opt_a", Kind.NUMBER, "1".toBigDecimal(), true),
+                                        OptionElement.create("opt_b", Kind.NUMBER, "2".toBigDecimal(), true)
                                 )
                         )
                 )
@@ -1244,13 +1242,13 @@ class ProtoParserTest {
                 tag = 1,
                 options = listOf(
                         OptionElement.create("old_default", Kind.ENUM, "STRING"),
-                        OptionElement.create("deprecated", Kind.BOOLEAN, "true")
+                        OptionElement.create("deprecated", Kind.BOOLEAN, true)
                 )
         )
         assertThat(field.options)
                 .containsOnly(
                         OptionElement.create("old_default", Kind.ENUM, "STRING"),
-                        OptionElement.create("deprecated", Kind.BOOLEAN, "true")
+                        OptionElement.create("deprecated", Kind.BOOLEAN, true)
                 )
 
         val messageElement = MessageElement(
@@ -1301,7 +1299,7 @@ class ProtoParserTest {
                                                 name = "koka_ko_koka_ko",
                                                 tag = 1,
                                                 options = listOf(
-                                                        OptionElement.create("old_default", Kind.BOOLEAN, "true")
+                                                        OptionElement.create("old_default", Kind.BOOLEAN, true)
                                                 )
                                         ),
                                         FieldElement(
@@ -1311,8 +1309,8 @@ class ProtoParserTest {
                                                 name = "coodle_doodle_do",
                                                 tag = 2,
                                                 options = listOf(
-                                                        OptionElement.create("delay", Kind.NUMBER, "100", true),
-                                                        OptionElement.create("old_default", Kind.BOOLEAN, "false")
+                                                        OptionElement.create("delay", Kind.NUMBER, "100".toBigDecimal(), true),
+                                                        OptionElement.create("old_default", Kind.BOOLEAN, false)
                                                 )
                                         ),
                                         FieldElement(
@@ -1322,8 +1320,8 @@ class ProtoParserTest {
                                                 name = "coo_coo_ca_cha",
                                                 tag = 3,
                                                 options = listOf(
-                                                        OptionElement.create("old_default", Kind.BOOLEAN, "true"),
-                                                        OptionElement.create("delay", Kind.NUMBER, "200", true)
+                                                        OptionElement.create("old_default", Kind.BOOLEAN, true),
+                                                        OptionElement.create("delay", Kind.NUMBER, "200".toBigDecimal(), true)
                                                 )
                                         ),
                                         FieldElement(
@@ -1539,10 +1537,10 @@ class ProtoParserTest {
                 type = "string",
                 name = "claim_token",
                 tag = 2,
-                options = listOf(OptionElement.create("squareup.redacted", Kind.BOOLEAN, "true", true))
+                options = listOf(OptionElement.create("squareup.redacted", Kind.BOOLEAN, true, true))
         )
         assertThat(field.options)
-                .containsOnly(OptionElement.create("squareup.redacted", Kind.BOOLEAN, "true", true))
+                .containsOnly(OptionElement.create("squareup.redacted", Kind.BOOLEAN, true, true))
 
         val messageElement = MessageElement(
                 location = location.at(1, 1),
@@ -1701,7 +1699,7 @@ class ProtoParserTest {
                                 location = location.at(1, 1),
                                 name = "SearchService",
                                 options = listOf(
-                                        OptionElement.create("default_timeout", Kind.NUMBER, "30", true)
+                                        OptionElement.create("default_timeout", Kind.NUMBER, "30".toBigDecimal(), true)
                                 ),
                                 rpcs = listOf(
                                         RpcElement(
@@ -1716,7 +1714,7 @@ class ProtoParserTest {
                                                 requestType = "PurchaseRequest",
                                                 responseType = "PurchaseResponse",
                                                 options = listOf(
-                                                        OptionElement.create("squareup.sake.timeout", Kind.NUMBER, "15", true),
+                                                        OptionElement.create("squareup.sake.timeout", Kind.NUMBER, "15".toBigDecimal(), true),
                                                         OptionElement.create(
                                                                 "squareup.a.b",
                                                                 Kind.MAP,
@@ -1827,8 +1825,8 @@ class ProtoParserTest {
         |  option (squareup.one) = {name: "Name", class_name:"ClassName"};
         |  option (squareup.two.a) = {[squareup.options.type]: EXOTIC};
         |  option (squareup.two.b) = {names: ["Foo", "Bar"]};
-        |  option (squareup.three) = {x: {y: 1 y: 2 } }; // NOTE: Omitted optional comma
-        |  option (squareup.four) = {x: {y: {z: 1 }, y: {z: 2 }}};
+        |  option (squareup.three) = {x: {y: "1" y: 2 } }; // NOTE: Omitted optional comma
+        |  option (squareup.four) = {x: {y: {z: "1" }, y: {z: 2 }}};
         |}
         """.trimMargin()
 
@@ -1841,7 +1839,7 @@ class ProtoParserTest {
         option_two_b_map["names"] = Arrays.asList("Foo", "Bar")
         val option_three_map = LinkedHashMap<String, Map<String, *>>()
         val option_three_nested_map = LinkedHashMap<String, Any>()
-        option_three_nested_map["y"] = Arrays.asList("1", "2")
+        option_three_nested_map["y"] = Arrays.asList("1", "2".toBigDecimal())
         option_three_map["x"] = option_three_nested_map
 
         val option_four_map = LinkedHashMap<String, Map<String, *>>()
@@ -1849,7 +1847,7 @@ class ProtoParserTest {
         val option_four_map_2_a = LinkedHashMap<String, Any>()
         option_four_map_2_a["z"] = "1"
         val option_four_map_2_b = LinkedHashMap<String, Any>()
-        option_four_map_2_b["z"] = "2"
+        option_four_map_2_b["z"] = "2".toBigDecimal()
         option_four_map_1["y"] = listOf(option_four_map_2_a, option_four_map_2_b)
         option_four_map["x"] = option_four_map_1
 
@@ -1968,7 +1966,7 @@ class ProtoParserTest {
                                                 type = "int32",
                                                 name = "default_int32",
                                                 tag = 401,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "2147483647"))
+                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "2147483647".toBigDecimal()))
                                         ),
                                         FieldElement(
                                                 location = location.at(3, 3),
@@ -1976,7 +1974,7 @@ class ProtoParserTest {
                                                 type = "uint32",
                                                 name = "default_uint32",
                                                 tag = 402,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295"))
+                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295".toBigDecimal()))
                                         ),
                                         FieldElement(
                                                 location = location.at(4, 3),
@@ -1984,7 +1982,7 @@ class ProtoParserTest {
                                                 type = "sint32",
                                                 name = "default_sint32",
                                                 tag = 403,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648"))
+                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648".toBigDecimal()))
                                         ),
                                         FieldElement(
                                                 location = location.at(5, 3),
@@ -1992,7 +1990,7 @@ class ProtoParserTest {
                                                 type = "fixed32",
                                                 name = "default_fixed32",
                                                 tag = 404,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295"))
+                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295".toBigDecimal()))
                                         ),
                                         FieldElement(
                                                 location = location.at(6, 3),
@@ -2000,7 +1998,7 @@ class ProtoParserTest {
                                                 type = "sfixed32",
                                                 name = "default_sfixed32",
                                                 tag = 405,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648"))
+                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648".toBigDecimal()))
                                         ),
                                         FieldElement(
                                                 location = location.at(7, 3),
@@ -2009,7 +2007,7 @@ class ProtoParserTest {
                                                 name = "default_int64",
                                                 tag = 406,
                                                 options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "9223372036854775807")
+                                                        OptionElement.create("x", Kind.NUMBER, "9223372036854775807".toBigDecimal())
                                                 )
                                         ),
                                         FieldElement(
@@ -2019,7 +2017,7 @@ class ProtoParserTest {
                                                 name = "default_uint64",
                                                 tag = 407,
                                                 options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "18446744073709551615")
+                                                        OptionElement.create("x", Kind.NUMBER, "18446744073709551615".toBigDecimal())
                                                 )
                                         ),
                                         FieldElement(
@@ -2029,7 +2027,7 @@ class ProtoParserTest {
                                                 name = "default_sint64",
                                                 tag = 408,
                                                 options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "-9223372036854775808")
+                                                        OptionElement.create("x", Kind.NUMBER, "-9223372036854775808".toBigDecimal())
                                                 )
                                         ),
                                         FieldElement(
@@ -2039,7 +2037,7 @@ class ProtoParserTest {
                                                 name = "default_fixed64",
                                                 tag = 409,
                                                 options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "18446744073709551615")
+                                                        OptionElement.create("x", Kind.NUMBER, "18446744073709551615".toBigDecimal())
                                                 )
                                         ),
                                         FieldElement(
@@ -2049,7 +2047,7 @@ class ProtoParserTest {
                                                 name = "default_sfixed64",
                                                 tag = 410,
                                                 options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "-9223372036854775808")
+                                                        OptionElement.create("x", Kind.NUMBER, "-9223372036854775808".toBigDecimal())
                                                 )
                                         ),
                                         FieldElement(
@@ -2058,7 +2056,7 @@ class ProtoParserTest {
                                                 type = "bool",
                                                 name = "default_bool",
                                                 tag = 411,
-                                                options = listOf(OptionElement.create("x", Kind.BOOLEAN, "true"))
+                                                options = listOf(OptionElement.create("x", Kind.BOOLEAN, true))
                                         ),
                                         FieldElement(
                                                 location = location.at(13, 3),
@@ -2066,7 +2064,7 @@ class ProtoParserTest {
                                                 type = "float",
                                                 name = "default_float",
                                                 tag = 412,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e7"))
+                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e7".toBigDecimal()))
                                         ),
                                         FieldElement(
                                                 location = location.at(14, 3),
@@ -2074,7 +2072,7 @@ class ProtoParserTest {
                                                 type = "double",
                                                 name = "default_double",
                                                 tag = 413,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e78"))
+                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e78".toBigDecimal()))
                                         ),
                                         FieldElement(
                                                 location = location.at(15, 3),
@@ -2140,16 +2138,16 @@ class ProtoParserTest {
                         OptionElement.create(
                                 "validation.range",
                                 Kind.OPTION,
-                                OptionElement.create("min", Kind.NUMBER, "1"),
+                                OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()),
                                 true
                         ),
                         OptionElement.create(
                                 "validation.range",
                                 Kind.OPTION,
-                                OptionElement.create("max", Kind.NUMBER, "100"),
+                                OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
                                 true
                         ),
-                        OptionElement.create("old_default", Kind.NUMBER, "20")
+                        OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
                 )
         )
         assertThat(field.options)
@@ -2157,16 +2155,16 @@ class ProtoParserTest {
                         OptionElement.create(
                                 "validation.range",
                                 Kind.OPTION,
-                                OptionElement.create("min", Kind.NUMBER, "1"),
+                                OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()),
                                 true
                         ),
                         OptionElement.create(
                                 "validation.range",
                                 Kind.OPTION,
-                                OptionElement.create("max", Kind.NUMBER, "100"),
+                                OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
                                 true
                         ),
-                        OptionElement.create("old_default", Kind.NUMBER, "20")
+                        OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
                 )
 
         val expected = MessageElement(

@@ -18,8 +18,8 @@ package com.squareup.wire.schema
 import com.squareup.wire.schema.Options.FIELD_OPTIONS
 import com.squareup.wire.schema.internal.Util
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 
 class SchemaTest {
@@ -320,8 +320,8 @@ class SchemaTest {
 
         val bOptions = message.field("b")!!.options()
         assertThat(bOptions.get(ProtoMember.get(FIELD_OPTIONS, "color"))).isEqualTo("red")
-        assertThat(bOptions.get(ProtoMember.get(FIELD_OPTIONS, "deprecated"))).isEqualTo("true")
-        assertThat(bOptions.get(ProtoMember.get(FIELD_OPTIONS, "packed"))).isEqualTo("true")
+        assertThat(bOptions.get(ProtoMember.get(FIELD_OPTIONS, "deprecated"))).isEqualTo(true)
+        assertThat(bOptions.get(ProtoMember.get(FIELD_OPTIONS, "packed"))).isEqualTo(true)
     }
 
     @Test

@@ -61,8 +61,8 @@ public final class Field {
 	private final boolean extension;
 	private final Options options;
 	private ProtoType type;
-	private Object deprecated;
-	private Object packed;
+	private Boolean deprecated;
+	private Boolean packed;
 	private boolean redacted;
 
 	public boolean isFromAttribute() {
@@ -190,11 +190,11 @@ public final class Field {
 	}
 
 	public boolean isDeprecated() {
-		return "true".equals(deprecated);
+		return deprecated != null && deprecated;
 	}
 
 	public boolean isPacked() {
-		return "true".equals(packed);
+		return packed != null && packed;
 	}
 
 	public boolean isRedacted() {
@@ -221,8 +221,8 @@ public final class Field {
 	void linkOptions(Linker linker) {
 		linker = linker.withContext(this);
 		options.link(linker);
-		deprecated = options().get(DEPRECATED);
-		packed = options().get(PACKED);
+		deprecated = (Boolean) options().get(DEPRECATED);
+		packed = (Boolean) options().get(PACKED);
 		// We allow any package name to be used as long as it ends with '.redacted'.
 		redacted = options().optionMatches(".*\\.redacted", "true");
 	}

@@ -50,9 +50,9 @@ class OptionsTest {
 
         val bar = schema.getType("Bar") as MessageType
         assertThat(bar.field("a")!!.options().map())
-                .isEqualTo(mapOf(fooOptions to mapOf(opt1 to "123", opt2 to "baz")))
+                .isEqualTo(mapOf(fooOptions to mapOf(opt1 to "123".toBigDecimal(), opt2 to "baz")))
         assertThat(bar.field("b")!!.options().map())
-                .isEqualTo(mapOf(fooOptions to mapOf(opt1 to "456", opt2 to "quux")))
+                .isEqualTo(mapOf(fooOptions to mapOf(opt1 to "456".toBigDecimal(), opt2 to "quux")))
     }
 
     @Test
@@ -85,7 +85,7 @@ class OptionsTest {
 
         val message = schema.getType("Message") as MessageType
         assertThat(message.field("b")!!.options().map())
-                .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "123"))))
+                .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "123".toBigDecimal()))))
     }
 
     @Test
