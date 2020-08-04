@@ -395,7 +395,15 @@ public class Schema2Proto {
 			for (String mapping : cmd.getOptionValue(OPTION_OPTIONS).split(",")) {
 				int colon = mapping.indexOf(':');
 				if (colon > -1) {
-					options.put(mapping.substring(0, colon), mapping.substring(colon + 1));
+					String optionName = mapping.substring(0, colon);
+					String parameter = mapping.substring(colon + 1);
+					if (parameter.equals("true")) {
+						options.put(optionName, true);
+					} else if (parameter.equals("false")) {
+						options.put(optionName, false);
+					} else {
+						options.put(optionName, parameter);
+					}
 				} else {
 					LOGGER.error("{} is not a option, use optionName:optionValue", mapping);
 				}
