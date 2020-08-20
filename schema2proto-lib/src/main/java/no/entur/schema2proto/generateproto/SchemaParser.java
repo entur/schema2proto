@@ -878,7 +878,7 @@ public class SchemaParser implements ErrorHandler {
 
 			Field field = new Field(fieldPackagename, location, Label.REPEATED, fieldName, doc, messageType.getNextFieldNum(), typeName, fieldOptions, false);
 
-			messageType.addField(field);
+			addField(messageType, field);
 
 			localTypes.add(new LocalType(particle, wrapperType, messageType, field,
 					NamespaceHelper.xmlNamespaceToProtoPackage(targetNamespace, configuration.forceProtoPackage), enclosingType));
