@@ -1,0 +1,61 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message DatedSpecialService_VersionStructure {
+  // Reference to an OPERATING DAY.  [netex_framework/netex_reusableComponents/netex_serviceCalendar_support.xsd at 88:109]
+  string operating_day_ref = 748;
+  // An alternative  code that uniquely identifies theDATED  VEHICLE  JOURNEY. Specifically for use in AVMS systems. For VDV compatibility.  [netex_part_2/part2_journeyTimes/netex_datedVehicleJourney_version.xsd at 191:103]
+  string external_dated_vehicle_journey_ref = 761;
+  // Reference to a JOURNEY PATTERN.  [netex_part_2/part2_journeyTimes/netex_datedVehicleJourney_version.xsd at 196:95]
+  string dated_journey_pattern_ref = 762;
+  // Reference to a DRIVER.  [netex_part_2/part2_journeyTimes/netex_vehicleService_support.xsd at 148:97]
+  string driver_ref = 751;
+  // PASSING TIMEs  for JOURNEY.  [netex_part_2/part2_journeyTimes/netex_datedVehicleJourney_version.xsd at 172:95]
+  string dated_passing_times = 771;
+  // DATED CALLs  for JOURNEY.  [netex_part_2/part2_journeyTimes/netex_datedVehicleJourney_version.xsd at 177:80]
+  string dated_calls = 772;
+
+  // Reference to a JOURNEY PATTERN.  [netex_part_1/part1_tacticalPlanning/netex_journeyPattern_support.xsd at 82:110]
+  oneof JourneyPatternRefStructure {
+    // Reference to a JOURNEY PATTERN.  [netex_part_1/part1_tacticalPlanning/netex_journeyPattern_support.xsd at 82:110]
+    string journey_pattern_ref = 453;
+    // Reference to a DEAD RUN JOURNEY PATTERN.  [netex_part_1/part1_tacticalPlanning/netex_journeyPattern_support.xsd at 108:126]
+    string dead_run_journey_pattern_ref = 454;
+    // Reference to a SERVICE PATTERN.  [netex_part_1/part1_tacticalPlanning/netex_servicePattern_support.xsd at 208:112]
+    string service_pattern_ref = 455;
+    // Reference to a SERVICE JOURNEY PATTERN.  [netex_part_1/part1_tacticalPlanning/netex_servicePattern_support.xsd at 234:126]
+    string service_journey_pattern_ref = 456;
+  }
+  // Reference to a VEHICLE TYPE.  [netex_framework/netex_reusableComponents/netex_vehicleType_support.xsd at 86:107]
+  oneof VehicleTypeRefStructure {
+    // Reference to a VEHICLE TYPE.  [netex_framework/netex_reusableComponents/netex_vehicleType_support.xsd at 86:107]
+    string vehicle_type_ref = 457;
+    // Reference to a TRAIN.  [netex_framework/netex_reusableComponents/netex_trainElement_support.xsd at 69:91]
+    string train_ref = 458;
+    // Reference to a COMPOUND TRAIN.  [netex_framework/netex_reusableComponents/netex_trainElement_support.xsd at 95:74]
+    string compound_train_ref = 459;
+  }
+  // Reference to a JOURNEY.  [netex_part_2/part2_journeyTimes/netex_vehicleJourney_support.xsd at 77:112]
+  oneof JourneyRefStructure {
+    // Reference to a VEHICLE JOURNEY. If given by context does not need to be repeated.  [netex_part_2/part2_journeyTimes/netex_vehicleJourney_support.xsd at 104:105]
+    string vehicle_journey_ref = 741;
+    // Reference to a DEAD RUN.  [netex_part_2/part2_journeyTimes/netex_vehicleJourney_support.xsd at 142:98]
+    string dead_run_ref = 742;
+    // Reference to a SERVICE JOURNEY.  [netex_part_2/part2_journeyTimes/netex_serviceJourney_support.xsd at 89:105]
+    string service_journey_ref = 743;
+    // Reference to a SPECIAL SERVICE.  [netex_part_2/part2_journeyTimes/netex_serviceJourney_support.xsd at 115:105]
+    string special_service_ref = 744;
+    // Reference to a TEMPLATE VEHICLE JOURNEY.  [netex_part_2/part2_journeyTimes/netex_vehicleJourneyFrequency_support.xsd at 88:128]
+    string template_service_journey_ref = 745;
+    // Reference to a DATED VEHICLE JOURNEY.  [netex_part_2/part2_journeyTimes/netex_datedVehicleJourney_support.xsd at 68:110]
+    string dated_vehicle_journey_ref = 746;
+    // Reference to a DATED SPECIAL SERVICE.  [netex_part_2/part2_journeyTimes/netex_datedVehicleJourney_support.xsd at 125:122]
+    string dated_special_service_ref = 747;
+  }
+
+  message InfoLinksType {
+    // A hyperlink to an external web resource.  [netex_framework/netex_utility/netex_utility_types.xsd at 451:56]
+    repeated string info_link = 1;
+  }
+}

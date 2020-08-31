@@ -15,6 +15,16 @@ See [standalone tool](schema2proto-lib/README.md)
 
 See [maven plugin](schema2proto-maven-plugin/README.md)
 
+## Maintaining backwards compatibility
+
+If your use case is to maintain a proto descriptor based on a "living" xsd, you will need to detect and possibly resolve 
+any backwards incompatibility issues that may arise from modifying the xsd.
+
+You can use the tool [protolock](https://github.com/nilslice/protolock) to verify that i.e. fields have not changed name or id. 
+
+If you are using the Maven there is a plugin as well: https://github.com/salesforce/proto-backwards-compat-maven-plugin
+
+Only automatic resolving of field name/id conflicts have been implemented so far.
 
 ## Contribution
 

@@ -15,11 +15,12 @@
  */
 package com.squareup.wire.schema
 
+
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import org.assertj.core.api.Assertions.assertThat
-
-
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
@@ -27,8 +28,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions
+import kotlin.jvm.Throws
 
 class SchemaLoaderTest {
     private var fileSystem = Jimfs.newFileSystem(Configuration.unix())

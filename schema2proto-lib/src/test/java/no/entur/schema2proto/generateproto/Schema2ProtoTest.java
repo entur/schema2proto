@@ -57,6 +57,14 @@ public class Schema2ProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void compareBackwardsCompatibleProtobuf() throws IOException {
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.protoLockFile = new File("src/test/resources/protolock/proto.lock");
+		generateProtobuf("backwards-compatibility.xsd", configuration);
+		compareExpectedAndGenerated(expectedRootFolder, "default/backwards-compatibility.proto", generatedRootFolder, "default/default.proto");
+	}
+
+	@Test
 	public void compareTestChoiceProtobuf() throws IOException {
 		generateProtobufNoOptions("test-choice.xsd");
 		compareExpectedAndGenerated(expectedRootFolder, "default/test-choice.proto", generatedRootFolder, "default/default.proto");

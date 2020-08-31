@@ -1,0 +1,1767 @@
+{
+  "definitions": [
+    {
+      "protopath": "net:/:opengis:/:www:/:gml:/:_3_2:/:net_opengis_www_gml__3_2.proto",
+      "def": {
+        "enums": [
+          {
+            "name": "AggregationType",
+            "enum_fields": [
+              {
+                "name": "AGGREGATION_TYPE_UNSPECIFIED"
+              },
+              {
+                "name": "AGGREGATION_TYPE_SET",
+                "integer": 1
+              },
+              {
+                "name": "AGGREGATION_TYPE_BAG",
+                "integer": 2
+              },
+              {
+                "name": "AGGREGATION_TYPE_SEQUENCE",
+                "integer": 3
+              },
+              {
+                "name": "AGGREGATION_TYPE_ARRAY",
+                "integer": 4
+              },
+              {
+                "name": "AGGREGATION_TYPE_RECORD",
+                "integer": 5
+              },
+              {
+                "name": "AGGREGATION_TYPE_TABLE",
+                "integer": 6
+              }
+            ]
+          },
+          {
+            "name": "SignType",
+            "enum_fields": [
+              {
+                "name": "SIGN_TYPE_UNSPECIFIED"
+              },
+              {
+                "name": "SIGN_TYPE_MINUS",
+                "integer": 1
+              },
+              {
+                "name": "SIGN_TYPE_PLUS",
+                "integer": 2
+              }
+            ]
+          }
+        ],
+        "messages": [
+          {
+            "name": "AbstractCurveType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              },
+              {
+                "id": 21,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 22,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractGeometricPrimitiveType"
+              }
+            ]
+          },
+          {
+            "name": "AbstractGMLType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "AbstractGeometricPrimitiveType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              },
+              {
+                "id": 21,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 22,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractGeometryType"
+              }
+            ]
+          },
+          {
+            "name": "AbstractGeometryType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              },
+              {
+                "id": 21,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 22,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractGMLType"
+              }
+            ]
+          },
+          {
+            "name": "AbstractMemberType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "AbstractMetadataPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "AbstractRingPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "linear_ring",
+                "type": "LinearRingType"
+              }
+            ]
+          },
+          {
+            "name": "AbstractRingType"
+          },
+          {
+            "name": "AbstractSurfaceType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              },
+              {
+                "id": 21,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 22,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractGeometricPrimitiveType"
+              }
+            ]
+          },
+          {
+            "name": "AssociationRoleType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "nil_reason",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "any",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "CodeListType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "code_space",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "value",
+                "type": "string",
+                "is_repeated": true
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "NameList"
+              }
+            ]
+          },
+          {
+            "name": "CodeOrNilReasonListType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "code_space",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "value",
+                "type": "string",
+                "is_repeated": true
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "NameOrNilReasonList"
+              }
+            ]
+          },
+          {
+            "name": "CodeType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "code_space",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "value",
+                "type": "string"
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "org.w3.www._2001.xmlschema.string"
+              }
+            ]
+          },
+          {
+            "name": "CodeWithAuthorityType",
+            "fields": [
+              {
+                "id": 2,
+                "name": "code_space",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "value",
+                "type": "string",
+                "options": [
+                  {
+                    "name": "(validate.rules).string"
+                  }
+                ]
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "CodeType"
+              }
+            ]
+          },
+          {
+            "name": "CoordinatesType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "decimal",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "cs",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "ts",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "value",
+                "type": "string"
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "org.w3.www._2001.xmlschema.string"
+              }
+            ]
+          },
+          {
+            "name": "CurveArrayPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "sequence_wrapper",
+                "type": "SequenceWrapper_CurveArrayPropertyType",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "SequenceWrapper_CurveArrayPropertyType",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "line_string",
+                    "type": "LineStringType"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "CurvePropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "nil_reason",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "line_string",
+                "type": "LineStringType"
+              }
+            ]
+          },
+          {
+            "name": "DirectPositionListType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "count",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 2,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 4,
+                "name": "value",
+                "type": "double",
+                "is_repeated": true
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "doubleList"
+              }
+            ]
+          },
+          {
+            "name": "DirectPositionType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 3,
+                "name": "value",
+                "type": "double",
+                "is_repeated": true
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "doubleList"
+              }
+            ]
+          },
+          {
+            "name": "EnvelopeType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 3,
+                "name": "lower_corner",
+                "type": "DirectPositionType"
+              },
+              {
+                "id": 4,
+                "name": "upper_corner",
+                "type": "DirectPositionType"
+              },
+              {
+                "id": 11,
+                "name": "pos",
+                "type": "DirectPositionType",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "GeometricPrimitivePropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "nil_reason",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "point",
+                "type": "PointType"
+              },
+              {
+                "id": 4,
+                "name": "line_string",
+                "type": "LineStringType"
+              },
+              {
+                "id": 5,
+                "name": "polygon",
+                "type": "PolygonType"
+              }
+            ]
+          },
+          {
+            "name": "GeometryArrayPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "sequence_wrapper",
+                "type": "SequenceWrapper_GeometryArrayPropertyType",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "SequenceWrapper_GeometryArrayPropertyType",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "point",
+                    "type": "PointType"
+                  },
+                  {
+                    "id": 2,
+                    "name": "line_string",
+                    "type": "LineStringType"
+                  },
+                  {
+                    "id": 3,
+                    "name": "polygon",
+                    "type": "PolygonType"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "GeometryPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "nil_reason",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "point",
+                "type": "PointType"
+              },
+              {
+                "id": 4,
+                "name": "line_string",
+                "type": "LineStringType"
+              },
+              {
+                "id": 5,
+                "name": "polygon",
+                "type": "PolygonType"
+              }
+            ]
+          },
+          {
+            "name": "InlinePropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "any",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "LineStringType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              },
+              {
+                "id": 21,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 22,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 101,
+                "name": "choice_wrapper",
+                "type": "ChoiceWrapper_LineStringType",
+                "is_repeated": true
+              },
+              {
+                "id": 111,
+                "name": "pos_list",
+                "type": "DirectPositionListType"
+              }
+            ],
+            "messages": [
+              {
+                "name": "ChoiceWrapper_LineStringType",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "pos",
+                    "type": "DirectPositionType"
+                  },
+                  {
+                    "id": 2,
+                    "name": "point_property",
+                    "type": "PointPropertyType"
+                  }
+                ]
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractCurveType"
+              }
+            ]
+          },
+          {
+            "name": "LinearRingPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "linear_ring",
+                "type": "LinearRingType"
+              }
+            ]
+          },
+          {
+            "name": "LinearRingType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "choice_wrapper",
+                "type": "ChoiceWrapper_LinearRingType",
+                "is_repeated": true
+              },
+              {
+                "id": 11,
+                "name": "pos_list",
+                "type": "DirectPositionListType"
+              }
+            ],
+            "messages": [
+              {
+                "name": "ChoiceWrapper_LinearRingType",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "pos",
+                    "type": "DirectPositionType"
+                  },
+                  {
+                    "id": 2,
+                    "name": "point_property",
+                    "type": "PointPropertyType"
+                  }
+                ]
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractRingType"
+              }
+            ]
+          },
+          {
+            "name": "MeasureListType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "uom",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "value",
+                "type": "double",
+                "is_repeated": true
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "doubleList"
+              }
+            ]
+          },
+          {
+            "name": "MeasureOrNilReasonListType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "uom",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "value",
+                "type": "string",
+                "is_repeated": true
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "doubleOrNilReasonList"
+              }
+            ]
+          },
+          {
+            "name": "MeasureType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "uom",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "value",
+                "type": "double"
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "org.w3.www._2001.xmlschema.double"
+              }
+            ]
+          },
+          {
+            "name": "PointArrayPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "sequence_wrapper",
+                "type": "SequenceWrapper_PointArrayPropertyType",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "SequenceWrapper_PointArrayPropertyType",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "point",
+                    "type": "PointType"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "PointPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "nil_reason",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "point",
+                "type": "PointType"
+              }
+            ]
+          },
+          {
+            "name": "PointType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              },
+              {
+                "id": 21,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 22,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 81,
+                "name": "pos",
+                "type": "DirectPositionType"
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractGeometricPrimitiveType"
+              }
+            ]
+          },
+          {
+            "name": "PolygonType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "description_reference",
+                "type": "ReferenceType"
+              },
+              {
+                "id": 3,
+                "name": "identifier",
+                "type": "CodeWithAuthorityType"
+              },
+              {
+                "id": 4,
+                "name": "name",
+                "type": "CodeType",
+                "is_repeated": true
+              },
+              {
+                "id": 21,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 22,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 101,
+                "name": "exterior",
+                "type": "AbstractRingPropertyType"
+              },
+              {
+                "id": 102,
+                "name": "interior",
+                "type": "AbstractRingPropertyType",
+                "is_repeated": true
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "AbstractSurfaceType"
+              }
+            ]
+          },
+          {
+            "name": "ReferenceType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "nil_reason",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "SurfaceArrayPropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "sequence_wrapper",
+                "type": "SequenceWrapper_SurfaceArrayPropertyType",
+                "is_repeated": true
+              }
+            ],
+            "messages": [
+              {
+                "name": "SequenceWrapper_SurfaceArrayPropertyType",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "polygon",
+                    "type": "PolygonType"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "SurfacePropertyType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "nil_reason",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "owns",
+                "type": "bool"
+              },
+              {
+                "id": 3,
+                "name": "polygon",
+                "type": "PolygonType"
+              }
+            ]
+          },
+          {
+            "name": "VectorType",
+            "fields": [
+              {
+                "id": 1,
+                "name": "srs_name",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "srs_dimension",
+                "type": "uint32",
+                "options": [
+                  {
+                    "name": "(validate.rules).uint32.gt",
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": 3,
+                "name": "value",
+                "type": "string"
+              }
+            ],
+            "options": [
+              {
+                "name": "(xsd.base_type)",
+                "value": "DirectPositionType"
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "validate/validate.proto"
+          },
+          {
+            "path": "xsd/xsd.proto"
+          }
+        ],
+        "package": {
+          "name": "net.opengis.www.gml._3_2"
+        },
+        "options": [
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    {
+      "protopath": "org:/:w3:/:www:/:xml:/:_1998:/:namespace:/:org_w3_www_xml__1998_namespace.proto",
+      "def": {
+        "enums": [
+          {
+            "name": "LangType",
+            "enum_fields": [
+              {
+                "name": "LANG_TYPE_UNSPECIFIED"
+              },
+              {
+                "name": "LANG_TYPE_AA",
+                "integer": 1
+              },
+              {
+                "name": "LANG_TYPE_AB",
+                "integer": 2
+              },
+              {
+                "name": "LANG_TYPE_AF",
+                "integer": 3
+              },
+              {
+                "name": "LANG_TYPE_AM",
+                "integer": 4
+              },
+              {
+                "name": "LANG_TYPE_AR",
+                "integer": 5
+              },
+              {
+                "name": "LANG_TYPE_AS",
+                "integer": 6
+              },
+              {
+                "name": "LANG_TYPE_AY",
+                "integer": 7
+              },
+              {
+                "name": "LANG_TYPE_AZ",
+                "integer": 8
+              },
+              {
+                "name": "LANG_TYPE_BA",
+                "integer": 9
+              },
+              {
+                "name": "LANG_TYPE_BE",
+                "integer": 10
+              },
+              {
+                "name": "LANG_TYPE_BG",
+                "integer": 11
+              },
+              {
+                "name": "LANG_TYPE_BH",
+                "integer": 12
+              },
+              {
+                "name": "LANG_TYPE_BI",
+                "integer": 13
+              },
+              {
+                "name": "LANG_TYPE_BN",
+                "integer": 14
+              },
+              {
+                "name": "LANG_TYPE_BO",
+                "integer": 15
+              },
+              {
+                "name": "LANG_TYPE_BR",
+                "integer": 16
+              },
+              {
+                "name": "LANG_TYPE_CA",
+                "integer": 17
+              },
+              {
+                "name": "LANG_TYPE_CO",
+                "integer": 18
+              },
+              {
+                "name": "LANG_TYPE_CS",
+                "integer": 19
+              },
+              {
+                "name": "LANG_TYPE_CY",
+                "integer": 20
+              },
+              {
+                "name": "LANG_TYPE_DA",
+                "integer": 21
+              },
+              {
+                "name": "LANG_TYPE_DE",
+                "integer": 22
+              },
+              {
+                "name": "LANG_TYPE_DZ",
+                "integer": 23
+              },
+              {
+                "name": "LANG_TYPE_EL",
+                "integer": 24
+              },
+              {
+                "name": "LANG_TYPE_EN",
+                "integer": 25
+              },
+              {
+                "name": "LANG_TYPE_EO",
+                "integer": 26
+              },
+              {
+                "name": "LANG_TYPE_ES",
+                "integer": 27
+              },
+              {
+                "name": "LANG_TYPE_ET",
+                "integer": 28
+              },
+              {
+                "name": "LANG_TYPE_EU",
+                "integer": 29
+              },
+              {
+                "name": "LANG_TYPE_FA",
+                "integer": 30
+              },
+              {
+                "name": "LANG_TYPE_FI",
+                "integer": 31
+              },
+              {
+                "name": "LANG_TYPE_FJ",
+                "integer": 32
+              },
+              {
+                "name": "LANG_TYPE_FO",
+                "integer": 33
+              },
+              {
+                "name": "LANG_TYPE_FR",
+                "integer": 34
+              },
+              {
+                "name": "LANG_TYPE_FY",
+                "integer": 35
+              },
+              {
+                "name": "LANG_TYPE_GA",
+                "integer": 36
+              },
+              {
+                "name": "LANG_TYPE_GD",
+                "integer": 37
+              },
+              {
+                "name": "LANG_TYPE_GL",
+                "integer": 38
+              },
+              {
+                "name": "LANG_TYPE_GN",
+                "integer": 39
+              },
+              {
+                "name": "LANG_TYPE_GU",
+                "integer": 40
+              },
+              {
+                "name": "LANG_TYPE_HA",
+                "integer": 41
+              },
+              {
+                "name": "LANG_TYPE_HI",
+                "integer": 42
+              },
+              {
+                "name": "LANG_TYPE_HR",
+                "integer": 43
+              },
+              {
+                "name": "LANG_TYPE_HU",
+                "integer": 44
+              },
+              {
+                "name": "LANG_TYPE_HY",
+                "integer": 45
+              },
+              {
+                "name": "LANG_TYPE_IA",
+                "integer": 46
+              },
+              {
+                "name": "LANG_TYPE_IE",
+                "integer": 47
+              },
+              {
+                "name": "LANG_TYPE_IK",
+                "integer": 48
+              },
+              {
+                "name": "LANG_TYPE_IN",
+                "integer": 49
+              },
+              {
+                "name": "LANG_TYPE_IS",
+                "integer": 50
+              },
+              {
+                "name": "LANG_TYPE_IT",
+                "integer": 51
+              },
+              {
+                "name": "LANG_TYPE_IW",
+                "integer": 52
+              },
+              {
+                "name": "LANG_TYPE_JA",
+                "integer": 53
+              },
+              {
+                "name": "LANG_TYPE_JI",
+                "integer": 54
+              },
+              {
+                "name": "LANG_TYPE_JW",
+                "integer": 55
+              },
+              {
+                "name": "LANG_TYPE_KA",
+                "integer": 56
+              },
+              {
+                "name": "LANG_TYPE_KK",
+                "integer": 57
+              },
+              {
+                "name": "LANG_TYPE_KL",
+                "integer": 58
+              },
+              {
+                "name": "LANG_TYPE_KM",
+                "integer": 59
+              },
+              {
+                "name": "LANG_TYPE_KN",
+                "integer": 60
+              },
+              {
+                "name": "LANG_TYPE_KO",
+                "integer": 61
+              },
+              {
+                "name": "LANG_TYPE_KS",
+                "integer": 62
+              },
+              {
+                "name": "LANG_TYPE_KU",
+                "integer": 63
+              },
+              {
+                "name": "LANG_TYPE_KY",
+                "integer": 64
+              },
+              {
+                "name": "LANG_TYPE_LA",
+                "integer": 65
+              },
+              {
+                "name": "LANG_TYPE_LN",
+                "integer": 66
+              },
+              {
+                "name": "LANG_TYPE_LO",
+                "integer": 67
+              },
+              {
+                "name": "LANG_TYPE_LT",
+                "integer": 68
+              },
+              {
+                "name": "LANG_TYPE_LV",
+                "integer": 69
+              },
+              {
+                "name": "LANG_TYPE_MG",
+                "integer": 70
+              },
+              {
+                "name": "LANG_TYPE_MI",
+                "integer": 71
+              },
+              {
+                "name": "LANG_TYPE_MK",
+                "integer": 72
+              },
+              {
+                "name": "LANG_TYPE_ML",
+                "integer": 73
+              },
+              {
+                "name": "LANG_TYPE_MN",
+                "integer": 74
+              },
+              {
+                "name": "LANG_TYPE_MO",
+                "integer": 75
+              },
+              {
+                "name": "LANG_TYPE_MR",
+                "integer": 76
+              },
+              {
+                "name": "LANG_TYPE_MS",
+                "integer": 77
+              },
+              {
+                "name": "LANG_TYPE_MT",
+                "integer": 78
+              },
+              {
+                "name": "LANG_TYPE_MY",
+                "integer": 79
+              },
+              {
+                "name": "LANG_TYPE_NA",
+                "integer": 80
+              },
+              {
+                "name": "LANG_TYPE_NE",
+                "integer": 81
+              },
+              {
+                "name": "LANG_TYPE_NL",
+                "integer": 82
+              },
+              {
+                "name": "LANG_TYPE_NO",
+                "integer": 83
+              },
+              {
+                "name": "LANG_TYPE_OC",
+                "integer": 84
+              },
+              {
+                "name": "LANG_TYPE_OM",
+                "integer": 85
+              },
+              {
+                "name": "LANG_TYPE_OR",
+                "integer": 86
+              },
+              {
+                "name": "LANG_TYPE_PA",
+                "integer": 87
+              },
+              {
+                "name": "LANG_TYPE_PL",
+                "integer": 88
+              },
+              {
+                "name": "LANG_TYPE_PS",
+                "integer": 89
+              },
+              {
+                "name": "LANG_TYPE_PT",
+                "integer": 90
+              },
+              {
+                "name": "LANG_TYPE_QU",
+                "integer": 91
+              },
+              {
+                "name": "LANG_TYPE_RM",
+                "integer": 92
+              },
+              {
+                "name": "LANG_TYPE_RN",
+                "integer": 93
+              },
+              {
+                "name": "LANG_TYPE_RO",
+                "integer": 94
+              },
+              {
+                "name": "LANG_TYPE_RU",
+                "integer": 95
+              },
+              {
+                "name": "LANG_TYPE_RW",
+                "integer": 96
+              },
+              {
+                "name": "LANG_TYPE_SA",
+                "integer": 97
+              },
+              {
+                "name": "LANG_TYPE_SD",
+                "integer": 98
+              },
+              {
+                "name": "LANG_TYPE_SG",
+                "integer": 99
+              },
+              {
+                "name": "LANG_TYPE_SH",
+                "integer": 100
+              },
+              {
+                "name": "LANG_TYPE_SI",
+                "integer": 101
+              },
+              {
+                "name": "LANG_TYPE_SK",
+                "integer": 102
+              },
+              {
+                "name": "LANG_TYPE_SL",
+                "integer": 103
+              },
+              {
+                "name": "LANG_TYPE_SM",
+                "integer": 104
+              },
+              {
+                "name": "LANG_TYPE_SN",
+                "integer": 105
+              },
+              {
+                "name": "LANG_TYPE_SO",
+                "integer": 106
+              },
+              {
+                "name": "LANG_TYPE_SQ",
+                "integer": 107
+              },
+              {
+                "name": "LANG_TYPE_SR",
+                "integer": 108
+              },
+              {
+                "name": "LANG_TYPE_SS",
+                "integer": 109
+              },
+              {
+                "name": "LANG_TYPE_ST",
+                "integer": 110
+              },
+              {
+                "name": "LANG_TYPE_SU",
+                "integer": 111
+              },
+              {
+                "name": "LANG_TYPE_SV",
+                "integer": 112
+              },
+              {
+                "name": "LANG_TYPE_SW",
+                "integer": 113
+              },
+              {
+                "name": "LANG_TYPE_TA",
+                "integer": 114
+              },
+              {
+                "name": "LANG_TYPE_TE",
+                "integer": 115
+              },
+              {
+                "name": "LANG_TYPE_TG",
+                "integer": 116
+              },
+              {
+                "name": "LANG_TYPE_TH",
+                "integer": 117
+              },
+              {
+                "name": "LANG_TYPE_TI",
+                "integer": 118
+              },
+              {
+                "name": "LANG_TYPE_TK",
+                "integer": 119
+              },
+              {
+                "name": "LANG_TYPE_TL",
+                "integer": 120
+              },
+              {
+                "name": "LANG_TYPE_TN",
+                "integer": 121
+              },
+              {
+                "name": "LANG_TYPE_TO",
+                "integer": 122
+              },
+              {
+                "name": "LANG_TYPE_TR",
+                "integer": 123
+              },
+              {
+                "name": "LANG_TYPE_TS",
+                "integer": 124
+              },
+              {
+                "name": "LANG_TYPE_TT",
+                "integer": 125
+              },
+              {
+                "name": "LANG_TYPE_TW",
+                "integer": 126
+              },
+              {
+                "name": "LANG_TYPE_UK",
+                "integer": 127
+              },
+              {
+                "name": "LANG_TYPE_UR",
+                "integer": 128
+              },
+              {
+                "name": "LANG_TYPE_UZ",
+                "integer": 129
+              },
+              {
+                "name": "LANG_TYPE_VI",
+                "integer": 130
+              },
+              {
+                "name": "LANG_TYPE_VO",
+                "integer": 131
+              },
+              {
+                "name": "LANG_TYPE_WO",
+                "integer": 132
+              },
+              {
+                "name": "LANG_TYPE_XH",
+                "integer": 133
+              },
+              {
+                "name": "LANG_TYPE_YO",
+                "integer": 134
+              },
+              {
+                "name": "LANG_TYPE_ZH",
+                "integer": 135
+              },
+              {
+                "name": "LANG_TYPE_ZU",
+                "integer": 136
+              }
+            ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "validate/validate.proto"
+          },
+          {
+            "path": "xsd/xsd.proto"
+          }
+        ],
+        "package": {
+          "name": "org.w3.www.xml._1998.namespace"
+        },
+        "options": [
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "definitions": [
+    {
+      "protopath": "default:/:default.proto",
+      "def": {
+        "messages": [
+
+          {
+            "name": "DatedSpecialService_VersionStructure",
+            "fields": [
+              {
+                "id": 748,
+                "name": "operating_day_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 749,
+                "name": "external_dated_vehicle_journey_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 750,
+                "name": "dated_journey_pattern_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 751,
+                "name": "driver_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 761,
+                "name": "dated_passing_times",
+                "type": "TargetPassingTimes_RelStructure"
+              },
+              {
+                "id": 762,
+                "name": "dated_calls",
+                "type": "DatedCalls_RelStructure"
+              },
+              {
+                "id": 453,
+                "name": "journey_pattern_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 454,
+                "name": "dead_run_journey_pattern_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 455,
+                "name": "service_pattern_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 456,
+                "name": "service_journey_pattern_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 457,
+                "name": "vehicle_type_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 458,
+                "name": "train_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 459,
+                "name": "compound_train_ref",
+                "type": "CompoundTrainRefType"
+              },
+              {
+                "id": 741,
+                "name": "vehicle_journey_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 742,
+                "name": "dead_run_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 743,
+                "name": "service_journey_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 744,
+                "name": "special_service_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 745,
+                "name": "template_service_journey_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 746,
+                "name": "dated_vehicle_journey_ref",
+                "type": "VersionOfObjectRefStructure"
+              },
+              {
+                "id": 747,
+                "name": "dated_special_service_ref",
+                "type": "VersionOfObjectRefStructure"
+              }
+            ],
+            "messages": [
+              {
+                "name": "InfoLinksType",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "info_link",
+                    "type": "InfoLinkStructure",
+                    "is_repeated": true
+                  }
+                ],
+                "options": [
+
+                ]
+              }
+            ],
+            "options": [
+
+            ]
+          }
+
+
+       ],
+        "package": {
+          "name": "default"
+        }
+      }
+    }
+  ]
+}

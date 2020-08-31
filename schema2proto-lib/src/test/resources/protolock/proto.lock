@@ -1,0 +1,69 @@
+{
+  "definitions": [
+    {
+      "protopath": "default:/:default.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "ElementList",
+            "fields": [
+              {
+                "id": 1,
+                "name": "first",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "second",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "third",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "fourth",
+                "type": "string"
+              },
+              {
+                "id": 5,
+                "name": "fifth",
+                "type": "string"
+              },
+              {
+                "id": 11,
+                "name": "sixt",
+                "type": "string"
+              },
+              {
+                "id": 12,
+                "name": "seventh",
+                "type": "string"
+              },
+              {
+                "id": 13,
+                "name": "eight",
+                "type": "string"
+              },
+              {
+                "id": 14,
+                "name": "ninth",
+                "type": "string"
+              },
+              {
+                "id": 21,
+                "name": "tenth",
+                "type": "string"
+              }
+            ]
+          }
+        ],
+        "package": {
+          "name": "default"
+        }
+      }
+    }
+  ]
+}

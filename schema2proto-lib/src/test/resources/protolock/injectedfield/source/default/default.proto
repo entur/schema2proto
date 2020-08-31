@@ -1,0 +1,13 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message ElementList {
+  string first = 1;
+  string injected_field1 = 2; // Existing field doc
+  string second = 3;
+  string third = 4;
+  string injected_field2 = 5;
+  string injected_field3 = 6;
+  string fourth = 7;
+}

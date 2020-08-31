@@ -1,0 +1,29 @@
+{
+  "definitions": [
+    {
+      "protopath": "default:/:default.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "ElementList",
+            "fields": [
+              {
+                "id": 1,
+                "name": "first",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "second",
+                "type": "string"
+              }
+            ]
+          }
+        ],
+        "package": {
+          "name": "default"
+        }
+      }
+    }
+  ]
+}

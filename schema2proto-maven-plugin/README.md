@@ -31,6 +31,31 @@ In your `build` section add:
     </plugin>
 ```
 
+If you have enabled the backwards incompability check using protolock, here is an example of setting up the maven plugin: https://github.com/salesforce/proto-backwards-compat-maven-plugin
+
+Note: Config expects proto.lock file to be placed in the root folder
+
+```
+            <plugin>
+                <groupId>com.salesforce.servicelibs</groupId>
+                <artifactId>proto-backwards-compatibility</artifactId>
+                <version>${proto-backwards-compatibility.version}</version>
+                <configuration>
+                    <protoSourceRoot>target/proto</protoSourceRoot>
+                    <lockDir>${basedir}</lockDir>
+                    <options>--debug=true</options>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>backwards-compatibility-check</goal>
+                        </goals>
+                        <phase>process-resources</phase>
+                    </execution>
+                </executions>
+            </plugin>
+```
+
 ### Modify proto files
 
 You can add, remove and modify both messages and message fields in proto files

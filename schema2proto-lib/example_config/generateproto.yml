@@ -29,19 +29,19 @@ options:
 
 # Any extra imports added to each proto file. Must be used if referring to external types
 customImports:
-  - google/protobuf/timestamp.proto
-  - google/protobuf/duration.proto
-  - google/protobuf/any.proto
+- google/protobuf/timestamp.proto
+- google/protobuf/duration.proto
+- google/protobuf/any.proto
 
 # Any extra import locations to use when the linker is trying to validate the generated proto files.
 # Used in conjunction with customImports
 customImportLocations:
-  - pathToRootFolder1OfProtobufImport
-  - pathToRootFolder2OfProtobufImport
+- pathToRootFolder1OfProtobufImport
+- pathToRootFolder2OfProtobufImport
 
 # Ignore computed output fields. Note that the field name is the one used before converting to lower_case
 ignoreOutputFields:
-  - package.name/MessageName/FieldName
+- package.name/MessageName/FieldName
 
 # Any type mappings to perform. Use this to either rename message types or to do replacement of default mappings from
 # xml primitives to proto primitives. Regex supported.
@@ -63,3 +63,10 @@ customTypeReplacings:
 
 # If a type extends another type without adding any new fields, skip this type and
 skipEmptyTypeInheritance: false
+
+# Name and location of the proto.lock file produced by prototool https://github.com/nilslice/protolock (or the maven plugin). This is used to detect backwards incompatibilities
+protoLockFile: proto.lock
+
+# If possible backwards incompatibility is detected during parsing when protoLockFile has been specified, fail the conversion in order to allow manual intervention / verification.
+# Setting `failIfRemovedFields: false` will print warnings but not fail the conversion. When using the Maven plugin you may also specify this as -DfailIfRemovedFields=false on the cmd line
+failIfRemovedFields: true

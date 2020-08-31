@@ -74,6 +74,8 @@ public class Schema2Proto {
 	private static final String OPTION_INCLUDE_VALIDATION_RULES = "includeValidationRules";
 	private static final String OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE = "skipEmptyTypeInheritance";
 	private static final String OPTION_INCLUDE_XSD_OPTIONS = "includeXsdOptions";
+	private static final String OPTION_PROTOLOCK_FILENAME = "protoLockFile";
+	private static final String OPTION_FAIL_IF_REMOVED_FIELDS = "failIfRemovedFields";
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
 	public Schema2Proto(String[] args) throws IOException {
@@ -239,6 +241,15 @@ public class Schema2Proto {
 				.desc("include message options describing the xsd type hierarchy")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_FAIL_IF_REMOVED_FIELDS)
+				.hasArg()
+				.argName("true|false")
+				.desc("when using backwards compatibility check via proto.lock file, fail if proto fields are removed")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(
+				Option.builder().longOpt(OPTION_PROTOLOCK_FILENAME).hasArg().argName("FILENAME").desc("Full path to proto.lock file").required(false).build());
 		return commandLineOptions;
 	}
 
@@ -277,79 +288,11 @@ public class Schema2Proto {
 			configuration.xsdFile = new File(args[0]);
 		}
 
-		String configFile = cmd.getOptionValue(OPTION_CONFIG_FILE);
-		try (InputStream in = Files.newInputStream(Paths.get(configFile))) {
-			LOGGER.info("Using configFile {}", configFile);
-			Yaml yaml = new Yaml();
-			Schema2ProtoConfigFile config = yaml.loadAs(in, Schema2ProtoConfigFile.class);
+		String configFileOption = cmd.getOptionValue(OPTION_CONFIG_FILE);
+		try (InputStream in = Files.newInputStream(Paths.get(configFileOption))) {
+			LOGGER.info("Using configFile {}", configFileOption);
 
-			if (config.outputDirectory == null) {
-				throw new InvalidConfigurationException(OPTION_OUTPUT_DIRECTORY);
-			} else {
-				configuration.outputDirectory = new File(config.outputDirectory);
-			}
-
-			configuration.outputFilename = config.outputFilename;
-
-			Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();
-			if (config.customTypeMappings != null) {
-				for (Entry<String, String> kv : config.customTypeMappings.entrySet()) {
-					Pattern p = Pattern.compile(kv.getKey());
-					customTypeMappings.put(p, kv.getValue());
-				}
-			}
-
-			Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();
-			if (config.customTypeReplacements != null) {
-				for (Entry<String, String> kv : config.customTypeReplacements.entrySet()) {
-					Pattern p = Pattern.compile(kv.getKey());
-					customTypeReplacements.put(p, kv.getValue());
-				}
-			}
-
-			Map<Pattern, String> customNameMappings = new LinkedHashMap<>();
-			if (config.customNameMappings != null) {
-				for (Entry<String, String> kv : config.customNameMappings.entrySet()) {
-					Pattern p = Pattern.compile(kv.getKey());
-					customNameMappings.put(p, kv.getValue());
-				}
-			}
-			configuration.customTypeMappings.putAll(customTypeMappings);
-			configuration.customTypeReplacements.putAll(customTypeReplacements);
-			configuration.customNameMappings.putAll(customNameMappings);
-			configuration.defaultProtoPackage = config.defaultProtoPackage;
-			configuration.forceProtoPackage = config.forceProtoPackage;
-			configuration.includeMessageDocs = config.includeMessageDocs;
-			configuration.includeFieldDocs = config.includeFieldDocs;
-			configuration.includeSourceLocationInDoc = config.includeSourceLocationInDoc;
-			configuration.inheritanceToComposition = config.inheritanceToComposition;
-			configuration.includeValidationRules = config.includeValidationRules;
-			configuration.skipEmptyTypeInheritance = config.skipEmptyTypeInheritance;
-			configuration.includeXsdOptions = config.includeXsdOptions;
-
-			Map<String, Object> options = config.options;
-			if (config.options != null) {
-				configuration.options.putAll(options);
-			}
-
-			if (config.customImports != null) {
-				for (String importStatment : config.customImports) {
-					configuration.customImports.add(importStatment);
-				}
-
-			}
-			if (config.customImportLocations != null) {
-				for (String importLocation : config.customImportLocations) {
-					configuration.customImportLocations.add(importLocation);
-				}
-			}
-
-			if (config.ignoreOutputFields != null) {
-				for (String ignoreOutputField : config.ignoreOutputFields) {
-					String[] split = StringUtils.split(ignoreOutputField, "/");
-					configuration.ignoreOutputFields.add(new FieldPath(split[0], split[1], split[2]));
-				}
-			}
+			parseConfigurationFileIntoConfiguration(configuration, in);
 
 			return configuration;
 
@@ -358,6 +301,85 @@ public class Schema2Proto {
 		} catch (YAMLException e) {
 			throw new InvalidConfigurationException("Error parsing config file", e);
 		}
+	}
+
+	public static void parseConfigurationFileIntoConfiguration(Schema2ProtoConfiguration configuration, InputStream in) throws InvalidConfigurationException {
+		Yaml yaml = new Yaml();
+		Schema2ProtoConfigFile configFile = yaml.loadAs(in, Schema2ProtoConfigFile.class);
+
+		if (configFile.outputDirectory == null) {
+			throw new InvalidConfigurationException(OPTION_OUTPUT_DIRECTORY);
+		} else {
+			configuration.outputDirectory = new File(configFile.outputDirectory);
+		}
+
+		configuration.outputFilename = configFile.outputFilename;
+
+		Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();
+		if (configFile.customTypeMappings != null) {
+			for (Entry<String, String> kv : configFile.customTypeMappings.entrySet()) {
+				Pattern p = Pattern.compile(kv.getKey());
+				customTypeMappings.put(p, kv.getValue());
+			}
+		}
+
+		Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();
+		if (configFile.customTypeReplacements != null) {
+			for (Entry<String, String> kv : configFile.customTypeReplacements.entrySet()) {
+				Pattern p = Pattern.compile(kv.getKey());
+				customTypeReplacements.put(p, kv.getValue());
+			}
+		}
+
+		Map<Pattern, String> customNameMappings = new LinkedHashMap<>();
+		if (configFile.customNameMappings != null) {
+			for (Entry<String, String> kv : configFile.customNameMappings.entrySet()) {
+				Pattern p = Pattern.compile(kv.getKey());
+				customNameMappings.put(p, kv.getValue());
+			}
+		}
+		configuration.customTypeMappings.putAll(customTypeMappings);
+		configuration.customTypeReplacements.putAll(customTypeReplacements);
+		configuration.customNameMappings.putAll(customNameMappings);
+		configuration.defaultProtoPackage = configFile.defaultProtoPackage;
+		configuration.forceProtoPackage = configFile.forceProtoPackage;
+		configuration.includeMessageDocs = configFile.includeMessageDocs;
+		configuration.includeFieldDocs = configFile.includeFieldDocs;
+		configuration.includeSourceLocationInDoc = configFile.includeSourceLocationInDoc;
+		configuration.inheritanceToComposition = configFile.inheritanceToComposition;
+		configuration.includeValidationRules = configFile.includeValidationRules;
+		configuration.skipEmptyTypeInheritance = configFile.skipEmptyTypeInheritance;
+		configuration.includeXsdOptions = configFile.includeXsdOptions;
+
+		Map<String, Object> options = configFile.options;
+		if (configFile.options != null) {
+			configuration.options.putAll(options);
+		}
+
+		if (configFile.customImports != null) {
+			for (String importStatment : configFile.customImports) {
+				configuration.customImports.add(importStatment);
+			}
+
+		}
+		if (configFile.customImportLocations != null) {
+			for (String importLocation : configFile.customImportLocations) {
+				configuration.customImportLocations.add(importLocation);
+			}
+		}
+
+		if (configFile.ignoreOutputFields != null) {
+			for (String ignoreOutputField : configFile.ignoreOutputFields) {
+				String[] split = StringUtils.split(ignoreOutputField, "/");
+				configuration.ignoreOutputFields.add(new FieldPath(split[0], split[1], split[2]));
+			}
+		}
+
+		if (configFile.protoLockFile != null) {
+			configuration.protoLockFile = new File(configFile.protoLockFile);
+		}
+
+		configuration.failIfRemovedFields = configFile.failIfRemovedFields;
 	}
 
 	private static Schema2ProtoConfiguration parseCommandLineOptions(CommandLine cmd) throws InvalidConfigurationException {
@@ -440,6 +462,9 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_INCLUDE_XSD_OPTIONS)) {
 			configuration.includeXsdOptions = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_XSD_OPTIONS));
+		}
+		if (cmd.hasOption(OPTION_PROTOLOCK_FILENAME)) {
+			configuration.protoLockFile = new File(cmd.getOptionValue(OPTION_PROTOLOCK_FILENAME));
 		}
 
 		return configuration;

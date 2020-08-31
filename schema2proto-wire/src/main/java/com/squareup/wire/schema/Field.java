@@ -55,7 +55,7 @@ public final class Field {
 	private Label label;
 	private String name;
 	private final String documentation;
-	private final int tag;
+	private int tag;
 	private final String defaultValue;
 	private String elementType;
 	private final boolean extension;
@@ -275,6 +275,10 @@ public final class Field {
 
 	public void setLabel(Label label) {
 		this.label = label;
+	}
+
+	public void updateTag(int updatedTag) {
+		tag = updatedTag;
 	}
 
 	public enum Label {

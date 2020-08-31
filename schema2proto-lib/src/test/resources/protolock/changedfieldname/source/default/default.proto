@@ -1,0 +1,8 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message ElementList {
+  string first = 1;
+  string third = 2;
+}

@@ -112,6 +112,7 @@ public class SchemaParser implements ErrorHandler {
 		basicTypes = new TreeSet<>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
 		ruleFactory = new PGVRuleFactory(configuration, this);
+
 	}
 
 	public SchemaParser(Schema2ProtoConfiguration configuration) {
@@ -163,6 +164,16 @@ public class SchemaParser implements ErrorHandler {
 	private ProtoFile getProtoFileForNamespace(String namespace) {
 		String packageName = NamespaceHelper.xmlNamespaceToProtoPackage(namespace, configuration.forceProtoPackage);
 		return getProtoFileForPackage(packageName);
+	}
+
+	private ProtoFile getProtoFileForMessage(MessageType messageType) {
+		for (ProtoFile f : packageToProtoFileMap.values()) {
+			if (f.types().contains(messageType)) {
+				return f;
+			}
+		}
+
+		return null;
 	}
 
 	private Type getType(String namespace, String typeName) {
@@ -255,6 +266,9 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private void addField(MessageType message, OneOf oneOf, Field newField) {
+
+		// Verify with protolock that field number is not already used for a different field
+
 		// Remove old fields of same type (element or attribute)
 		Field existingField = null;
 		for (Field f : message.fieldsAndOneOfFields()) {
