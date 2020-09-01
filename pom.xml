@@ -286,6 +286,7 @@
                             <detectJavaApiLink>false</detectJavaApiLink>
                             <doclint>none</doclint>
                             <excludePackageNames>com.squareup.wire.*:com.sun.xml.xsom.*</excludePackageNames>
+                            <source>${maven.compiler.source}</source>
                         </configuration>
                         <executions>
                             <execution>
