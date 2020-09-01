@@ -23,6 +23,8 @@
 package no.entur;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -30,7 +32,9 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.generateproto.Schema2Proto;
+import no.entur.schema2proto.generateproto.Schema2ProtoConfiguration;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
 public class GenerateProtoMojo extends AbstractMojo {
@@ -47,6 +51,12 @@ public class GenerateProtoMojo extends AbstractMojo {
 	@Parameter(required = true)
 	private File xsdFile;
 
+	/**
+	 * XSD file to convert
+	 */
+	@Parameter(property = "failIfRemovedFields")
+	private Boolean failIfRemovedFields;
+
 	public void execute() throws MojoExecutionException {
 
 		try {
@@ -60,8 +70,19 @@ public class GenerateProtoMojo extends AbstractMojo {
 
 			getLog().info(String.format("Generating proto files from %s using config file %s. Output is defined in config file", xsdFile, configFile));
 
-			Schema2Proto.main(new String[] { "--configFile=" + configFile, "" + xsdFile });
-		} catch (MojoExecutionException e) {
+			Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+			configuration.xsdFile = xsdFile;
+
+			Schema2Proto.parseConfigurationFileIntoConfiguration(configuration, new FileInputStream(configFile));
+
+			// Override based on maven parameter -DfailIfRemovedFields
+			if (failIfRemovedFields != null) {
+				configuration.failIfRemovedFields = failIfRemovedFields;
+			}
+
+			Schema2Proto.parseAndSerialize(configuration);
+
+		} catch (MojoExecutionException | InvalidConfigurationException | IOException e) {
 			throw new MojoExecutionException("Error generating proto files", e);
 		}
 

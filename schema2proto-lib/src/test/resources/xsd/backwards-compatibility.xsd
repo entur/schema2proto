@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+    <xsd:complexType name="ElementList">
+        <xsd:sequence>
+            <xsd:element name="first" type="xsd:string"/>
+            <xsd:element name="second" type="xsd:string"/>
+            <xsd:element name="third" type="xsd:string"/>
+            <xsd:choice>
+                <xsd:element name="fourth" type="xsd:string"/>
+                <xsd:element name="fifth" type="xsd:string"/>
+            </xsd:choice>
+            <xsd:element name="sixt" type="xsd:string"/>
+            <xsd:element name="seventh" type="xsd:string"/>
+            <xsd:choice>
+                <xsd:element name="eight" type="xsd:string"/>
+                <xsd:element name="ninth" type="xsd:string"/>
+            </xsd:choice>
+            <xsd:element name="tenth" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

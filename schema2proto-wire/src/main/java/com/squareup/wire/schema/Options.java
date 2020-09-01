@@ -41,6 +41,7 @@ package com.squareup.wire.schema;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -207,8 +208,9 @@ public final class Options {
 		// Try to resolve a local name.
 		for (int i = 0; i < name.length(); i++) {
 			i = name.indexOf('.', i);
-			if (i == -1)
+			if (i == -1) {
 				i = name.length();
+			}
 
 			String candidate = name.substring(0, i);
 			if (fullyQualifiedNames.contains(candidate)) {
@@ -264,7 +266,7 @@ public final class Options {
 			return coerceValueForField(context, result.build());
 		}
 
-		if (value instanceof String) {
+		if (value instanceof String || value instanceof Boolean || value instanceof BigDecimal) {
 			return coerceValueForField(context, value);
 		}
 
@@ -328,8 +330,9 @@ public final class Options {
 	}
 
 	Options retainAll(Schema schema, MarkSet markSet) {
-		if (map.isEmpty())
+		if (map.isEmpty()) {
 			return this; // Nothing to prune.
+		}
 		Options result = new Options(optionType, optionElements);
 		Object mapOrNull = retainAll(schema, markSet, optionType, map);
 		result.map = mapOrNull != null ? (ImmutableMap<ProtoMember, Object>) mapOrNull : ImmutableMap.<ProtoMember, Object>of();
@@ -345,8 +348,9 @@ public final class Options {
 			ImmutableMap.Builder<ProtoMember, Object> builder = ImmutableMap.builder();
 			for (Map.Entry<?, ?> entry : ((Map<?, ?>) o).entrySet()) {
 				ProtoMember protoMember = (ProtoMember) entry.getKey();
-				if (!markSet.contains(protoMember))
+				if (!markSet.contains(protoMember)) {
 					continue; // Prune this field.
+				}
 				Field field = schema.getField(protoMember);
 				Object retainedValue = retainAll(schema, markSet, field.type(), entry.getValue());
 				if (retainedValue != null) {

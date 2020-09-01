@@ -23,6 +23,7 @@
 package no.entur.schema2proto.generateproto;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -30,6 +31,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +73,7 @@ import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSComponent;
 
 import no.entur.schema2proto.InvalidConfigurationException;
+import no.entur.schema2proto.generateproto.compatibility.ProtolockBackwardsCompatibilityChecker;
 
 public class ProtoSerializer {
 
@@ -90,6 +93,8 @@ public class ProtoSerializer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProtoSerializer.class);
 
+	private ProtolockBackwardsCompatibilityChecker backwardsCompatibilityChecker;
+
 	public ProtoSerializer(Schema2ProtoConfiguration configuration, TypeAndNameMapper marshaller) throws InvalidConfigurationException {
 		this.configuration = configuration;
 		this.typeAndFieldNameMapper = marshaller;
@@ -101,6 +106,16 @@ public class ProtoSerializer {
 			}
 			LOGGER.info("Writing proto files to {}", configuration.outputDirectory.getAbsolutePath());
 		}
+
+		backwardsCompatibilityChecker = new ProtolockBackwardsCompatibilityChecker();
+		if (configuration.protoLockFile != null) {
+			try {
+				backwardsCompatibilityChecker.init(configuration.protoLockFile);
+			} catch (FileNotFoundException e) {
+				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
+			}
+		}
+
 	}
 
 	public void serialize(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypes) throws InvalidXSDException, IOException {
@@ -165,6 +180,15 @@ public class ProtoSerializer {
 		// Add packed=true option to repeated enum or number fields
 		addPackedOptionToRepeatedFields(packageToProtoFileMap, true);
 
+		// Try to resolve some backward incompatibilities based on protolock
+		boolean possibleIncompatibilitiesDetected = false;
+		if (configuration.protoLockFile != null) {
+			possibleIncompatibilitiesDetected = resolveBackwardIncompatibilities(packageToProtoFileMap);
+		}
+
+		// Sort fields by tag/id
+		sortFieldsByTag(packageToProtoFileMap);
+
 		// Run included linker to detect problems
 		// link(packageToProtoFileMap);
 
@@ -205,6 +229,40 @@ public class ProtoSerializer {
 		// Parse and verify written proto files
 		parseWrittenFiles();
 
+		if (possibleIncompatibilitiesDetected && configuration.failIfRemovedFields) {
+			throw new BackwardsCompatibilityCheckException(
+					"Possible backwards incompatibility detected. See previous log messages. Re-run with option failIfRemovedFields=false if this is ok");
+		}
+
+	}
+
+	private void sortFieldsByTag(Map<String, ProtoFile> packageToProtoFileMap) {
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			messageTypes(file.types()).forEach(mt -> {
+				mt.nestedTypes().stream().filter(e -> e instanceof MessageType).forEach(z -> sortFieldsByTag((MessageType) z));
+				sortFieldsByTag(mt);
+			});
+		}
+	}
+
+	private void sortFieldsByTag(MessageType mt) {
+		Collections.sort(mt.fields(), Comparator.comparingInt(e -> e.tag()));
+		mt.oneOfs().forEach(oneOf -> Collections.sort(oneOf.fields(), Comparator.comparingInt(e -> e.tag())));
+	}
+
+	private boolean resolveBackwardIncompatibilities(Map<String, ProtoFile> packageToProtoFileMap) {
+
+		AtomicBoolean possibleIncompatibilitiesDetected = new AtomicBoolean(false);
+
+		for (ProtoFile file : packageToProtoFileMap.values()) {
+			messageTypes(file.types()).forEach(mt -> {
+				if (backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file, mt)) {
+					possibleIncompatibilitiesDetected.set(true);
+				}
+			});
+		}
+
+		return possibleIncompatibilitiesDetected.get();
 	}
 
 	private void sortTypesInProtofile(Map<String, ProtoFile> packageToProtoFileMap) {
@@ -412,7 +470,7 @@ public class ProtoSerializer {
 						usedNames.add(newMessageName);
 						updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 					} else {
-						LOGGER.warn("Cannot uppercase enum {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
+						LOGGER.warn("Cannot uppercase enum {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 					}
 				}
 			}
@@ -459,7 +517,7 @@ public class ProtoSerializer {
 				usedNames.add(newMessageName);
 				updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 			} else {
-				LOGGER.warn("Cannot uppercase message {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
+				LOGGER.warn("Cannot uppercase message {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 			}
 		}
 	}
@@ -563,8 +621,7 @@ public class ProtoSerializer {
 
 			schemaLoader.load();
 		} catch (IOException e) {
-			LOGGER.error("Parsing of written output failed, the proto files are not valid", e);
-			throw e;
+			throw new ConversionException("Parsing of written output failed, the proto files are not valid", e);
 		}
 
 	}
@@ -813,7 +870,7 @@ public class ProtoSerializer {
 							usedNames.add(newMessageName);
 							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 						} else {
-							LOGGER.warn("Cannot rename message {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
+							LOGGER.warn("Cannot rename message {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 						}
 
 					}
@@ -830,7 +887,7 @@ public class ProtoSerializer {
 							usedNames.add(newMessageName);
 							updateTypeReferences(packageToProtoFileMap, packageName, messageName, newMessageName);
 						} else {
-							LOGGER.warn("Cannot rename enum {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
+							LOGGER.warn("Cannot rename enum {} to {} as type already exist! Renaming ignored", messageName, newMessageName);
 						}
 					}
 				}
@@ -844,7 +901,7 @@ public class ProtoSerializer {
 			if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
 				String newFieldType = typeAndFieldNameMapper.translateType(field.getElementType());
 				if (!newFieldType.equals(field.getElementType())) {
-					LOGGER.debug("Replacing basicType {} with {}", field.getElementType(), newFieldType);
+					LOGGER.debug("Replacing basicType {} with {}", field.getElementType(), newFieldType);
 					field.updateElementType(newFieldType);
 				}
 			}
@@ -897,7 +954,7 @@ public class ProtoSerializer {
 				String fieldType = field.getElementType();
 				if (fieldType.equals(oldName)) {
 					field.updateElementType(newName);
-					LOGGER.debug("Updating field {} in type {} to {}", oldName, mt.getName(), newName);
+					LOGGER.debug("Updating field {} in type {} to {}", oldName, mt.getName(), newName);
 				}
 			}
 		}
@@ -1091,7 +1148,7 @@ public class ProtoSerializer {
 	private void moveReusedLocalTypesToGlobal(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypesAllPackages) {
 		LOGGER.debug("Reorganizing embedded local types into global if reused");
 
-		localTypesAllPackages.forEach(e -> LOGGER.debug("{} -> {}", e.enclosingType.getName(), e.localType.getName()));
+		localTypesAllPackages.forEach(e -> LOGGER.debug("{} -> {}", e.enclosingType.getName(), e.localType.getName()));
 
 		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
 
@@ -1121,7 +1178,7 @@ public class ProtoSerializer {
 
 				ComponentMessageWrapper currentComponent = e.getKey();
 
-				LOGGER.debug("ComplexType/name reused: {} / {} times", currentComponent, e.getValue());
+				LOGGER.debug("ComplexType/name reused: {} / {} times", currentComponent, e.getValue());
 
 				// XSComplextype used more than once
 				List<LocalType> usagesThisComponent = localTypes.stream()
@@ -1153,7 +1210,7 @@ public class ProtoSerializer {
 						Set<String> enclosingTypes = usagesThisComponent.stream().map(k -> k.enclosingComplexType.getName()).collect(Collectors.toSet());
 						if (enclosingTypes.size() > 1) {
 							throw new IllegalArgumentException(String.format(
-									"Candidate enclosing types for %s are many - should be one %s. Cannot continue as conversion is not deterministic",
+									"Candidate enclosing types for %s are many - should be one %s. Cannot continue as conversion is not deterministic",
 									first.localType.getName(), ToStringBuilder.reflectionToString(enclosingTypes.toArray(), ToStringStyle.SIMPLE_STYLE)));
 						}
 						candidateName = StringUtils.capitalize(enclosingTypes.iterator().next()) + "_"
@@ -1174,7 +1231,7 @@ public class ProtoSerializer {
 							y.enclosingType.nestedTypes().remove(y.localType);
 							String previousElementType = y.referencingField.getElementType();
 							y.referencingField.updateElementType(localToBecomeGlobal.getName());
-							LOGGER.debug("In type {} field {} of type {} have now been replaced with package global type {}", y.enclosingType.getName(),
+							LOGGER.debug("In type {} field {} of type {} have now been replaced with package global type {}", y.enclosingType.getName(),
 									y.referencingField.name(), previousElementType, localToBecomeGlobal.getName());
 						});
 					} else {

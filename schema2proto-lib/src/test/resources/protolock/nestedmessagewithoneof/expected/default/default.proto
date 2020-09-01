@@ -1,0 +1,24 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message JourneyRefs_RelStructure {
+  string id = 1;
+  string modification_set = 2;
+  repeated ChoiceWrapper_JourneyRefs_RelStructure choice_wrapper = 3;
+  message ChoiceWrapper_JourneyRefs_RelStructure {
+    string journey_designator = 8;
+    string service_designator = 9;
+    oneof JourneyRefStructure {
+      string vehicle_journey_ref = 1;
+      string dead_run_ref = 2;
+      string service_journey_ref = 3;
+      string special_service_ref = 4;
+      string template_service_journey_ref = 5;
+      string dated_vehicle_journey_ref = 6;
+      string normal_dated_vehicle_journey_ref = 12;
+      string dated_service_journey_ref = 13;
+      string dated_special_service_ref = 7;
+    }
+  }
+}

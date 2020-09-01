@@ -110,6 +110,14 @@ public final class MessageType extends Type {
 		this.reserveds = new ArrayList<>();
 	}
 
+	public List<Reserved> getReserveds() {
+		return reserveds;
+	}
+
+	public void addReserved(Reserved r) {
+		reserveds.add(r);
+	}
+
 	@Override
 	public String toString() {
 		return "MessageType [name=" + name + "]";

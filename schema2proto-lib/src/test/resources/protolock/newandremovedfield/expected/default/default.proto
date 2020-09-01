@@ -1,0 +1,14 @@
+//
+syntax = "proto3";
+package default;
+
+message ElementList {
+  // Reservation added by schema2proto
+  reserved "third";
+  // Reservation added by schema2proto
+  reserved 3;
+
+  string first = 1;
+  string second = 2;
+  string fourth = 4;
+}

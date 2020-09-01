@@ -5,8 +5,6 @@ This tool does 2 things:
 * Converts XML Schema files (.xsd) to Protocol Buffers (.proto). 
 * Modifies existing proto files by adding, modifying and removing fields, messages etc. Also support for merging proto files using the same package
 
-NOTE: This project depend on an artifact xsom-2.4.0-b190812-entur.jar . This artifact is not published to any repo (yet) but can be built from https://github.com/entur/jaxb-ri/tree/master/jaxb-ri/xsom .
-
 ## Usage
 
 ### Standalone (Only for converting XSD to PROTO)
@@ -17,6 +15,16 @@ See [standalone tool](schema2proto-lib/README.md)
 
 See [maven plugin](schema2proto-maven-plugin/README.md)
 
+## Maintaining backwards compatibility
+
+If your use case is to maintain a proto descriptor based on a "living" xsd, you will need to detect and possibly resolve 
+any backwards incompatibility issues that may arise from modifying the xsd.
+
+You can use the tool [protolock](https://github.com/nilslice/protolock) to verify that i.e. fields have not changed name or id. 
+
+If you are using the Maven there is a plugin as well: https://github.com/salesforce/proto-backwards-compat-maven-plugin
+
+Only automatic resolving of field name/id conflicts have been implemented so far.
 
 ## Contribution
 
@@ -31,4 +39,3 @@ The schema2proto-wire module is a modified copy from https://github.com/square/w
 The schema2proto-xsom module is a modified copy from https://github.com/eclipse-ee4j/jaxb-ri/tree/master/jaxb-ri/xsom, see [original LICENSE](schema2proto-xsom/LICENSE.md)
 
 The codebase was once based on https://github.com/tranchis/xsd2thrift but has been completely rewritten.
-

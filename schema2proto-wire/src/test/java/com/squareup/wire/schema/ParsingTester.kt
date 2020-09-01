@@ -16,16 +16,10 @@
 package com.squareup.wire.schema
 
 import com.squareup.wire.schema.internal.parser.ProtoParser
-import java.io.File
 import java.io.IOException
-import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.SimpleFileVisitor
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.atomic.AtomicLong
+import kotlin.jvm.Throws
 
 /** Recursively traverse a directory and attempt to parse all of its proto files.  */
 object ParsingTester {

@@ -1,0 +1,16 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message ElementList {
+  string first = 1;
+  string second = 2;
+  string third = 3;
+  string fourth = 4;
+  string fifth = 5;
+  string sixt = 11;
+  string seventh = 12;
+  string eight = 13;
+  string ninth = 14;
+  string tenth = 21;
+}

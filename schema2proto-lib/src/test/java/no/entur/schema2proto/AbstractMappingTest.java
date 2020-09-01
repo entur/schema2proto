@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.difflib.DiffUtils;
-import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
 
@@ -85,7 +84,7 @@ public abstract class AbstractMappingTest {
 				FILE_CONTENT_LOGGER.info("Diff end");
 			}
 
-		} catch (DiffException | IOException e1) {
+		} catch (IOException e1) {
 			LOGGER.error("Error creating diff of files", e1);
 		}
 	}

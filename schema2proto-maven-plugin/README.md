@@ -14,7 +14,7 @@ In your `build` section add:
     <plugin>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-maven-plugin</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
         <configuration>
             <configFile>netex_to_protobuf_config.yaml</configFile>
             <xsdFile>target/${netexVersion}/NeTEx_publication.xsd</xsdFile>
@@ -29,6 +29,31 @@ In your `build` section add:
         </executions>
 
     </plugin>
+```
+
+If you have enabled the backwards incompability check using protolock, here is an example of setting up the maven plugin: https://github.com/salesforce/proto-backwards-compat-maven-plugin
+
+Note: Config expects proto.lock file to be placed in the root folder
+
+```
+            <plugin>
+                <groupId>com.salesforce.servicelibs</groupId>
+                <artifactId>proto-backwards-compatibility</artifactId>
+                <version>${proto-backwards-compatibility.version}</version>
+                <configuration>
+                    <protoSourceRoot>target/proto</protoSourceRoot>
+                    <lockDir>${basedir}</lockDir>
+                    <options>--debug=true</options>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>backwards-compatibility-check</goal>
+                        </goals>
+                        <phase>process-resources</phase>
+                    </execution>
+                </executions>
+            </plugin>
 ```
 
 ### Modify proto files

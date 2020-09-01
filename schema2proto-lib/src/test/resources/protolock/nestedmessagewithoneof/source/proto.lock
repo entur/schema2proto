@@ -1,0 +1,89 @@
+{
+  "definitions": [
+    {
+      "protopath": "default:/:default.proto",
+      "def": {
+        "messages": [
+           {
+             "name": "JourneyRefs_RelStructure",
+             "fields": [
+               {
+                 "id": 1,
+                 "name": "id",
+                 "type": "string"
+               },
+               {
+                 "id": 2,
+                 "name": "modification_set",
+                 "type": "ModificationSetEnumeration"
+               },
+               {
+                 "id": 3,
+                 "name": "choice_wrapper",
+                 "type": "ChoiceWrapper_JourneyRefs_RelStructure",
+                 "is_repeated": true
+               }
+             ],
+             "messages": [
+               {
+                 "name": "ChoiceWrapper_JourneyRefs_RelStructure",
+                 "fields": [
+                   {
+                     "id": 8,
+                     "name": "journey_designator",
+                     "type": "JourneyDesignatorStructure"
+                   },
+                   {
+                     "id": 9,
+                     "name": "service_designator",
+                     "type": "ServiceDesignatorStructure"
+                   },
+                   {
+                     "id": 1,
+                     "name": "vehicle_journey_ref",
+                     "type": "VersionOfObjectRefStructure"
+                   },
+                   {
+                     "id": 2,
+                     "name": "dead_run_ref",
+                     "type": "VersionOfObjectRefStructure"
+                   },
+                   {
+                     "id": 3,
+                     "name": "service_journey_ref",
+                     "type": "VersionOfObjectRefStructure"
+                   },
+                   {
+                     "id": 4,
+                     "name": "special_service_ref",
+                     "type": "VersionOfObjectRefStructure"
+                   },
+                   {
+                     "id": 5,
+                     "name": "template_service_journey_ref",
+                     "type": "VersionOfObjectRefStructure"
+                   },
+                   {
+                     "id": 6,
+                     "name": "dated_vehicle_journey_ref",
+                     "type": "VersionOfObjectRefStructure"
+                   },
+                   {
+                     "id": 7,
+                     "name": "dated_special_service_ref",
+                     "type": "VersionOfObjectRefStructure"
+                   }
+                 ]
+               }
+             ],
+             "options": [
+             ]
+           }
+       ],
+        "package": {
+          "name": "default"
+        }
+      }
+    }
+  ]
+}

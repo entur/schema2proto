@@ -38,6 +38,8 @@ package com.squareup.wire.schema.internal.parser;
  * #L%
  */
 
+import java.math.BigDecimal;
+
 import com.squareup.wire.schema.Location;
 
 /** A general purpose reader for formats like {@code .proto}. */
@@ -70,8 +72,9 @@ public final class SyntaxReader {
 
 	/** Reads a non-whitespace character 'c', or throws an exception. */
 	public void require(char c) {
-		if (readChar() != c)
+		if (readChar() != c) {
 			throw unexpected("expected '" + c + "'");
+		}
 	}
 
 	/**
@@ -79,8 +82,9 @@ public final class SyntaxReader {
 	 */
 	public char peekChar() {
 		skipWhitespace(true);
-		if (pos == data.length)
+		if (pos == data.length) {
 			throw unexpected("unexpected end of file");
+		}
 		return data[pos];
 	}
 
@@ -95,8 +99,9 @@ public final class SyntaxReader {
 
 	/** Push back the most recently read character. */
 	public void pushBack(char c) {
-		if (data[pos - 1] != c)
+		if (data[pos - 1] != c) {
 			throw new IllegalArgumentException();
+		}
 		pos--;
 	}
 
@@ -109,8 +114,9 @@ public final class SyntaxReader {
 
 	public String readQuotedString() {
 		char startQuote = readChar();
-		if (startQuote != '"' && startQuote != '\'')
+		if (startQuote != '"' && startQuote != '\'') {
 			throw new AssertionError();
+		}
 		StringBuilder result = new StringBuilder();
 		while (pos < data.length) {
 			char c = data[pos++];
@@ -124,8 +130,9 @@ public final class SyntaxReader {
 			}
 
 			if (c == '\\') {
-				if (pos == data.length)
+				if (pos == data.length) {
 					throw unexpected("unexpected end of file");
+				}
 				c = data[pos++];
 				switch (c) {
 				case 'a':
@@ -171,8 +178,9 @@ public final class SyntaxReader {
 			}
 
 			result.append(c);
-			if (c == '\n')
+			if (c == '\n') {
 				newline();
+			}
 		}
 		throw unexpected("unterminated string");
 	}
@@ -181,28 +189,31 @@ public final class SyntaxReader {
 		int value = -1;
 		for (int endPos = Math.min(pos + len, data.length); pos < endPos; pos++) {
 			int digit = hexDigit(data[pos]);
-			if (digit == -1 || digit >= radix)
+			if (digit == -1 || digit >= radix) {
 				break;
+			}
 			if (value < 0) {
 				value = digit;
 			} else {
 				value = value * radix + digit;
 			}
 		}
-		if (value < 0)
+		if (value < 0) {
 			throw unexpected("expected a digit after \\x or \\X");
+		}
 		return (char) value;
 	}
 
 	private int hexDigit(char c) {
-		if (c >= '0' && c <= '9')
+		if (c >= '0' && c <= '9') {
 			return c - '0';
-		else if (c >= 'a' && c <= 'f')
+		} else if (c >= 'a' && c <= 'f') {
 			return c - 'a' + 10;
-		else if (c >= 'A' && c <= 'F')
+		} else if (c >= 'A' && c <= 'F') {
 			return c - 'A' + 10;
-		else
+		} else {
 			return -1;
+		}
 	}
 
 	/** Reads a (paren-wrapped), [square-wrapped] or naked symbol name. */
@@ -212,13 +223,15 @@ public final class SyntaxReader {
 		if (c == '(') {
 			pos++;
 			optionName = readWord();
-			if (readChar() != ')')
+			if (readChar() != ')') {
 				throw unexpected("expected ')'");
+			}
 		} else if (c == '[') {
 			pos++;
 			optionName = readWord();
-			if (readChar() != ']')
+			if (readChar() != ']') {
 				throw unexpected("expected ']'");
+			}
 		} else {
 			optionName = readWord();
 		}
@@ -234,14 +247,17 @@ public final class SyntaxReader {
 	/** Reads a scalar, map, or type name with {@code name} as a prefix word. */
 	public String readDataType(String name) {
 		if (name.equals("map")) {
-			if (readChar() != '<')
+			if (readChar() != '<') {
 				throw unexpected("expected '<'");
+			}
 			String keyType = readDataType();
-			if (readChar() != ',')
+			if (readChar() != ',') {
 				throw unexpected("expected ','");
+			}
 			String valueType = readDataType();
-			if (readChar() != '>')
+			if (readChar() != '>') {
 				throw unexpected("expected '>'");
+			}
 			return String.format("map<%s, %s>", keyType, valueType);
 		} else {
 			return name;
@@ -281,6 +297,16 @@ public final class SyntaxReader {
 		}
 	}
 
+	/** Reads a long and returns it. */
+	public BigDecimal readBigDecimal() {
+		String tag = readWord();
+		try {
+			return new BigDecimal(tag);
+		} catch (Exception e) {
+			throw unexpected("expected a long but was " + tag);
+		}
+	}
+
 	/**
 	 * Like {@link #skipWhitespace}, but this returns a string containing all comment text. By convention, comments before a declaration document that
 	 * declaration.
@@ -299,8 +325,9 @@ public final class SyntaxReader {
 
 	/** Reads a comment and returns its body. */
 	private String readComment() {
-		if (pos == data.length || data[pos] != '/')
+		if (pos == data.length || data[pos] != '/') {
 			throw new AssertionError();
+		}
 		pos++;
 		int commentType = pos < data.length ? data[pos++] : -1;
 		if (commentType == '*') {
@@ -439,8 +466,9 @@ public final class SyntaxReader {
 			char c = data[pos];
 			if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
 				pos++;
-				if (c == '\n')
+				if (c == '\n') {
 					newline();
+				}
 			} else if (skipComments && c == '/') {
 				readComment();
 			} else {

@@ -55,14 +55,14 @@ public final class Field {
 	private Label label;
 	private String name;
 	private final String documentation;
-	private final int tag;
+	private int tag;
 	private final String defaultValue;
 	private String elementType;
 	private final boolean extension;
 	private final Options options;
 	private ProtoType type;
-	private Object deprecated;
-	private Object packed;
+	private Boolean deprecated;
+	private Boolean packed;
 	private boolean redacted;
 
 	public boolean isFromAttribute() {
@@ -190,11 +190,11 @@ public final class Field {
 	}
 
 	public boolean isDeprecated() {
-		return "true".equals(deprecated);
+		return deprecated != null && deprecated;
 	}
 
 	public boolean isPacked() {
-		return "true".equals(packed);
+		return packed != null && packed;
 	}
 
 	public boolean isRedacted() {
@@ -221,8 +221,8 @@ public final class Field {
 	void linkOptions(Linker linker) {
 		linker = linker.withContext(this);
 		options.link(linker);
-		deprecated = options().get(DEPRECATED);
-		packed = options().get(PACKED);
+		deprecated = (Boolean) options().get(DEPRECATED);
+		packed = (Boolean) options().get(PACKED);
 		// We allow any package name to be used as long as it ends with '.redacted'.
 		redacted = options().optionMatches(".*\\.redacted", "true");
 	}
@@ -275,6 +275,10 @@ public final class Field {
 
 	public void setLabel(Label label) {
 		this.label = label;
+	}
+
+	public void updateTag(int updatedTag) {
+		tag = updatedTag;
 	}
 
 	public enum Label {

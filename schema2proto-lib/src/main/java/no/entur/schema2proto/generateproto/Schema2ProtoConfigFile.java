@@ -44,5 +44,6 @@ public class Schema2ProtoConfigFile {
 	public boolean includeValidationRules = false;
 	public boolean skipEmptyTypeInheritance = false;
 	public boolean includeXsdOptions = false;
-
+	public String protoLockFile;
+	public boolean failIfRemovedFields = true;
 }
