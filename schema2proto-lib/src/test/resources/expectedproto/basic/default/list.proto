@@ -2,10 +2,31 @@
 syntax = "proto3";
 package default;
 
-
 message DirectPositionList {
   uint32 count = 1;
-
+  // SimpleContent value of element
+  repeated double value = 2;
+}
+message DirectPositionType {
+  uint32 count = 1;
+  // SimpleContent value of element
+  repeated double value = 2;
+}
+// Allowed values for Payment method.
+enum PaymentMethodEnumeration {
+  // Default
+  PAYMENT_METHOD_ENUMERATION_UNSPECIFIED = 0;
+  // Payment in mileage points.
+  PAYMENT_METHOD_ENUMERATION_MILEAGE_POINTS = 1;
+  // Other means of payment .
+  PAYMENT_METHOD_ENUMERATION_OTHER = 2;
+}
+message UseOfSimpleTypeWithList {
+  repeated PaymentMethodEnumeration payment_methods = 1 [packed = true];
+  repeated string currency_types = 2;
+}
+message VectorType {
+  uint32 count = 1;
   // SimpleContent value of element
   repeated double value = 2;
 }
