@@ -7,7 +7,6 @@
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - Xsd schema to protobuf</description>
-
     <modules>
         <module>schema2proto-lib</module>
         <module>schema2proto-wire</module>
@@ -155,7 +154,7 @@
                 <configuration>
                     <allowSnapshots>false</allowSnapshots>
                     <verbose>true</verbose>
-                    <commitMessagePrefix>[ci skip] </commitMessagePrefix>
+                    <commitMessagePrefix>[ci skip]</commitMessagePrefix>
                 </configuration>
             </plugin>
             <plugin>
