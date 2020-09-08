@@ -14,4 +14,70 @@
         </xsd:simpleContent>
     </xsd:complexType>
 
+    <xsd:complexType name="UseOfSimpleTypeWithList">
+        <xsd:sequence>
+            <xsd:element name="PaymentMethods" type="PaymentMethodListOfEnumerations" minOccurs="0"/>
+            <xsd:element name="CurrencyTypes" type="CurrencyListOfEnumerations" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- =================================================== -->
+    <xsd:simpleType name="PaymentMethodEnumeration">
+        <xsd:annotation>
+            <xsd:documentation>Allowed values for Payment method.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="mileagePoints">
+                <xsd:annotation>
+                    <xsd:documentation>Payment in mileage points.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="other">
+                <xsd:annotation>
+                    <xsd:documentation>Other means of payment .</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PaymentMethodListOfEnumerations">
+        <xsd:annotation>
+            <xsd:documentation>List of payment methods.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:list itemType="PaymentMethodEnumeration"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="CurrencyType">
+        <xsd:annotation>
+            <xsd:documentation>Type for a Currency . Based on ISO 4717 values.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:NMTOKEN">
+            <xsd:minLength value="3"/>
+            <xsd:maxLength value="3"/>
+            <xsd:pattern value="[A-Z][A-Z][A-Z]"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="CurrencyListOfEnumerations">
+        <xsd:annotation>
+            <xsd:documentation>List of Currencies.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:list itemType="CurrencyType"/>
+    </xsd:simpleType>
+
+
+    <xsd:complexType name="VectorType">
+        <xsd:simpleContent>
+            <xsd:restriction base="DirectPositionType"/>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="DirectPositionType">
+
+        <xsd:simpleContent>
+            <xsd:extension base="doubleList">
+                <xsd:attribute name="count" type="xsd:positiveInteger"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+
 </xsd:schema>

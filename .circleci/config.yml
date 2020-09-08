@@ -3,8 +3,6 @@ aliases:
   - &release
     name: Release
     command: |
-      if [ "$(git log -1 --pretty=%B)" == "Start release" ]
-      then
         echo "Start release"
         git config --global user.email "circleci@entur.no"
         git config --global user.name "circleci"
@@ -13,9 +11,6 @@ aliases:
         git checkout develop
         mvn versions:use-releases
         mvn gitflow:release-start gitflow:release-finish -DskipTests=true -Dspotless.check.skip=true -Prelease -DpostReleaseGoals=deploy -DargLine='-Prelease -DskipTests' -B
-      else
-        echo "Skipping release"
-      fi
 
   - &post_build
     name: Trigger downstream builds
@@ -159,20 +154,6 @@ jobs:
       - store_artifacts:
           path: ~/junit
 
-  deploy-artifactory:
-    <<: *java-container-config
-    environment:
-      MAVEN_OPTS: -Xmx3G
-    steps:
-      - generate-maven-settings-file:
-          settings-file: *maven-settings-file
-      - attach_workspace:
-          at: ../
-      - run: mvn deploy -DskipTests -Dspotless.check.skip=true
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: cache-dependencies-{{ checksum "pom.xml" }}-deploy
 
   sonar:
     <<: *java-container-config
@@ -223,14 +204,6 @@ workflows:
     jobs:
       - test:
           context: global
-      - deploy-artifactory:
-          context: global
-          requires:
-            - test
-          filters:
-            branches:
-              only:
-                - develop
       - release:
           context: global
           requires:
@@ -242,7 +215,7 @@ workflows:
       - postBuild:
           context: global
           requires:
-            - deploy-artifactory
+            - release
           filters:
             branches:
               only: develop

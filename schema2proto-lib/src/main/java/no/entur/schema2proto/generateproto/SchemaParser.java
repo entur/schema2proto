@@ -83,6 +83,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
@@ -245,7 +246,7 @@ public class SchemaParser implements ErrorHandler {
 
 		nestingLevel++;
 
-		LOGGER.debug("{} SimpleType {}", StringUtils.leftPad(" ", nestingLevel), xs);
+		LOGGER.debug("{} SimpleType {}", StringUtils.leftPad(" ", nestingLevel), xs);
 
 		String typeName = xs.getName();
 
@@ -253,8 +254,16 @@ public class SchemaParser implements ErrorHandler {
 			typeName = elementName + GENERATED_NAME_PLACEHOLDER;
 		}
 
-		if (xs.isRestriction() && xs.getFacet(XSFacet.FACET_ENUMERATION) != null) {
-			createEnum(typeName, xs.asRestriction(), null);
+		if (xs.isRestriction()) {
+			if (xs.getFacet(XSFacet.FACET_ENUMERATION) != null) {
+				createEnum(typeName, xs.asRestriction(), null);
+			} else if (xs.getFacet(XSFacet.FACET_WHITESPACE) != null) {
+				if (!basicTypes.contains(typeName)) {
+					return findFieldType(xs.getSimpleBaseType());
+				}
+			}
+		} else if (xs.isList()) {
+			return processSimpleType(xs.asList().getItemType(), null);
 		}
 
 		nestingLevel--;
@@ -300,7 +309,7 @@ public class SchemaParser implements ErrorHandler {
 
 		XSTerm currTerm = parentParticle.getTerm();
 
-		Label label = getRange(parentParticle) ? Label.REPEATED : null;
+		Label label = getLabel(parentParticle, currTerm);
 		Options fieldOptions = getFieldOptions(parentParticle);
 
 		if (currTerm.isElementDecl()) {
@@ -456,7 +465,9 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 		} else {
-			if (!basicTypes.contains(typeName)) {
+			if (type.isSimpleType() && type.asSimpleType().isList()) {
+				typeName = processSimpleType(type.asSimpleType().getBaseListType(), null);
+			} else if (!basicTypes.contains(typeName)) {
 				typeName = type.asSimpleType().getBaseType().getName();
 			}
 		}
@@ -468,7 +479,16 @@ public class SchemaParser implements ErrorHandler {
 		return typeName;
 	}
 
-	private boolean getRange(XSParticle part) {
+	private Label getLabel(XSParticle parentParticle, XSTerm currTerm) {
+		// If currTerm is list, then add repeat
+		if (getLabel(parentParticle) || currTerm instanceof ElementDecl && ((ElementDecl) currTerm).getType() instanceof XSListSimpleType) {
+			return Label.REPEATED;
+		} else {
+			return null;
+		}
+	}
+
+	private boolean getLabel(XSParticle part) {
 		int max = 1;
 		int min = 1;
 
@@ -655,7 +675,7 @@ public class SchemaParser implements ErrorHandler {
 				}
 
 				Location fieldLocation = getLocation(xsSimpleType);
-				Label label = isList ? Label.REPEATED : null;
+				Label label = isList || isCurrentOrParentList(xsSimpleType) ? Label.REPEATED : null;
 				Options fieldOptions = getFieldOptions(xsSimpleType);
 
 				if (name == null) {
@@ -688,6 +708,25 @@ public class SchemaParser implements ErrorHandler {
 
 		nestingLevel--;
 		return messageType;
+
+	}
+
+	private boolean isCurrentOrParentList(XSSimpleType xsSimpleType) {
+		if (xsSimpleType.isList()) {
+			return true;
+		} else {
+			if (xsSimpleType.isSimpleType()) {
+				try {
+					XSType parentSimpleBaseType = xsSimpleType.getBaseType();
+					if (parentSimpleBaseType != null && parentSimpleBaseType.isSimpleType()) {
+						return isCurrentOrParentList(parentSimpleBaseType.asSimpleType());
+					}
+				} catch (ClassCastException e) {
+					// eat
+				}
+			}
+		}
+		return false;
 
 	}
 
@@ -834,7 +873,7 @@ public class SchemaParser implements ErrorHandler {
 		if (compositor.equals(XSModelGroup.ALL)) {
 			processGroupAsSequence(particle, messageType, processedXmlObjects, schemaSet, children, enclosingName, targetNamespace, enclosingType);
 		} else if (compositor.equals(XSModelGroup.SEQUENCE)) {
-			boolean repeated = getRange(particle);
+			boolean repeated = getLabel(particle);
 			if (repeated) {
 
 				String typeName = createWrapperName(messageType, XSModelGroup.SEQUENCE, enclosingName, enclosingType);
@@ -847,7 +886,7 @@ public class SchemaParser implements ErrorHandler {
 
 		} else if (compositor.equals(XSModelGroup.CHOICE)) {
 			// Check if choice is unbounded, if so create repeated wrapper class and then continue
-			boolean repeated = getRange(particle);
+			boolean repeated = getLabel(particle);
 			if (repeated) {
 
 				String typeName = createWrapperName(messageType, XSModelGroup.CHOICE, enclosingName, enclosingType);
