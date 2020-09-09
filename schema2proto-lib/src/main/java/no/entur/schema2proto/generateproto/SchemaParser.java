@@ -304,6 +304,33 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
+	private MessageType createWrapper(String typeName, MessageType messageType, String wrapperFieldName, String targetNamespace, XSParticle particle,
+			String fieldDoc, Location location, XSComplexType parentType, String wrapperDoc) {
+
+		// Add message type to file
+		List<OptionElement> messageOptions = new ArrayList<>();
+		Options options = new Options(Options.MESSAGE_OPTIONS, messageOptions);
+
+		MessageType wrapperType = new MessageType(ProtoType.get(typeName), location, wrapperDoc, typeName, options);
+		wrapperType.setWrapperMessageType(true);
+		messageType.nestedTypes().add(wrapperType);
+
+		Options fieldOptions = getFieldOptions(particle);
+
+		String fieldPackagename = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(targetNamespace, configuration.forceProtoPackage);
+
+		Field field = new Field(fieldPackagename, location, Label.REPEATED, wrapperFieldName, fieldDoc, messageType.getNextFieldNum(), typeName, fieldOptions,
+				false);
+
+		addField(messageType, field);
+
+		localTypes.add(new LocalType(particle, wrapperType, messageType, field,
+				NamespaceHelper.xmlNamespaceToProtoPackage(targetNamespace, configuration.forceProtoPackage), parentType));
+
+		return wrapperType;
+
+	}
+
 	private void navigateSubTypes(XSParticle parentParticle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
 			String enclosingName, String targetNamespace, XSComplexType enclosingType) {
 
@@ -348,6 +375,14 @@ public class SchemaParser implements ErrorHandler {
 									type.getName(), fieldOptions, true);
 							addField(messageType, field);
 						} else {
+							if (label == Label.REPEATED) {
+								String wrapperName = createWrapperName(messageType, XSModelGroup.Compositor.CHOICE, enclosingName, (XSComplexType) type);
+								LOGGER.info("Repeated element with multiple subs, created wrapper name {} from {}", wrapperName, enclosingName);
+								messageType = createWrapper(wrapperName, messageType, currElementDecl.getName(), type.getTargetNamespace(), parentParticle,
+										fieldDoc, fieldLocation, (XSComplexType) type, "Generated wrapper for repeated oneOfs");
+
+							}
+
 							List<Field> fields = new ArrayList<>();
 							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), fieldDoc, fields);
 							messageType.oneOfs().add(oneOf);
@@ -370,6 +405,7 @@ public class SchemaParser implements ErrorHandler {
 									addField(messageType, oneOf, field); // Repeated oneOf not allowed
 								}
 							}
+
 						}
 					} else {
 						// Local
