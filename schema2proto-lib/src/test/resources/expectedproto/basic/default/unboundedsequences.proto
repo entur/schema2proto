@@ -2,10 +2,32 @@
 syntax = "proto3";
 package default;
 
+// Type for a reference to a FLEXIBLE LINE.
+message FlexibleLineRefStructure {
+  string ref = 1;
+}
+// Reference to a LINE.
+message LineRefStructure {
+  string ref = 1;
+}
 message Outer {
   repeated SequenceWrapper_Outer sequence_wrapper = 1;
 
   message SequenceWrapper_Outer {
     string e = 1;
+  }
+}
+message LineRefs_RelStructure {
+  // Reference to a LINE.
+  repeated ChoiceWrapper_LineRefStructure line_ref = 1;
+
+  // Generated wrapper for repeated oneOfs
+  message ChoiceWrapper_LineRefStructure {
+    oneof LineRefStructure {
+      // Reference to a LINE.
+      LineRefStructure line_ref = 1;
+      // Type for a reference to a FLEXIBLE LINE.
+      FlexibleLineRefStructure flexible_line_ref = 2;
+    }
   }
 }

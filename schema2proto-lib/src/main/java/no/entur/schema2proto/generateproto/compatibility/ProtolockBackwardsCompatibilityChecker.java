@@ -82,11 +82,22 @@ public class ProtolockBackwardsCompatibilityChecker {
 	}
 
 	private ProtolockMessage getProtolockMessage(ProtolockFile protolockFile, MessageType e) {
-		return Arrays.stream(protolockFile.getMessages()).filter(message -> message.getName().equals(e.getName())).findFirst().orElse(null);
+		if (protolockFile != null && protolockFile.getMessages() != null) {
+			return Arrays.stream(protolockFile.getMessages()).filter(message -> message.getName().equals(e.getName())).findFirst().orElse(null);
+		}
+
+		return null;
 	}
 
 	private ProtolockMessage getNestedProtolockMessage(ProtolockMessage protolockMessage, MessageType nestedType) {
-		return Arrays.stream(protolockMessage.getMessages()).filter(subMessage -> subMessage.getName().equals(nestedType.getName())).findFirst().orElse(null);
+		if (protolockMessage != null && protolockMessage.getMessages() != null) {
+			return Arrays.stream(protolockMessage.getMessages())
+					.filter(subMessage -> subMessage.getName().equals(nestedType.getName()))
+					.findFirst()
+					.orElse(null);
+		} else {
+			return null;
+		}
 	}
 
 	private ProtolockFile getProtolockFile(ProtoFile file) {

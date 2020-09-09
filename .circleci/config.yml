@@ -183,6 +183,8 @@ jobs:
     <<: *circleci-container-config
     steps:
       - run: *post_build
+orbs:
+  queue: eddiewebb/queue@volatile
 
 workflows:
   version: 2
@@ -202,8 +204,15 @@ workflows:
             - test
   build_test_deploy:
     jobs:
+      - queue/block_workflow:
+          only-on-branch: develop
+          time: '30'
+          circleci-api-key: CIRCLE_API_USER_TOKEN
+          context: global
       - test:
           context: global
+          requires:
+            - queue/block_workflow
       - release:
           context: global
           requires:
