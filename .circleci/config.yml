@@ -137,7 +137,7 @@ jobs:
             - ~/.m2
           key: cache-dependencies-{{ checksum "pom.xml" }}
       # Cannot use -o because of snapshot dependencies. Using deploy &  -Dmaven.deploy.skip=true to download ALL necessary dependencies
-      - run: mvn deploy -Dmaven.deploy.skip=true
+      - run: mvn deploy 
       - persist_to_workspace:
           root: ../
           paths:
