@@ -377,7 +377,7 @@ public class SchemaParser implements ErrorHandler {
 						} else {
 							if (label == Label.REPEATED) {
 								String wrapperName = createWrapperName(messageType, XSModelGroup.Compositor.CHOICE, enclosingName, (XSComplexType) type);
-								LOGGER.info("Repeated element with multiple subs, created wrapper name {} from {}", wrapperName, enclosingName);
+								LOGGER.debug("Repeated element with multiple subs, created wrapper name {} from {}", wrapperName, enclosingName);
 								messageType = createWrapper(wrapperName, messageType, currElementDecl.getName(), type.getTargetNamespace(), parentParticle,
 										fieldDoc, fieldLocation, (XSComplexType) type, "Generated wrapper for repeated oneOfs");
 
