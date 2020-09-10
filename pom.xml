@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.9</version>
+    <version>1.10</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - Xsd schema to protobuf</description>
@@ -103,7 +103,7 @@
             <plugin>
                 <groupId>de.qaware.maven</groupId>
                 <artifactId>go-offline-maven-plugin</artifactId>
-                <version>1.2.5</version>
+                <version>1.2.6</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
