@@ -307,14 +307,32 @@ public class ProtoSerializer {
 	private void removeUnwantedFields(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (ProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> {
-				messageTypes(mt.nestedTypes()).forEach(e -> removeUnwantedFields(file, e));
-				removeUnwantedFields(file, mt);
+				removeUnwantedFields(file, "", mt);
 			});
 		}
 	}
 
-	private void removeUnwantedFields(ProtoFile file, MessageType mt) {
-		List<Field> fieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), mt.fields());
+	private void removeUnwantedFields(ProtoFile file, final String outerMessagePath, MessageType mt) {
+		// Recursive nested type removal
+		StringBuilder nestedPathBuilder = new StringBuilder();
+		if (!outerMessagePath.equals("")) {
+			nestedPathBuilder.append(outerMessagePath);
+			nestedPathBuilder.append(".");
+		}
+		nestedPathBuilder.append(mt.getName());
+
+		final String nestedPath = nestedPathBuilder.toString();
+
+		messageTypes(mt.nestedTypes()).forEach(nestedType -> {
+			removeUnwantedFields(file, nestedPath, nestedType);
+		});
+
+		String path = "";
+		if (!outerMessagePath.equals("")) {
+			path = outerMessagePath + ".";
+		}
+
+		List<Field> fieldsToRemove = removeUnwantedFields(file.packageName(), path + mt.getName(), mt.fields());
 		for (Field f : fieldsToRemove) {
 			mt.removeDeclaredField(f);
 			String documentation = StringUtils.trimToEmpty(mt.documentation());
@@ -326,7 +344,7 @@ public class ProtoSerializer {
 
 		for (OneOf oneOf : mt.oneOfs()) {
 
-			List<Field> oneOfFieldsToRemove = removeUnwantedFields(file.packageName(), mt.getName(), oneOf.fields());
+			List<Field> oneOfFieldsToRemove = removeUnwantedFields(file.packageName(), path + mt.getName(), oneOf.fields());
 			for (Field f : oneOfFieldsToRemove) {
 				oneOf.fields().remove(f);
 
