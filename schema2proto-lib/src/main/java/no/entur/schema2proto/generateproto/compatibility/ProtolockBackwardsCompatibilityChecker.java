@@ -145,6 +145,17 @@ public class ProtolockBackwardsCompatibilityChecker {
 		if (protolockMessage.getReservedNames() != null && protolockMessage.getReservedNames().length > 0) {
 			e.addReserved(new Reserved(loc, reservationDoc, Lists.newArrayList(protolockMessage.getReservedNames())));
 		}
+
+		e.nestedTypes().stream().filter(z -> z instanceof MessageType).map(k -> (MessageType) k).forEach(nestedType -> {
+			if (protolockMessage.getMessages() != null) {
+				Arrays.stream(protolockMessage.getMessages()).forEach(nestedProtolockMessage -> {
+					if (nestedProtolockMessage.getName().equals(nestedType.getName())) {
+						copyReservations(nestedProtolockMessage, nestedType);
+					}
+				});
+			}
+		});
+
 	}
 
 	private void tryResolveFieldConflicts(ProtoFile file, MessageType protoMessage, ProtolockMessage protolockMessage) {
