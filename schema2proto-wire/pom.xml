@@ -4,7 +4,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.16</version>
+        <version>1.17</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>io.github.java-diff-utils</groupId>
             <artifactId>java-diff-utils</artifactId>
-            <version>4.7</version>
+            <version>4.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
