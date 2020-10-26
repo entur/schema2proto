@@ -168,7 +168,7 @@ public class Schema2Proto {
 				.longOpt(OPTION_OPTIONS)
 				.hasArg()
 				.argName("option1name:option1value,...")
-				.desc("translate message and field names")
+				.desc("add custom options to each protofile, ie java_multiple_files:true")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
