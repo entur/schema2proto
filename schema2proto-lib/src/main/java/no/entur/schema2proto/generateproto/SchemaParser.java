@@ -387,7 +387,7 @@ public class SchemaParser implements ErrorHandler {
 							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), fieldDoc, fields);
 							messageType.oneOfs().add(oneOf);
 							for (XSElementDecl substitutable : substitutables) {
-								if (substitutable.isAbstract()) {
+								if (substitutable.isAbstract() || substitutable.getType().asComplexType().isAbstract()) {
 									// No abstract concept in protobuf, only concrete messages
 								} else {
 									String substDoc = resolveDocumentationAnnotation(substitutable);
