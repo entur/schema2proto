@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -369,8 +370,13 @@ public class SchemaParser implements ErrorHandler {
 
 					if (type.isGlobal()) {
 
-						Set<? extends XSElementDecl> substitutables = currElementDecl.getSubstitutables();
-						if (substitutables.size() <= 1) {
+						Set<XSElementDecl> substitutables = (Set<XSElementDecl>) currElementDecl.getSubstitutables();
+						Set<XSElementDecl> subsumptionSubstitutables = new HashSet<>();
+						if (configuration.derivationBySubsumption && type.isComplexType() && type.asComplexType().isAbstract()) {
+							// https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html
+							findGlobalElementsBySubsumption(schemaSet, subsumptionSubstitutables, (XSComplexType) type);
+						}
+						if (substitutables.size() <= 1 && subsumptionSubstitutables.isEmpty()) {
 							Field field = new Field(packageName, fieldLocation, label, currElementDecl.getName(), fieldDoc, messageType.getNextFieldNum(),
 									type.getName(), fieldOptions, true);
 							addField(messageType, field);
@@ -386,26 +392,18 @@ public class SchemaParser implements ErrorHandler {
 							List<Field> fields = new ArrayList<>();
 							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), fieldDoc, fields);
 							messageType.oneOfs().add(oneOf);
-							for (XSElementDecl substitutable : substitutables) {
+
+							LinkedHashSet<XSElementDecl> allSubtitutables = new LinkedHashSet<>();
+							allSubtitutables.addAll(substitutables);
+							allSubtitutables.addAll(subsumptionSubstitutables);
+
+							for (XSElementDecl substitutable : allSubtitutables) {
 								if (substitutable.isAbstract() || substitutable.getType().asComplexType().isAbstract()) {
 									// No abstract concept in protobuf, only concrete messages
 								} else {
-									String substDoc = resolveDocumentationAnnotation(substitutable);
-
-									String typeName = substitutable.getType().getName();
-									if (typeName == null) {
-										typeName = processElement(substitutable, schemaSet);
-									}
-
-									Field field = new Field(
-											NamespaceHelper.xmlNamespaceToProtoFieldPackagename(substitutable.getType().getTargetNamespace(),
-													configuration.forceProtoPackage),
-											fieldLocation, null, substitutable.getName(), substDoc, messageType.getNextFieldNum(), typeName, fieldOptions,
-											true);
-									addField(messageType, oneOf, field); // Repeated oneOf not allowed
+									addOneOfField(messageType, schemaSet, fieldOptions, fieldLocation, oneOf, substitutable);
 								}
 							}
-
 						}
 					} else {
 						// Local
@@ -443,6 +441,29 @@ public class SchemaParser implements ErrorHandler {
 			}
 
 		}
+	}
+
+	private void findGlobalElementsBySubsumption(XSSchemaSet schemaSet, Set<XSElementDecl> existing, XSComplexType type) {
+
+		if (type != schemaSet.getAnyType() && type.getSubtypes() != null)
+			for (XSComplexType subType : type.getSubtypes()) {
+				existing.addAll(subType.getElementDecls());
+				findGlobalElementsBySubsumption(schemaSet, existing, subType);
+			}
+	}
+
+	private void addOneOfField(MessageType messageType, XSSchemaSet schemaSet, Options fieldOptions, Location fieldLocation, OneOf oneOf,
+			XSElementDecl element) {
+		String doc = resolveDocumentationAnnotation(element);
+
+		String typeName = element.getType().getName();
+		if (typeName == null) {
+			typeName = processElement(element, schemaSet);
+		}
+
+		Field field = new Field(NamespaceHelper.xmlNamespaceToProtoFieldPackagename(element.getType().getTargetNamespace(), configuration.forceProtoPackage),
+				fieldLocation, null, element.getName(), doc, messageType.getNextFieldNum(), typeName, fieldOptions, true);
+		addField(messageType, oneOf, field); // Repeated oneOf not allowed
 	}
 
 	@NotNull

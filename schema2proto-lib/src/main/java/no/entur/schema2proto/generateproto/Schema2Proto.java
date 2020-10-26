@@ -76,6 +76,7 @@ public class Schema2Proto {
 	private static final String OPTION_INCLUDE_XSD_OPTIONS = "includeXsdOptions";
 	private static final String OPTION_PROTOLOCK_FILENAME = "protoLockFile";
 	private static final String OPTION_FAIL_IF_REMOVED_FIELDS = "failIfRemovedFields";
+	private static final String OPTION_DERIVATION_BY_SUBSUMPTION = "derivationBySubsumption";
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
 	public Schema2Proto(String[] args) throws IOException {
@@ -250,6 +251,13 @@ public class Schema2Proto {
 				.build());
 		commandLineOptions.addOption(
 				Option.builder().longOpt(OPTION_PROTOLOCK_FILENAME).hasArg().argName("FILENAME").desc("Full path to proto.lock file").required(false).build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_DERIVATION_BY_SUBSUMPTION)
+				.hasArg()
+				.argName("true|false")
+				.desc("enable derivation by subsumption https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html")
+				.required(false)
+				.build());
 		return commandLineOptions;
 	}
 
@@ -350,6 +358,7 @@ public class Schema2Proto {
 		configuration.includeValidationRules = configFile.includeValidationRules;
 		configuration.skipEmptyTypeInheritance = configFile.skipEmptyTypeInheritance;
 		configuration.includeXsdOptions = configFile.includeXsdOptions;
+		configuration.derivationBySubsumption = configFile.derivationBySubsumption;
 
 		Map<String, Object> options = configFile.options;
 		if (configFile.options != null) {
@@ -465,6 +474,9 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_PROTOLOCK_FILENAME)) {
 			configuration.protoLockFile = new File(cmd.getOptionValue(OPTION_PROTOLOCK_FILENAME));
+		}
+		if (cmd.hasOption(OPTION_DERIVATION_BY_SUBSUMPTION)) {
+			configuration.derivationBySubsumption = Boolean.parseBoolean(cmd.getOptionValue(OPTION_DERIVATION_BY_SUBSUMPTION));
 		}
 
 		return configuration;

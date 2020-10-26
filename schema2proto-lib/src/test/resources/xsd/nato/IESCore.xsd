@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:core="https://combat.vision/xsds/2017/05/12/IESCore" targetNamespace="https://combat.vision/xsds/2017/05/12/IESCore" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.4.1">
+  <xsd:complexType name="CoreLocationType" abstract="true" />
+  <xsd:element name="Thing" type="core:ThingType" />
+  <xsd:complexType name="ThingType">
+    <xsd:sequence>
+      <xsd:element ref="core:CoreLocation" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="CoreLocation" type="core:CoreLocationType" />
+</xsd:schema>
