@@ -24,7 +24,7 @@ Generate proto files from xsd file. Either --configFile or --outputDirectory mus
                                                                                     rules from xsd rules
     --inheritanceToComposition <true|false>                                         define each xsd extension base level as a message field
                                                                                     instead of copying all inherited fields
-    --options <option1name:option1value,...>                                        translate message and field names
+    --options <option1name:option1value,...>                                        add custom options to each protofile, ie java_multiple_files:true
     --outputDirectory <DIRECTORYNAME>                                               path to output folder
     --outputFilename <FILENAME>                                                     name of output file
     --skipEmptyTypeInheritance <true|false>                                         skip types just redefining other types with a different
