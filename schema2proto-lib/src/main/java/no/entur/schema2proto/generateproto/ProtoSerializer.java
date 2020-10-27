@@ -510,13 +510,13 @@ public class ProtoSerializer {
 			}
 		} else {
 			if (Character.isLowerCase(s.charAt(0))) {
-				if (s.matches("([a-z]+[A-Z]+\\w+)+")) {
+				if (s.matches("([a-z]+[A-Z0-9]+\\w+)+")) {
 					return CaseFormat.LOWER_CAMEL;
 				} else if (s.matches("[a-z]+")) {
 					return CaseFormat.LOWER_UNDERSCORE;
 				}
 			} else {
-				if (s.matches("([A-Z]+[a-z]+\\w+)+")) {
+				if (s.matches("([A-Z]+[a-z0-9]+\\w+)+")) {
 					return CaseFormat.UPPER_CAMEL;
 				} else if (s.matches("[A-Z]+")) {
 					return CaseFormat.UPPER_UNDERSCORE;
