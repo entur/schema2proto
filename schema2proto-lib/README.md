@@ -13,25 +13,33 @@ Generate proto files from xsd file. Either --configFile or --outputDirectory mus
     --customTypeMappings <a:b,x:y>                                                  represent schema types as specific output types
     --defaultProtoPackage <NAME>                                                    default proto package of the output file if no xsd
                                                                                     target defaultProtoPackage is specified
+    --derivationBySubsumption <true|false>                                          enable derivation by subsumption
+                                                                                    https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inherit
+                                                                                    ance.html
+    --failIfRemovedFields <true|false>                                              when using backwards compatibility check via proto.lock
+                                                                                    file, fail if proto fields are removed
     --forceProtoPackage <NAME>                                                      force all types in this package
     --ignoreOutputFields <packageName1/messageName1/fieldName1, packageName2/...>   output field names to ignore
     --includeFieldDocs <true|false>                                                 include documentation for fields in output, defaults to
                                                                                     true
     --includeMessageDocs <true|false>                                               include documentation of messages in output, defaults to
                                                                                     true
-    --includeSourceLocationInDoc <true|false>                                       include xsd source location in docs, defaults to true
+    --includeSourceLocationInDoc <true|false>                                       include xsd source location relative to source xsd file
+                                                                                    in docs, defaults to false
     --includeValidationRules <true|false>                                           generate envoypropxy/protoc-gen-validate validation
                                                                                     rules from xsd rules
+    --includeXsdOptions <true|false>                                                include message options describing the xsd type
+                                                                                    hierarchy
     --inheritanceToComposition <true|false>                                         define each xsd extension base level as a message field
                                                                                     instead of copying all inherited fields
-    --options <option1name:option1value,...>                                        add custom options to each protofile, ie java_multiple_files:true
+    --options <option1name:option1value,...>                                        add custom options to each protofile, ie
+                                                                                    java_multiple_files:true
     --outputDirectory <DIRECTORYNAME>                                               path to output folder
     --outputFilename <FILENAME>                                                     name of output file
+    --protoLockFile <FILENAME>                                                      Full path to proto.lock file
     --skipEmptyTypeInheritance <true|false>                                         skip types just redefining other types with a different
                                                                                     name
 ```
-
-TODO update
 
 ## Config parameters
 

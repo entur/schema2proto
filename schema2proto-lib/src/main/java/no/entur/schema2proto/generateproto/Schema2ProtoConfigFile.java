@@ -46,4 +46,5 @@ public class Schema2ProtoConfigFile {
 	public boolean includeXsdOptions = false;
 	public String protoLockFile;
 	public boolean failIfRemovedFields = true;
+	public boolean derivationBySubsumption = false;
 }

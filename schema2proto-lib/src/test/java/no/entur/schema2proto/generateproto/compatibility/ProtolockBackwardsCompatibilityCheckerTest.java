@@ -55,6 +55,11 @@ public class ProtolockBackwardsCompatibilityCheckerTest {
 	}
 
 	@Test
+	public void testAddFieldExistingReservation() throws IOException {
+		verify("existingreservation", "ElementList", false);
+	}
+
+	@Test
 	public void testInjectField() throws IOException {
 		verify("injectedfield", "ElementList", true);
 	}

@@ -1,0 +1,68 @@
+{
+  "definitions": [
+    {
+      "protopath": "default:/:default.proto",
+      "def": {
+        "messages": [
+          {
+            "name": "ElementList",
+            "fields": [
+              {
+                "id": 2,
+                "name": "second",
+                "type": "string"
+              },
+                {
+                  "id": 5,
+                  "name": "fift",
+                  "type": "string"
+                }
+
+
+            ],
+            "reserved_ids": [
+                   1,
+                   3,5
+                 ],
+             "reserved_names": [
+               "first",
+               "third","fift"
+             ],
+
+            "messages": [
+              {
+                "name": "SubElement",
+                "fields": [
+                  {
+                    "id": 2,
+                    "name": "second",
+                    "type": "string"
+                  },
+                    {
+                      "id": 5,
+                      "name": "fift",
+                      "type": "string"
+                    }
+
+
+                ],
+                "reserved_ids": [
+                       1,
+                       3,5
+                     ],
+                 "reserved_names": [
+                   "first",
+                   "third","fift"
+                 ]
+
+              }
+]
+          }
+        ],
+        "package": {
+          "name": "default"
+        }
+      }
+    }
+  ]
+}

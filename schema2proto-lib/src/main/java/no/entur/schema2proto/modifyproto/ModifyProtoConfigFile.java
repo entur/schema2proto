@@ -40,4 +40,6 @@ public class ModifyProtoConfigFile {
 	public List<NewEnumConstant> newEnumConstants;
 	public boolean includeBaseTypes;
 	public List<FieldOption> fieldOptions;
+	public String protoLockFile;
+
 }

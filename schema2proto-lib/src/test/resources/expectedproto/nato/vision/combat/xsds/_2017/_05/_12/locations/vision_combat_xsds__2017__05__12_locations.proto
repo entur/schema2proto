@@ -1,0 +1,14 @@
+// vision_combat_xsds__2017__05__12_locations.proto at 0:0
+syntax = "proto3";
+package vision.combat.xsds._2017._05._12.locations;
+
+message GeoPointType {
+  double lon = 1;
+}
+message LocationType {
+  string name = 1;
+}
+message PointType {
+  string name = 1;
+  GeoPointType geo_point = 21;
+}

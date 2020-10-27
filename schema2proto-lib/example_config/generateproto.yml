@@ -70,3 +70,6 @@ protoLockFile: proto.lock
 # If possible backwards incompatibility is detected during parsing when protoLockFile has been specified, fail the conversion in order to allow manual intervention / verification.
 # Setting `failIfRemovedFields: false` will print warnings but not fail the conversion. When using the Maven plugin you may also specify this as -DfailIfRemovedFields=false on the cmd line
 failIfRemovedFields: true
+
+# Support derivation by subsumption. See https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html under "Subsumption"
+derivationBySubsumption: false
