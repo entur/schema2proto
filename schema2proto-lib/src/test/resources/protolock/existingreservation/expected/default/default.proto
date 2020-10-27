@@ -1,0 +1,40 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message ElementList {
+  // Reservation added by schema2proto
+  reserved 1;
+  // Reservation added by schema2proto
+  reserved 3;
+  // Reservation added by schema2proto
+  reserved 5;
+  // Reservation added by schema2proto
+  reserved "first";
+  // Reservation added by schema2proto
+  reserved "third";
+  // Reservation added by schema2proto
+  reserved "fift";
+
+  string second = 2;
+  string fourth = 4;
+
+  message SubElement {
+    // Reservation added by schema2proto
+    reserved 1;
+    // Reservation added by schema2proto
+    reserved 3;
+    // Reservation added by schema2proto
+    reserved 5;
+    // Reservation added by schema2proto
+    reserved "first";
+    // Reservation added by schema2proto
+    reserved "third";
+    // Reservation added by schema2proto
+    reserved "fift";
+
+    string second = 2;
+    string fourth = 4;
+  }
+
+}

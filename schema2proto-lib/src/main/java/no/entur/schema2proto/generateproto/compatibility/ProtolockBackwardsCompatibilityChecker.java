@@ -42,13 +42,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.ProtoFile;
-import com.squareup.wire.schema.Reserved;
 
 import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockDefinition;
 import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockDefinitions;
@@ -140,10 +138,10 @@ public class ProtolockBackwardsCompatibilityChecker {
 		Location loc = new Location("", "", 0, 0);
 
 		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
-			e.addReserved(new Reserved(loc, reservationDoc, Lists.newArrayList(protolockMessage.getReservedIds())));
+			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> e.addReserved(reservationDoc, loc, reservedId));
 		}
 		if (protolockMessage.getReservedNames() != null && protolockMessage.getReservedNames().length > 0) {
-			e.addReserved(new Reserved(loc, reservationDoc, Lists.newArrayList(protolockMessage.getReservedNames())));
+			Arrays.stream(protolockMessage.getReservedNames()).forEach(reservedName -> e.addReserved(reservationDoc, loc, reservedName));
 		}
 
 		e.nestedTypes().stream().filter(z -> z instanceof MessageType).map(k -> (MessageType) k).forEach(nestedType -> {
@@ -303,8 +301,8 @@ public class ProtolockBackwardsCompatibilityChecker {
 		Location loc = new Location("", "", 0, 0);
 
 		// 2 reservations since field name and id cannot be on the same reservation list
-		e.addReserved(new Reserved(loc, reservationDoc, Arrays.asList(newField.getName())));
-		e.addReserved(new Reserved(loc, reservationDoc, Arrays.asList(newField.getId())));
+		e.addReserved(reservationDoc, loc, newField.getName());
+		e.addReserved(reservationDoc, loc, newField.getId());
 
 		LOGGER.warn(
 				"Possible backwards incompatibility detected, must be checked manually! Removed field in proto {}, message {}, field {}, blocking field name and id for future use by adding 'reserved' statement",

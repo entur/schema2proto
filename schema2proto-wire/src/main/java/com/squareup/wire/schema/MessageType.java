@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.squareup.wire.schema;
 
 /*-
@@ -24,12 +25,12 @@ package com.squareup.wire.schema;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,6 +42,7 @@ package com.squareup.wire.schema;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -114,8 +116,18 @@ public final class MessageType extends Type {
 		return reserveds;
 	}
 
-	public void addReserved(Reserved r) {
-		reserveds.add(r);
+	public void addReserved(String documentation, Location location, int tag) {
+		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesTag(tag));
+		if (!alreadyReserved) {
+			reserveds.add(new Reserved(location, documentation, Arrays.asList(tag)));
+		}
+	}
+
+	public void addReserved(String documentation, Location location, String fieldName) {
+		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesName(fieldName));
+		if (!alreadyReserved) {
+			reserveds.add(new Reserved(location, documentation, Arrays.asList(fieldName)));
+		}
 	}
 
 	@Override
@@ -210,7 +222,9 @@ public final class MessageType extends Type {
 		return result.build();
 	}
 
-	/** Returns the field named {@code name}, or null if this type has no such field. */
+	/**
+	 * Returns the field named {@code name}, or null if this type has no such field.
+	 */
 	public Field field(String name) {
 
 		for (Field field : declaredFields) {
@@ -240,7 +254,9 @@ public final class MessageType extends Type {
 		return null;
 	}
 
-	/** Returns the field tagged {@code tag}, or null if this type has no such field. */
+	/**
+	 * Returns the field tagged {@code tag}, or null if this type has no such field.
+	 */
 	public Field field(int tag) {
 		for (Field field : declaredFields) {
 			if (field.tag() == tag) {

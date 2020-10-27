@@ -371,7 +371,7 @@ public class SchemaParser implements ErrorHandler {
 					if (type.isGlobal()) {
 
 						Set<XSElementDecl> substitutables = (Set<XSElementDecl>) currElementDecl.getSubstitutables();
-						Set<XSElementDecl> subsumptionSubstitutables = new HashSet<>();
+						LinkedHashSet<XSElementDecl> subsumptionSubstitutables = new LinkedHashSet<>();
 						if (configuration.derivationBySubsumption && type.isComplexType() && type.asComplexType().isAbstract()) {
 							// https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html
 							findGlobalElementsBySubsumption(schemaSet, subsumptionSubstitutables, (XSComplexType) type);

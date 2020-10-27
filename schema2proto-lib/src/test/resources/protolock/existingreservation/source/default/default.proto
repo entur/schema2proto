@@ -1,0 +1,13 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message ElementList {
+  string second = 1;
+  string fourth = 2;
+
+  message SubElement {
+    string second = 1;
+    string fourth = 2;
+  }
+}
