@@ -20,17 +20,21 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto.compatibility.protolock;
+package no.entur.schema2proto.compatibility.protolock;
 
-public class ProtolockEnumField {
-	public int getInteger() {
-		return integer;
-	}
+import com.google.gson.annotations.SerializedName;
+
+public class ProtolockEnum {
 
 	public String getName() {
 		return name;
 	}
 
-	private int integer;
+	public ProtolockEnumField[] getEnumFields() {
+		return enumFields;
+	}
+
 	private String name;
+	@SerializedName("enum_fields")
+	private ProtolockEnumField[] enumFields;
 }

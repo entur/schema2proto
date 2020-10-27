@@ -20,24 +20,37 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto.compatibility.protolock;
+package no.entur.schema2proto.compatibility.protolock;
 
-import java.util.Arrays;
-import java.util.Optional;
+import com.google.gson.annotations.SerializedName;
 
-public class ProtolockFile {
-	ProtolockEnum[] enums;
+public class ProtolockMessage {
+	String name;
+	ProtolockField[] fields;
+	@SerializedName("reserved_ids")
+	Integer[] reservedIds;
+	@SerializedName(("reserved_names"))
+	String[] reservedNames;
 	ProtolockMessage[] messages;
 
-	public ProtolockEnum[] getEnums() {
-		return enums;
+	public Integer[] getReservedIds() {
+		return reservedIds;
+	}
+
+	public String[] getReservedNames() {
+		return reservedNames;
 	}
 
 	public ProtolockMessage[] getMessages() {
 		return messages;
 	}
 
-	public Optional<ProtolockMessage> getMessage(String name) {
-		return Arrays.stream(messages).filter(e -> name.equals(e.getName())).findAny();
+	public String getName() {
+		return name;
 	}
+
+	public ProtolockField[] getFields() {
+		return fields;
+	}
+
 }

@@ -2,7 +2,7 @@
  * #%L
  * schema2proto-lib
  * %%
- * Copyright (C) 2019 - 2020 Entur
+ * Copyright (C) 2019 Entur
  * %%
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
@@ -20,12 +20,14 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto.compatibility.protolock;
+package no.entur.schema2proto.compatibility;
 
-public class ProtolockDefinitions {
-	public ProtolockDefinition[] getDefinitions() {
-		return definitions;
+public class BackwardsCompatibilityCheckException extends RuntimeException {
+	public BackwardsCompatibilityCheckException(String message) {
+		super(message);
 	}
 
-	private ProtolockDefinition[] definitions;
+	public BackwardsCompatibilityCheckException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

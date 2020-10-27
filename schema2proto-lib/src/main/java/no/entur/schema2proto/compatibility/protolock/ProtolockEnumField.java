@@ -20,37 +20,17 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto.compatibility.protolock;
+package no.entur.schema2proto.compatibility.protolock;
 
-import com.google.gson.annotations.SerializedName;
-
-public class ProtolockMessage {
-	String name;
-	ProtolockField[] fields;
-	@SerializedName("reserved_ids")
-	Integer[] reservedIds;
-	@SerializedName(("reserved_names"))
-	String[] reservedNames;
-	ProtolockMessage[] messages;
-
-	public Integer[] getReservedIds() {
-		return reservedIds;
-	}
-
-	public String[] getReservedNames() {
-		return reservedNames;
-	}
-
-	public ProtolockMessage[] getMessages() {
-		return messages;
+public class ProtolockEnumField {
+	public int getInteger() {
+		return integer;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public ProtolockField[] getFields() {
-		return fields;
-	}
-
+	private int integer;
+	private String name;
 }

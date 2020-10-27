@@ -20,7 +20,7 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto.compatibility;
+package no.entur.schema2proto.compatibility;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -48,11 +48,11 @@ import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.ProtoFile;
 
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockDefinition;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockDefinitions;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockField;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockFile;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockMessage;
+import no.entur.schema2proto.compatibility.protolock.ProtolockDefinition;
+import no.entur.schema2proto.compatibility.protolock.ProtolockDefinitions;
+import no.entur.schema2proto.compatibility.protolock.ProtolockField;
+import no.entur.schema2proto.compatibility.protolock.ProtolockFile;
+import no.entur.schema2proto.compatibility.protolock.ProtolockMessage;
 
 public class ProtolockBackwardsCompatibilityChecker {
 

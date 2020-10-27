@@ -1,4 +1,4 @@
-package no.entur.schema2proto.generateproto.compatibility;
+package no.entur.schema2proto.compatibility;
 
 /*-
  * #%L
