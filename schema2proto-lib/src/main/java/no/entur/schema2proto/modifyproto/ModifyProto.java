@@ -63,7 +63,7 @@ import com.squareup.wire.schema.internal.parser.OptionReader;
 import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
-import no.entur.schema2proto.generateproto.compatibility.ProtolockBackwardsCompatibilityChecker;
+import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;

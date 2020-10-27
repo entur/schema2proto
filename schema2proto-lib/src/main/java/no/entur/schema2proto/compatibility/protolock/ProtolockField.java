@@ -20,7 +20,7 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto.compatibility.protolock;
+package no.entur.schema2proto.compatibility.protolock;
 
 import java.util.Objects;
 

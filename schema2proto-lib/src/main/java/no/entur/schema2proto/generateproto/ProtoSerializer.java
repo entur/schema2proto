@@ -73,7 +73,8 @@ import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSComponent;
 
 import no.entur.schema2proto.InvalidConfigurationException;
-import no.entur.schema2proto.generateproto.compatibility.ProtolockBackwardsCompatibilityChecker;
+import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
+import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
 
 public class ProtoSerializer {
 

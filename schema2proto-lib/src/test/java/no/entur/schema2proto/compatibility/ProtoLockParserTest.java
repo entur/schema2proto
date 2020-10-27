@@ -1,4 +1,4 @@
-package no.entur.schema2proto.generateproto.compatibility;
+package no.entur.schema2proto.compatibility;
 
 /*-
  * #%L
@@ -31,11 +31,11 @@ import java.io.FileNotFoundException;
 
 import org.junit.jupiter.api.Test;
 
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockDefinition;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockDefinitions;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockEnum;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockEnumField;
-import no.entur.schema2proto.generateproto.compatibility.protolock.ProtolockFile;
+import no.entur.schema2proto.compatibility.protolock.ProtolockDefinition;
+import no.entur.schema2proto.compatibility.protolock.ProtolockDefinitions;
+import no.entur.schema2proto.compatibility.protolock.ProtolockEnum;
+import no.entur.schema2proto.compatibility.protolock.ProtolockEnumField;
+import no.entur.schema2proto.compatibility.protolock.ProtolockFile;
 
 public class ProtoLockParserTest {
 
