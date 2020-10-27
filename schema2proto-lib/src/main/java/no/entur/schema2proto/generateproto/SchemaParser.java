@@ -389,8 +389,14 @@ public class SchemaParser implements ErrorHandler {
 
 							}
 
+							String oneOfName = currElementDecl.getType().getName();
+							// Current element is always a substitute for itself
+							if (substitutables.size() == 1 && substitutables.iterator().next() == currElementDecl && !subsumptionSubstitutables.isEmpty()) {
+								oneOfName = currElementDecl.getName();
+							}
+
 							List<Field> fields = new ArrayList<>();
-							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), fieldDoc, fields);
+							OneOf oneOf = new OneOf(oneOfName, fieldDoc, fields);
 							messageType.oneOfs().add(oneOf);
 
 							LinkedHashSet<XSElementDecl> allSubtitutables = new LinkedHashSet<>();
