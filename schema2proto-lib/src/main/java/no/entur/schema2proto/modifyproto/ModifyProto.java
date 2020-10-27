@@ -23,6 +23,7 @@
 package no.entur.schema2proto.modifyproto;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +46,7 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
+import com.google.common.collect.ImmutableList;
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Field;
@@ -61,6 +63,7 @@ import com.squareup.wire.schema.internal.parser.OptionReader;
 import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
+import no.entur.schema2proto.generateproto.compatibility.ProtolockBackwardsCompatibilityChecker;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
@@ -128,6 +131,9 @@ public class ModifyProto {
 			}
 
 			configuration.includeBaseTypes = config.includeBaseTypes;
+			if (config.protoLockFile != null) {
+				configuration.protoLockFile = new File(basedir, config.protoLockFile);
+			}
 
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(
@@ -145,7 +151,7 @@ public class ModifyProto {
 		}
 	}
 
-	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException {
+	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException, InvalidConfigurationException {
 		SchemaLoader schemaLoader = new SchemaLoader();
 
 		// Collect source proto files (but not dependencies). Used to know which files should be written to .proto and which that should remain a dependency.
@@ -204,6 +210,23 @@ public class ModifyProto {
 
 		for (FieldOption fieldOption : configuration.fieldOptions) {
 			addFieldOption(fieldOption, prunedSchema);
+		}
+
+		if (configuration.protoLockFile != null) {
+			try {
+				ProtolockBackwardsCompatibilityChecker backwardsCompatibilityChecker = new ProtolockBackwardsCompatibilityChecker();
+				backwardsCompatibilityChecker.init(configuration.protoLockFile);
+				ImmutableList<ProtoFile> files = prunedSchema.protoFiles();
+
+				for (ProtoFile file : files) {
+					for (Type type : file.types()) {
+						if (type instanceof MessageType)
+							backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file, (MessageType) type);
+					}
+				}
+			} catch (FileNotFoundException e) {
+				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
+			}
 		}
 
 		Set<String> emptyImportLocations = protosLoaded.stream()

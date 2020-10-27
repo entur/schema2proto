@@ -38,5 +38,6 @@ public class ModifyProtoConfiguration {
 	public List<NewEnumConstant> newEnumConstants = new ArrayList<>();
 	public List<FieldOption> fieldOptions = new ArrayList<>();
 	public boolean includeBaseTypes = false;
+	public File protoLockFile;
 
 }

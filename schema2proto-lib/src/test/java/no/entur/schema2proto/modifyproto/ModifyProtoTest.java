@@ -32,6 +32,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import no.entur.schema2proto.AbstractMappingTest;
+import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
@@ -40,7 +41,7 @@ import no.entur.schema2proto.modifyproto.config.NewField;
 public class ModifyProtoTest extends AbstractMappingTest {
 
 	@Test
-	public void testRemoveIndependentMessageType() throws IOException, InvalidProtobufException {
+	public void testRemoveIndependentMessageType() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
@@ -57,7 +58,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testWhitelistMessageType() throws IOException, InvalidProtobufException {
+	public void testWhitelistMessageType() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
@@ -72,7 +73,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testWhitelistMessageTypeWithIncludeBaseTypeOptionEnabled() throws IOException, InvalidProtobufException {
+	public void testWhitelistMessageTypeWithIncludeBaseTypeOptionEnabled() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
@@ -88,7 +89,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testWhitelistMessageTypeWithIncludeBaseTypeOptionDisabled() throws IOException, InvalidProtobufException {
+	public void testWhitelistMessageTypeWithIncludeBaseTypeOptionDisabled() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/xsdbasetype").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
@@ -103,7 +104,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testRemoveFieldAndType() throws IOException, InvalidProtobufException {
+	public void testRemoveFieldAndType() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
@@ -117,7 +118,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void removeEmptyFilesAndImports() throws IOException, InvalidProtobufException {
+	public void removeEmptyFilesAndImports() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 		File expected = new File("src/test/resources/modify/expected/emptyfile").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/emptyfile").getCanonicalFile();
 
@@ -130,7 +131,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testWhitelistMessageTypeAndDependency() throws IOException, InvalidProtobufException {
+	public void testWhitelistMessageTypeAndDependency() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
@@ -145,7 +146,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testInsidePackage() throws IOException, InvalidProtobufException {
+	public void testInsidePackage() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/withpackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/withpackagename").getCanonicalFile();
@@ -160,7 +161,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testAddField() throws IOException, InvalidProtobufException {
+	public void testAddField() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
@@ -183,7 +184,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testAddFieldOption() throws IOException, InvalidProtobufException {
+	public void testAddFieldOption() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
@@ -207,7 +208,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testAddEnumValue() throws IOException, InvalidProtobufException {
+	public void testAddEnumValue() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
@@ -233,7 +234,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
-	public void testMergeProto() throws IOException, InvalidProtobufException {
+	public void testMergeProto() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
 		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();

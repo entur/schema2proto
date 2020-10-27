@@ -132,7 +132,7 @@ public abstract class AbstractMappingTest {
 		}
 	}
 
-	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException {
+	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		FileUtils.deleteDirectory(generatedRootFolder);
 		generatedRootFolder.mkdirs();
