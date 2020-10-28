@@ -154,28 +154,12 @@ public class SchemaParser implements ErrorHandler {
 			packageName = configuration.defaultProtoPackage;
 		}
 
-		ProtoFile file = packageToProtoFileMap.get(packageName);
-		if (file == null) {
-			file = new ProtoFile(Syntax.PROTO_3, packageName);
-			packageToProtoFileMap.put(packageName, file);
-		}
-		return file;
-
+		return packageToProtoFileMap.computeIfAbsent(packageName, k -> new ProtoFile(Syntax.PROTO_3, k));
 	}
 
 	private ProtoFile getProtoFileForNamespace(String namespace) {
 		String packageName = NamespaceHelper.xmlNamespaceToProtoPackage(namespace, configuration.forceProtoPackage);
 		return getProtoFileForPackage(packageName);
-	}
-
-	private ProtoFile getProtoFileForMessage(MessageType messageType) {
-		for (ProtoFile f : packageToProtoFileMap.values()) {
-			if (f.types().contains(messageType)) {
-				return f;
-			}
-		}
-
-		return null;
 	}
 
 	private Type getType(String namespace, String typeName) {
@@ -199,15 +183,12 @@ public class SchemaParser implements ErrorHandler {
 		while (schemas.hasNext()) {
 			XSSchema schema = schemas.next();
 			if (!schema.getTargetNamespace().endsWith("/XMLSchema")) {
+
 				final Map<String, XSSimpleType> sortedSimpleTypes = new TreeMap<>(schema.getSimpleTypes());
-				for (XSSimpleType type : sortedSimpleTypes.values()) {
-					processSimpleType(type, null);
-				}
+				sortedSimpleTypes.forEach((name, type) -> processSimpleType(type, null));
 
 				final Map<String, XSComplexType> sortedComplexTypes = new TreeMap<>(schema.getComplexTypes());
-				for (XSComplexType type : sortedComplexTypes.values()) {
-					processComplexType(type, null, schemaSet, null, null);
-				}
+				sortedComplexTypes.forEach((name, type) -> processComplexType(type, null, schemaSet, null, null));
 
 				final Map<String, XSElementDecl> sortedElements = new TreeMap<>(schema.getElementDecls());
 				for (XSElementDecl elementDecl : sortedElements.values()) {
@@ -221,23 +202,23 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private String processElement(XSElementDecl el, XSSchemaSet schemaSet) {
+	private String processElement(XSElementDecl element, XSSchemaSet schemaSet) {
 		XSComplexType cType;
 		XSSimpleType xs;
 
-		if (el.getType() instanceof XSComplexType && el.getType() != schemaSet.getAnyType()) {
-			cType = (XSComplexType) el.getType();
-			MessageType t = processComplexType(cType, el.getName(), schemaSet, null, null);
+		if (element.getType() instanceof XSComplexType && element.getType() != schemaSet.getAnyType()) {
+			cType = (XSComplexType) element.getType();
+			MessageType t = processComplexType(cType, element.getName(), schemaSet, null, null);
 			if (cType.isGlobal()) {
-				addType(el.getTargetNamespace(), t);
+				addType(element.getTargetNamespace(), t);
 			}
 			return t.getName();
-		} else if (el.getType() instanceof XSSimpleType && el.getType() != schemaSet.getAnySimpleType()) {
-			xs = el.getType().asSimpleType();
-			return processSimpleType(xs, el.getName());
+		} else if (element.getType() instanceof XSSimpleType && element.getType() != schemaSet.getAnySimpleType()) {
+			xs = element.getType().asSimpleType();
+			return processSimpleType(xs, element.getName());
 		} else {
-			LOGGER.info("Unhandled element {} at {} location {}/{}", el, el.getLocator().getSystemId(), el.getLocator().getLineNumber(),
-					el.getLocator().getColumnNumber());
+			LOGGER.info("Unhandled element {} at {} location {}/{}", element, element.getLocator().getSystemId(), element.getLocator().getLineNumber(),
+					element.getLocator().getColumnNumber());
 
 			return null;
 		}
@@ -258,10 +239,8 @@ public class SchemaParser implements ErrorHandler {
 		if (xs.isRestriction()) {
 			if (xs.getFacet(XSFacet.FACET_ENUMERATION) != null) {
 				createEnum(typeName, xs.asRestriction(), null);
-			} else if (xs.getFacet(XSFacet.FACET_WHITESPACE) != null) {
-				if (!basicTypes.contains(typeName)) {
-					return findFieldType(xs.getSimpleBaseType());
-				}
+			} else if (xs.getFacet(XSFacet.FACET_WHITESPACE) != null && !basicTypes.contains(typeName)) {
+				return findFieldType(xs.getSimpleBaseType());
 			}
 		} else if (xs.isList()) {
 			return processSimpleType(xs.asList().getItemType(), null);
@@ -389,8 +368,14 @@ public class SchemaParser implements ErrorHandler {
 
 							}
 
+							String oneOfName = currElementDecl.getType().getName();
+							// Current element is always a substitute for itself
+							if (substitutables.size() == 1 && substitutables.iterator().next() == currElementDecl && !subsumptionSubstitutables.isEmpty()) {
+								oneOfName = currElementDecl.getName();
+							}
+
 							List<Field> fields = new ArrayList<>();
-							OneOf oneOf = new OneOf(currElementDecl.getType().getName(), fieldDoc, fields);
+							OneOf oneOf = new OneOf(oneOfName, fieldDoc, fields);
 							messageType.oneOfs().add(oneOf);
 
 							LinkedHashSet<XSElementDecl> allSubtitutables = new LinkedHashSet<>();
@@ -437,7 +422,7 @@ public class SchemaParser implements ErrorHandler {
 		} else {
 			XSModelGroup modelGroup = getModelGroup(currTerm);
 			if (modelGroup != null) {
-				groupProcessing(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
+				processGroup(modelGroup, parentParticle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
 			}
 
 		}
@@ -508,7 +493,6 @@ public class SchemaParser implements ErrorHandler {
 					return DEFAULT_PROTO_PRIMITIVE;
 				}
 
-				// findFieldType((findBaseType(restriction));
 			} else if (type.asSimpleType().isPrimitive()) {
 				typeName = type.asSimpleType().getName();
 			} else if (type.asSimpleType().isList()) {
@@ -575,7 +559,7 @@ public class SchemaParser implements ErrorHandler {
 
 		nestingLevel++;
 
-		LOGGER.debug("{} ComplexType {}, proto {}", StringUtils.leftPad(" ", nestingLevel), complexType, messageType);
+		LOGGER.debug("{} ComplexType {}, proto {}", StringUtils.leftPad(" ", nestingLevel), complexType, messageType);
 
 		boolean isBaseLevel = messageType == null;
 
@@ -643,7 +627,7 @@ public class SchemaParser implements ErrorHandler {
 				elementDeclarationsPerMessageType.put(messageType, processedXmlObjects);
 
 			} else {
-				LOGGER.debug("{} Already processed ComplexType {}, ignored", StringUtils.leftPad(" ", nestingLevel), typeName);
+				LOGGER.debug("{} Already processed ComplexType {}, ignored", StringUtils.leftPad(" ", nestingLevel), typeName);
 				nestingLevel--;
 				return messageType;
 			}
@@ -707,18 +691,13 @@ public class SchemaParser implements ErrorHandler {
 					enclosingName = modelGroup.asModelGroupDecl().getName();
 				}
 
-				groupProcessing(modelGroup, particle, messageType, processedXmlObjects, schemaSet, enclosingName, complexType.getTargetNamespace(),
-						complexType);
+				processGroup(modelGroup, particle, messageType, processedXmlObjects, schemaSet, enclosingName, complexType.getTargetNamespace(), complexType);
 			}
 
 		} else if (complexType.getContentType().asSimpleType() != null) {
 			XSSimpleType xsSimpleType = complexType.getContentType().asSimpleType();
 
 			if (isBaseLevel) { // Only add simpleContent from concrete type?
-				/*
-				 * if(!processedXmlObjects.contains(xsSimpleType)) processedXmlObjects.add(xsSimpleType);
-				 */
-
 				boolean isList = xsSimpleType.isList();
 				if (isList) {
 					xsSimpleType = xsSimpleType.asList().getItemType();
@@ -818,15 +797,15 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	private Location getLocation(XSComponent t) {
-		Locator l = t.getLocator();
+		Locator locator = t.getLocator();
 		try {
-			URI absolute = URI.create(l.getSystemId()); // With scheme
+			URI absolute = URI.create(locator.getSystemId()); // With scheme
 			URI base = new URI("file", configuration.xsdFile.getAbsoluteFile().getParent(), null);
 			URI relative = base.relativize(absolute);
-			return new Location(base.toString(), relative.toString(), l.getLineNumber(), l.getColumnNumber());
+			return new Location(base.toString(), relative.toString(), locator.getLineNumber(), locator.getColumnNumber());
 		} catch (URISyntaxException e) {
 			LOGGER.warn("Unable to relativise xsd file path: {}", e.getMessage());
-			return new Location("", l.getSystemId(), l.getLineNumber(), l.getColumnNumber());
+			return new Location("", locator.getSystemId(), locator.getLineNumber(), locator.getColumnNumber());
 		}
 
 	}
@@ -921,7 +900,7 @@ public class SchemaParser implements ErrorHandler {
 
 	}
 
-	private void groupProcessing(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
+	private void processGroup(XSModelGroup modelGroup, XSParticle particle, MessageType messageType, Set<Object> processedXmlObjects, XSSchemaSet schemaSet,
 			String enclosingName, String targetNamespace, XSComplexType enclosingType) {
 		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
 
@@ -1003,10 +982,9 @@ public class SchemaParser implements ErrorHandler {
 			XSTerm currTerm = child.getTerm();
 			if (currTerm.isModelGroup()) {
 				if (child.asParticle() != null) {
-					groupProcessing(currTerm.asModelGroup(), child, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
+					processGroup(currTerm.asModelGroup(), child, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
 				} else {
-					groupProcessing(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace,
-							enclosingType);
+					processGroup(currTerm.asModelGroup(), particle, messageType, processedXmlObjects, schemaSet, enclosingName, targetNamespace, enclosingType);
 				}
 			} else {
 				// Create the new complex type for root types
