@@ -94,7 +94,7 @@ aliases:
 
   - &java-container-config
     docker:
-      - image: circleci/openjdk:11-jdk
+      - image: cimg/openjdk:11.0
         auth:
           username: $DOCKERHUB_LOGIN
           password: $DOCKERHUB_PASSWORD
@@ -131,12 +131,13 @@ jobs:
           settings-file: *maven-settings-file
       - restore_cache:
           keys:
-            - cache-dependencies-20200928
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U
+            - dep-cache-{{ checksum "pom.xml" }}
+            - dep-cache-base
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline
       - save_cache:
           paths:
             - ~/.m2
-          key: cache-dependencies-20200928
+          key: dep-cache-{{ checksum "pom.xml" }}
       # Cannot use -o because of snapshot dependencies. Using deploy &  -Dmaven.deploy.skip=true to download ALL necessary dependencies
       - run: mvn verify
       - run:
