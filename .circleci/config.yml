@@ -131,13 +131,12 @@ jobs:
           settings-file: *maven-settings-file
       - restore_cache:
           keys:
-            - dep-cache-{{ checksum "pom.xml" }}
-            - dep-cache-base
-      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline
+            - cache-dependencies-20200928
+      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U
       - save_cache:
           paths:
             - ~/.m2
-          key: dep-cache-{{ checksum "pom.xml" }}
+          key: cache-dependencies-20200928
       # Cannot use -o because of snapshot dependencies. Using deploy &  -Dmaven.deploy.skip=true to download ALL necessary dependencies
       - run: mvn verify
       - persist_to_workspace:
