@@ -132,7 +132,7 @@ jobs:
       - restore_cache:
           keys:
             - cache-dependencies-20200928
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline
       - save_cache:
           paths:
             - ~/.m2
