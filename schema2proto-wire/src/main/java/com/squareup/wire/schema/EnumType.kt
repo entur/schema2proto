@@ -16,7 +16,9 @@
 package com.squareup.wire.schema
 
 import com.squareup.wire.schema.Options.ENUM_OPTIONS
+import com.squareup.wire.schema.Reserved.Companion.fromElements
 import com.squareup.wire.schema.internal.parser.EnumElement
+import java.util.*
 
 class EnumType public constructor(
         private var protoType: ProtoType,
@@ -24,6 +26,7 @@ class EnumType public constructor(
         private val documentation: String,
         private var name: String,
         private val constants: List<EnumConstant>,
+        private val reserveds: MutableList<Reserved>,
         private val options: Options
 ) : Type() {
     private var allowAlias: Any? = null
@@ -45,6 +48,8 @@ class EnumType public constructor(
     fun constant(tag: Int) = constants.find { it.tag == tag }
 
     fun constants() = constants
+
+    fun reserveds() = reserveds
 
     internal override fun link(linker: Linker) {}
 
@@ -86,6 +91,21 @@ class EnumType public constructor(
         }
     }
 
+    fun addReserved(documentation: String?, location: Location?, tag: Int) {
+        val alreadyReserved = reserveds.stream().anyMatch { reservation: Reserved -> reservation.matchesTag(tag) }
+        if (!alreadyReserved) {
+            reserveds.add(Reserved(location!!, documentation!!, Arrays.asList(tag)))
+        }
+    }
+
+    fun addReserved(documentation: String?, location: Location?, fieldName: String) {
+        val alreadyReserved = reserveds.stream().anyMatch { reservation: Reserved -> reservation.matchesName(fieldName) }
+        if (!alreadyReserved) {
+            reserveds.add(Reserved(location!!, documentation!!, Arrays.asList(fieldName)))
+        }
+    }
+
+
     internal override fun retainAll(
             schema: Schema,
             markSet: MarkSet
@@ -99,7 +119,7 @@ class EnumType public constructor(
 
         val result = EnumType(
                 protoType, location, documentation, name,
-                retainedConstants,
+                retainedConstants, reserveds,
                 options.retainAll(schema, markSet)
         )
         result.allowAlias = allowAlias
@@ -112,6 +132,7 @@ class EnumType public constructor(
                 name,
                 documentation,
                 options.toElements(),
+                Reserved.toElements(reserveds),
                 EnumConstant.toElements(constants)
         )
     }
@@ -135,10 +156,13 @@ class EnumType public constructor(
         ): EnumType {
             val constants = EnumConstant.fromElements(enumElement.constants)
             val options = Options(Options.ENUM_OPTIONS, enumElement.options)
+            val reserveds = fromElements(enumElement.reserveds)
+
+
 
             return EnumType(
                     protoType, enumElement.location, enumElement.documentation,
-                    enumElement.name, constants, options
+                    enumElement.name, constants, reserveds.toMutableList(), options
             )
         }
     }

@@ -1,0 +1,13 @@
+//
+syntax = "proto3";
+package default;
+
+enum Test {
+  // Reservation added by schema2proto
+  reserved "TEST_SECOND";
+  // Reservation added by schema2proto
+  reserved 2;
+
+  TEST_UNSPECIFIED = 0;
+  TEST_FIRST = 1;
+}

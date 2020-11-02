@@ -24,9 +24,7 @@ package no.entur.schema2proto.compatibility.protolock;
 
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
-
-public class ProtolockField implements Comparable<ProtolockField> {
+public class ProtolockField extends AbstractNameIDPair {
 	private String name;
 	private int id;
 
@@ -65,12 +63,4 @@ public class ProtolockField implements Comparable<ProtolockField> {
 		return "ProtolockField{" + "name='" + name + '\'' + ", id=" + id + '}';
 	}
 
-	@Override
-	public int compareTo(@NotNull ProtolockField protolockField) {
-		if (id == protolockField.id) {
-			return name.compareTo(protolockField.name);
-		} else {
-			return Integer.compare(id, protolockField.id);
-		}
-	}
 }

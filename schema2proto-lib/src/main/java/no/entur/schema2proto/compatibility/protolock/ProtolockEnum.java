@@ -30,11 +30,25 @@ public class ProtolockEnum {
 		return name;
 	}
 
-	public ProtolockEnumField[] getEnumFields() {
+	public ProtolockEnumConstant[] getEnumFields() {
 		return enumFields;
 	}
 
 	private String name;
 	@SerializedName("enum_fields")
-	private ProtolockEnumField[] enumFields;
+	private ProtolockEnumConstant[] enumFields;
+	@SerializedName("reserved_ids")
+	Integer[] reservedIds;
+
+	public Integer[] getReservedIds() {
+		return reservedIds;
+	}
+
+	public String[] getReservedNames() {
+		return reservedNames;
+	}
+
+	@SerializedName(("reserved_names"))
+	String[] reservedNames;
+
 }

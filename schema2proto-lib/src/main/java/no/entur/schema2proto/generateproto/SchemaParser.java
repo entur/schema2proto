@@ -1086,7 +1086,7 @@ public class SchemaParser implements ErrorHandler {
 				definedProtoType = ProtoType.get(enclosingType.getName(), typeNameToUse);
 			}
 
-			EnumType enumType = new EnumType(definedProtoType, location, doc, typeNameToUse, constants, enumOptions);
+			EnumType enumType = new EnumType(definedProtoType, location, doc, typeNameToUse, constants, new ArrayList<>(), enumOptions);
 
 			if (enclosingType != null) {
 				// if not already present

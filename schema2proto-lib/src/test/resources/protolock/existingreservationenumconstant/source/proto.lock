@@ -1,0 +1,33 @@
+{
+  "definitions": [
+    {
+      "protopath": "default:/:default.proto",
+      "def": {
+        "enums": [
+          {
+            "name": "Test",
+            "enum_fields": [
+              {
+                "name": "TEST_UNSPECIFIED"
+              },
+              {
+                "name": "TEST_FIRST",
+                "integer": 1
+              }
+            ],
+            "reserved_ids": [
+                   2
+                 ],
+             "reserved_names": [
+               "TEST_SECOND"
+             ]
+
+          }
+        ],
+        "package": {
+          "name": "default"
+        }
+      }
+    }
+  ]
+}

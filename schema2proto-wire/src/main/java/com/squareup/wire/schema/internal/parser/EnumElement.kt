@@ -24,6 +24,7 @@ data class EnumElement(
         override val name: String,
         override val documentation: String = "",
         override val options: List<OptionElement> = emptyList(),
+        val reserveds: List<ReservedElement> = emptyList(),
         val constants: List<EnumConstantElement> = emptyList()
 ) : TypeElement {
     // Enums do not allow nested type declarations.
@@ -32,6 +33,13 @@ data class EnumElement(
     override fun toSchema() = buildString {
         appendDocumentation(this, documentation)
         append("enum $name {")
+
+        if (reserveds.isNotEmpty()) {
+            append('\n')
+            for (reserved in reserveds) {
+                appendIndented(this, reserved.toSchema())
+            }
+        }
 
         if (options.isNotEmpty()) {
             append('\n')

@@ -20,7 +20,7 @@ import com.squareup.wire.schema.internal.parser.EnumConstantElement
 class EnumConstant public constructor(
         val location: Location,
         var name: String,
-        val tag: Int,
+        var tag: Int,
         val documentation: String,
         val options: Options
 ) {
@@ -36,6 +36,11 @@ class EnumConstant public constructor(
 
     fun updateName(name: String) {
         this.name = name;
+    }
+
+    fun updateTag(newTag: Int) {
+        this.tag = newTag;
+
     }
 
     companion object {

@@ -256,11 +256,9 @@ public class ProtoSerializer {
 		AtomicBoolean possibleIncompatibilitiesDetected = new AtomicBoolean(false);
 
 		for (ProtoFile file : packageToProtoFileMap.values()) {
-			messageTypes(file.types()).forEach(mt -> {
-				if (backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file, mt)) {
-					possibleIncompatibilitiesDetected.set(true);
-				}
-			});
+			if (backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file)) {
+				possibleIncompatibilitiesDetected.set(true);
+			}
 		}
 
 		return possibleIncompatibilitiesDetected.get();
@@ -574,6 +572,7 @@ public class ProtoSerializer {
 		EnumConstant unspecified = new EnumConstant(new Location("", "", 0, 0), enumValuePrefix + "UNSPECIFIED", 0, "Default",
 				new Options(Options.ENUM_VALUE_OPTIONS, optionElementsUnspecified));
 		e.constants().add(0, unspecified);
+
 	}
 
 	private String escapeEnumValue(String name) {

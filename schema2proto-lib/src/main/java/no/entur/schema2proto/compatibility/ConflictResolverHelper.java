@@ -1,3 +1,5 @@
+package no.entur.schema2proto.compatibility;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -7,12 +9,12 @@
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- *
+ * 
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- *
+ * 
  * http://ec.europa.eu/idabc/eupl5
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,17 +22,20 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.compatibility.protolock;
 
-public class ProtolockEnumField {
-	public int getInteger() {
-		return integer;
+import java.util.Set;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+
+import no.entur.schema2proto.compatibility.protolock.AbstractNameIDPair;
+
+public class ConflictResolverHelper {
+
+	public static BiMap<String, Integer> createBiMap(Set<? extends AbstractNameIDPair> fields) {
+		BiMap<String, Integer> fieldMap = HashBiMap.create();
+		fields.stream().forEach(e -> fieldMap.put(e.getName(), e.getId()));
+		return fieldMap;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	private int integer;
-	private String name;
 }
