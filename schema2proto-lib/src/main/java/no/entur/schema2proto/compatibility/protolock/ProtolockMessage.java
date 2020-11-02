@@ -32,6 +32,11 @@ public class ProtolockMessage {
 	@SerializedName(("reserved_names"))
 	String[] reservedNames;
 	ProtolockMessage[] messages;
+	ProtolockEnum[] enums;
+
+	public ProtolockEnum[] getEnums() {
+		return enums;
+	}
 
 	public Integer[] getReservedIds() {
 		return reservedIds;

@@ -218,12 +218,7 @@ public class ModifyProto {
 				backwardsCompatibilityChecker.init(configuration.protoLockFile);
 				ImmutableList<ProtoFile> files = prunedSchema.protoFiles();
 
-				for (ProtoFile file : files) {
-					for (Type type : file.types()) {
-						if (type instanceof MessageType)
-							backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file, (MessageType) type);
-					}
-				}
+				files.stream().forEach(file -> backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file));
 			} catch (FileNotFoundException e) {
 				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
 			}

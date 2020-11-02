@@ -24,21 +24,18 @@ package no.entur.schema2proto.compatibility.protolock;
 
 import java.util.Objects;
 
-public class ProtolockField extends AbstractNameIDPair {
+import com.google.gson.annotations.SerializedName;
+
+public class ProtolockEnumConstant extends AbstractNameIDPair {
+
 	private String name;
+	@SerializedName("integer")
 	private int id;
 
-	public ProtolockField(int tag, String name) {
-		this.id = tag;
+	public ProtolockEnumConstant(int integer, String name) {
+		this.id = integer;
 		this.name = name;
-	}
 
-	public String getName() {
-		return name;
-	}
-
-	public int getId() {
-		return id;
 	}
 
 	@Override
@@ -49,18 +46,27 @@ public class ProtolockField extends AbstractNameIDPair {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		ProtolockField that = (ProtolockField) o;
-		return id == that.id && Objects.equals(name, that.name);
+		ProtolockEnumConstant that = (ProtolockEnumConstant) o;
+		return getId() == that.getId() && Objects.equals(getName(), that.getName());
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name, id);
+		return Objects.hash(getName(), getId());
 	}
 
 	@Override
 	public String toString() {
-		return "ProtolockField{" + "name='" + name + '\'' + ", id=" + id + '}';
+		return "ProtolockEnumField{" + "id=" + getId() + ", name='" + getName() + '\'' + '}';
 	}
 
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public int getId() {
+		return id;
+	}
 }

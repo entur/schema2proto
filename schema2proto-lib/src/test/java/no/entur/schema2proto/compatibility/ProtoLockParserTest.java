@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import no.entur.schema2proto.compatibility.protolock.ProtolockDefinition;
 import no.entur.schema2proto.compatibility.protolock.ProtolockDefinitions;
 import no.entur.schema2proto.compatibility.protolock.ProtolockEnum;
-import no.entur.schema2proto.compatibility.protolock.ProtolockEnumField;
+import no.entur.schema2proto.compatibility.protolock.ProtolockEnumConstant;
 import no.entur.schema2proto.compatibility.protolock.ProtolockFile;
 
 public class ProtoLockParserTest {
@@ -62,11 +62,11 @@ public class ProtoLockParserTest {
 
 		ProtolockEnum e = enums[0];
 		assertEquals("AggregationType", e.getName());
-		ProtolockEnumField[] enumFields = e.getEnumFields();
+		ProtolockEnumConstant[] enumFields = e.getEnumFields();
 		assertNotNull(enumFields);
 		assertEquals(7, enumFields.length);
 
-		assertEquals(0, enumFields[0].getInteger());
+		assertEquals(0, enumFields[0].getId());
 		assertEquals("AGGREGATION_TYPE_UNSPECIFIED", enumFields[0].getName());
 		// Check messages
 

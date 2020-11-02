@@ -55,12 +55,13 @@ public class SerializationTest {
 
 		List<EnumConstant> values = new ArrayList<EnumConstant>();
 		List<OptionElement> elements = new ArrayList<>();
+		List<Reserved> reserveds = new ArrayList<>();
 		Options constantOptions = new Options(ProtoType.BOOL, elements);
 
 		Location valueLocation = new Location("base", "file", 1, 2);
 		values.add(new EnumConstant(valueLocation, "VAL1", 1, "doc", constantOptions));
 		Options options = new Options(ProtoType.BOOL, new ArrayList<>());
-		f.types().add(new EnumType(ProtoType.INT32, valueLocation, "doc", "Name", values, options));
+		f.types().add(new EnumType(ProtoType.INT32, valueLocation, "doc", "Name", values, reserveds, options));
 
 		Location messagLocation = new Location("base", "path", 1, 1);
 		ImmutableList<Field> declaredFields = ImmutableList.copyOf(new ArrayList<>());
@@ -71,8 +72,6 @@ public class SerializationTest {
 		ImmutableList<Type> nestedTypes = ImmutableList.copyOf(new ArrayList<>());
 
 		List<Extensions> extensionsList = new ArrayList<>();
-
-		List<Reserved> reserveds = new ArrayList<>();
 
 		List<OptionElement> messageOptionElements = new ArrayList<>();
 		Options messageOptions = new Options(ProtoType.BOOL, messageOptionElements);

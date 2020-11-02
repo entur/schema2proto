@@ -1,0 +1,9 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+enum Test {
+  TEST_UNSPECIFIED = 0;
+  TEST_FIRST = 1;
+  TEST_SECOND = 3;
+}

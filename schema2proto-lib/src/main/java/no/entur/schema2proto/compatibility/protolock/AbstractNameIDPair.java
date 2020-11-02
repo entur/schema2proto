@@ -1,3 +1,5 @@
+package no.entur.schema2proto.compatibility.protolock;
+
 /*-
  * #%L
  * schema2proto-lib
@@ -7,12 +9,12 @@
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- *
+ * 
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- *
+ * 
  * http://ec.europa.eu/idabc/eupl5
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,35 +22,21 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.compatibility.protolock;
 
-import com.google.gson.annotations.SerializedName;
+import org.jetbrains.annotations.NotNull;
 
-public class ProtolockEnum {
+public abstract class AbstractNameIDPair implements Comparable<AbstractNameIDPair> {
 
-	public String getName() {
-		return name;
+	public abstract String getName();
+
+	public abstract int getId();
+
+	@Override
+	public int compareTo(@NotNull AbstractNameIDPair abstractNameIDPair) {
+		if (getId() == abstractNameIDPair.getId()) {
+			return getName().compareTo(abstractNameIDPair.getName());
+		} else {
+			return Integer.compare(getId(), abstractNameIDPair.getId());
+		}
 	}
-
-	public ProtolockEnumConstant[] getEnumFields() {
-		return enumFields;
-	}
-
-	private String name;
-	@SerializedName("enum_fields")
-	private ProtolockEnumConstant[] enumFields;
-	@SerializedName("reserved_ids")
-	Integer[] reservedIds;
-
-	public Integer[] getReservedIds() {
-		return reservedIds;
-	}
-
-	public String[] getReservedNames() {
-		return reservedNames;
-	}
-
-	@SerializedName(("reserved_names"))
-	String[] reservedNames;
-
 }

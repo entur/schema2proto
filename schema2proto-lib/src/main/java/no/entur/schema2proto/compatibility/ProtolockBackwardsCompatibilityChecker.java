@@ -20,37 +20,27 @@
  * limitations under the Licence.
  * #L%
  */
+
 package no.entur.schema2proto.compatibility;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.gson.Gson;
-import com.squareup.wire.schema.Field;
+import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.ProtoFile;
 
 import no.entur.schema2proto.compatibility.protolock.ProtolockDefinition;
 import no.entur.schema2proto.compatibility.protolock.ProtolockDefinitions;
-import no.entur.schema2proto.compatibility.protolock.ProtolockField;
+import no.entur.schema2proto.compatibility.protolock.ProtolockEnum;
 import no.entur.schema2proto.compatibility.protolock.ProtolockFile;
 import no.entur.schema2proto.compatibility.protolock.ProtolockMessage;
 
@@ -58,7 +48,9 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 	private ProtolockDefinitions definitions = null;
 
-	private boolean failIfRemovedFieldsTriggered = false;
+	private EnumConflictChecker enumConflictChecker = new EnumConflictChecker();
+
+	private FieldConflictChecker fieldConflictChecker = new FieldConflictChecker();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProtolockBackwardsCompatibilityChecker.class);
 
@@ -71,12 +63,119 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return definitions;
 	}
 
-	public SortedSet<ProtolockField> getFields(ProtolockMessage protolockMessage) {
-		if (protolockMessage != null && protolockMessage.getFields() != null) {
-			return new TreeSet<>(Arrays.stream(protolockMessage.getFields()).collect(Collectors.toSet()));
+	private void copyReservations(ProtolockMessage protolockMessage, MessageType e) {
+		String reservationDoc = "Reservation added by schema2proto";
+		Location loc = new Location("", "", 0, 0);
+
+		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
+			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> e.addReserved(reservationDoc, loc, reservedId));
+		}
+		if (protolockMessage.getReservedNames() != null && protolockMessage.getReservedNames().length > 0) {
+			Arrays.stream(protolockMessage.getReservedNames()).forEach(reservedName -> e.addReserved(reservationDoc, loc, reservedName));
 		}
 
-		return new TreeSet<>();
+		e.nestedTypes().stream().filter(z -> z instanceof MessageType).map(k -> (MessageType) k).forEach(nestedType -> {
+			if (protolockMessage.getMessages() != null) {
+				Arrays.stream(protolockMessage.getMessages()).forEach(nestedProtolockMessage -> {
+					if (nestedProtolockMessage.getName().equals(nestedType.getName())) {
+						copyReservations(nestedProtolockMessage, nestedType);
+					}
+				});
+			}
+		});
+
+	}
+
+	private void copyReservations(ProtolockEnum protolockMessage, EnumType e) {
+		String reservationDoc = "Reservation added by schema2proto";
+		Location loc = new Location("", "", 0, 0);
+
+		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
+			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> e.addReserved(reservationDoc, loc, reservedId));
+		}
+		if (protolockMessage.getReservedNames() != null && protolockMessage.getReservedNames().length > 0) {
+			Arrays.stream(protolockMessage.getReservedNames()).forEach(reservedName -> e.addReserved(reservationDoc, loc, reservedName));
+		}
+
+	}
+
+	public boolean resolveBackwardIncompatibilities(ProtoFile file) {
+
+		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
+
+		ProtolockFile protolockFile = getProtolockFile(file);
+
+		if (protolockFile != null) {
+
+			// For each enum on file level (global enums)
+			file.types().stream().filter(type -> type instanceof EnumType).map(enumType -> (EnumType) enumType).forEach(enumType -> {
+				Arrays.stream(protolockFile.getEnums()).filter(pe -> pe.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
+					copyReservations(protolockEnum, enumType);
+
+					if (enumConflictChecker.tryResolveEnumConflicts(file, enumType, protolockEnum)) {
+						failIfRemovedFieldsTriggered.set(true);
+					}
+				});
+
+			});
+
+			file.types().stream().filter(z -> z instanceof MessageType).map(ke -> (MessageType) ke).forEach(e -> {
+				// For each root level message in file
+				ProtolockMessage protolockMessage = getProtolockMessage(protolockFile, e);
+				if (protolockMessage != null) {
+					if (resolveBackwardIncompatibilities(file, protolockMessage, e)) {
+						failIfRemovedFieldsTriggered.set(true);
+					}
+
+				}
+			});
+		}
+
+		return failIfRemovedFieldsTriggered.get();
+	}
+
+	private boolean resolveBackwardIncompatibilities(ProtoFile file, ProtolockMessage protolockMessage, MessageType e) {
+
+		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
+		// Copy previous reservations since the schema generator has no info about them
+		copyReservations(protolockMessage, e);
+
+		if (fieldConflictChecker.tryResolveFieldConflicts(file, e, protolockMessage)) {
+			failIfRemovedFieldsTriggered.set(true);
+		}
+
+		if (tryResolveEnumConflicts(file, e, protolockMessage)) {
+			failIfRemovedFieldsTriggered.set(true);
+		}
+
+		e.nestedTypes().stream().filter(type -> type instanceof MessageType).map(r -> (MessageType) r).forEach(nestedProtoMessage -> {
+			ProtolockMessage nestedProtolockMessage = getNestedProtolockMessage(protolockMessage, nestedProtoMessage);
+			if (nestedProtolockMessage != null) {
+				if (resolveBackwardIncompatibilities(file, nestedProtolockMessage, nestedProtoMessage)) {
+					failIfRemovedFieldsTriggered.set(true);
+				}
+			}
+		});
+
+		return failIfRemovedFieldsTriggered.get();
+
+	}
+
+	private boolean tryResolveEnumConflicts(ProtoFile file, MessageType protoMessage, ProtolockMessage protolockMessage) {
+		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
+		// For each enum in proto, try to find mismatching enum values and resolve
+		protoMessage.nestedTypes().stream().filter(type -> type instanceof EnumType).map(type -> (EnumType) type).forEach(enumType -> {
+			// Find matching in protolockmessage
+			if (protolockMessage.getEnums() != null) {
+				Arrays.stream(protolockMessage.getEnums()).filter(e -> e.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
+					copyReservations(protolockEnum, enumType);
+					if (enumConflictChecker.tryResolveEnumConflicts(file, enumType, protolockEnum)) {
+						failIfRemovedFieldsTriggered.set(true);
+					}
+				});
+			}
+		});
+		return failIfRemovedFieldsTriggered.get();
 	}
 
 	private ProtolockMessage getProtolockMessage(ProtolockFile protolockFile, MessageType e) {
@@ -113,201 +212,6 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 		LOGGER.warn("Could not find a matching entry in proto.lock for {}", file.name());
 		return null;
-	}
-
-	public boolean resolveBackwardIncompatibilities(ProtoFile file, MessageType e) {
-
-		ProtolockFile protolockFile = getProtolockFile(file);
-		if (protolockFile != null) {
-			ProtolockMessage protolockMessage = getProtolockMessage(protolockFile, e);
-
-			if (protolockMessage != null) {
-				// Copy previous reservations since the schema generator has no info about them
-				copyReservations(protolockMessage, e);
-
-				tryResolveFieldConflicts(file, e, protolockMessage);
-			}
-		}
-
-		return failIfRemovedFieldsTriggered;
-
-	}
-
-	private void copyReservations(ProtolockMessage protolockMessage, MessageType e) {
-		String reservationDoc = "Reservation added by schema2proto";
-		Location loc = new Location("", "", 0, 0);
-
-		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
-			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> e.addReserved(reservationDoc, loc, reservedId));
-		}
-		if (protolockMessage.getReservedNames() != null && protolockMessage.getReservedNames().length > 0) {
-			Arrays.stream(protolockMessage.getReservedNames()).forEach(reservedName -> e.addReserved(reservationDoc, loc, reservedName));
-		}
-
-		e.nestedTypes().stream().filter(z -> z instanceof MessageType).map(k -> (MessageType) k).forEach(nestedType -> {
-			if (protolockMessage.getMessages() != null) {
-				Arrays.stream(protolockMessage.getMessages()).forEach(nestedProtolockMessage -> {
-					if (nestedProtolockMessage.getName().equals(nestedType.getName())) {
-						copyReservations(nestedProtolockMessage, nestedType);
-					}
-				});
-			}
-		});
-
-	}
-
-	private void tryResolveFieldConflicts(ProtoFile file, MessageType protoMessage, ProtolockMessage protolockMessage) {
-		SortedSet<ProtolockField> lockFields = Collections.unmodifiableSortedSet(getFields(protolockMessage)); // from proto.lock
-		SortedSet<ProtolockField> xsdFields = Collections.unmodifiableSortedSet(
-				new TreeSet<>(protoMessage.fieldsAndOneOfFields().stream().map(f -> new ProtolockField(f.tag(), f.name())).collect(Collectors.toSet()))); // from
-																																							// parsed
-		// Find fields that are new
-		Set<ProtolockField> newFieldsInXsd = new TreeSet<>(xsdFields); // from parsed / converted xsd
-		newFieldsInXsd.removeAll(lockFields);
-
-		Set<ProtolockField> surplusLockFields = new TreeSet<>(lockFields); // from proto.lock
-		surplusLockFields.removeAll(xsdFields);
-
-		if (newFieldsInXsd.isEmpty() && surplusLockFields.isEmpty()) {
-			// No mismatch, only minor details
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("No added or removed fields in proto {} {}", file.name(), protoMessage.getName());
-			}
-		} else if (newFieldsInXsd.isEmpty() && !surplusLockFields.isEmpty()) {
-			// Find fields that are removed (make reserved)
-			surplusLockFields.stream().forEach(newField -> reserveField(file, protoMessage, newField));
-
-		} else if (!newFieldsInXsd.isEmpty() && surplusLockFields.isEmpty()) {
-			// Only new fields from xsd
-			newFieldsInXsd.stream().forEach(newField -> LOGGER.debug("Added field in proto {} {} : {}", file.name(), protoMessage.getName(), newField));
-		} else {
-
-			// Compute helper maps
-			BiMap<String, Integer> xsdFieldsNameToId = createBiMap(newFieldsInXsd);
-			Map<Integer, String> xsdFieldsIdToName = xsdFieldsNameToId.inverse();
-
-			BiMap<String, Integer> newFieldsInLockMapNameToId = createBiMap(surplusLockFields);
-			Map<Integer, String> newFieldsInLockMapIdToName = newFieldsInLockMapNameToId.inverse();
-
-			TreeSet<String> overlappingNames = new TreeSet<>(xsdFieldsNameToId.keySet());
-			overlappingNames.retainAll(newFieldsInLockMapNameToId.keySet());
-
-			TreeSet<Integer> overlappingIds = new TreeSet<>(xsdFieldsNameToId.values());
-			overlappingIds.retainAll(newFieldsInLockMapNameToId.values());
-
-			if (!(overlappingIds.isEmpty() && overlappingNames.isEmpty())) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Incompatible changes in proto {} {} , overlapping ids={}, overlapping fieldnames={}", file.name(), protoMessage.getName(),
-							overlappingIds, overlappingNames);
-				}
-
-				// If an existing field.name (in both proto and protolock) has a new field number, updated field.id to this number. If this number has been used
-				// for
-				// another field, assign this field to a new id in a "safe" number range
-				AtomicInteger nextAvailableFieldNum = findNextAvailableFieldNum(protoMessage, xsdFields);
-
-				if (!overlappingIds.isEmpty()) {
-					// Check if the new field is using an already allocated id
-					int overlappingId = overlappingIds.first();
-					String originalFieldNameUsingThisId = newFieldsInLockMapIdToName.get(overlappingId);
-					if (originalFieldNameUsingThisId != null) {
-						// Find field that has take newFields original number
-						String intrudingFieldName = xsdFieldsIdToName.get(overlappingId);
-						Optional<Field> intrudingField = getField(protoMessage, intrudingFieldName);
-						Optional<Field> existingField = getField(protoMessage, originalFieldNameUsingThisId);
-
-						Integer idFromLockFile = newFieldsInLockMapNameToId.get(intrudingFieldName);
-						updateFieldTag(nextAvailableFieldNum, overlappingId, intrudingField, existingField, idFromLockFile);
-					}
-
-				} else if (!overlappingNames.isEmpty()) {
-
-					String overlappingName = overlappingNames.first();
-
-					// Check if the new field is using an already allocated name (changed id)
-					Integer originalFieldIdForNewName = newFieldsInLockMapNameToId.get(overlappingName);
-					if (originalFieldIdForNewName != null) {
-						// Find field that has take newFields original number
-						Integer intrudingFieldId = xsdFieldsNameToId.get(overlappingName);
-						Optional<Field> intrudingField = getField(protoMessage, intrudingFieldId);
-						Optional<Field> existingField = getField(protoMessage, originalFieldIdForNewName);
-
-						Integer idFromLockFile = newFieldsInLockMapNameToId.get(overlappingName);
-						updateFieldTag(nextAvailableFieldNum, originalFieldIdForNewName, intrudingField, existingField, idFromLockFile);
-					}
-				}
-				tryResolveFieldConflicts(file, protoMessage, protolockMessage);
-
-			} else {
-				// If neither overlapping field names nor ids, no problem. Add reserved keyword for removed fields
-				surplusLockFields.stream().forEach(newField -> {
-					reserveField(file, protoMessage, newField);
-					LOGGER.debug("Removed field in proto {}: {}, adding reserved section", file.name(), newField);
-				});
-			}
-
-		}
-
-		protoMessage.nestedTypes().stream().filter(type -> type instanceof MessageType).forEach(nestedProtoMessage -> {
-			ProtolockMessage nestedProtolockMessage = getNestedProtolockMessage(protolockMessage, (MessageType) nestedProtoMessage);
-			if (nestedProtolockMessage != null) {
-				tryResolveFieldConflicts(file, (MessageType) nestedProtoMessage, nestedProtolockMessage);
-			}
-		});
-	}
-
-	private void updateFieldTag(AtomicInteger nextAvailableFieldNum, int overlappingId, Optional<Field> intrudingField, Optional<Field> existingField,
-			Integer idFromLockFile) {
-		intrudingField.ifPresent(x -> {
-			if (idFromLockFile != null) {
-				x.updateTag(idFromLockFile);
-			} else {
-				x.updateTag(nextAvailableFieldNum.get());
-			}
-		});
-
-		existingField.ifPresent(x -> x.updateTag(overlappingId));
-	}
-
-	@NotNull
-	private AtomicInteger findNextAvailableFieldNum(MessageType e, SortedSet<ProtolockField> xsdFields) {
-		AtomicInteger nextAvailableFieldNum = new AtomicInteger(
-				xsdFields.stream().max(Comparator.comparing(ProtolockField::getId)).orElse(new ProtolockField(0, null)).getId() + 1);
-
-		// Check that it is not reserved
-		while (e.getReserveds().stream().anyMatch(s -> s.matchesTag(nextAvailableFieldNum.get()))) {
-			nextAvailableFieldNum.incrementAndGet();
-		}
-		return nextAvailableFieldNum;
-	}
-
-	private BiMap<String, Integer> createBiMap(Set<ProtolockField> fields) {
-		BiMap<String, Integer> fieldMap = HashBiMap.create();
-		fields.stream().forEach(e -> fieldMap.put(e.getName(), e.getId()));
-		return fieldMap;
-	}
-
-	private Optional<Field> getField(MessageType e, String intrudingFieldName) {
-		return e.fieldsAndOneOfFields().stream().filter(z -> z.name().equals(intrudingFieldName)).findFirst();
-	}
-
-	private Optional<Field> getField(MessageType e, Integer intrudingFieldId) {
-		return e.fieldsAndOneOfFields().stream().filter(z -> z.tag() == intrudingFieldId).findFirst();
-	}
-
-	private void reserveField(ProtoFile file, MessageType e, ProtolockField newField) {
-
-		String reservationDoc = "Reservation added by schema2proto";
-		Location loc = new Location("", "", 0, 0);
-
-		// 2 reservations since field name and id cannot be on the same reservation list
-		e.addReserved(reservationDoc, loc, newField.getName());
-		e.addReserved(reservationDoc, loc, newField.getId());
-
-		LOGGER.warn(
-				"Possible backwards incompatibility detected, must be checked manually! Removed field in proto {}, message {}, field {}, blocking field name and id for future use by adding 'reserved' statement",
-				file.name(), e.getName(), newField);
-		failIfRemovedFieldsTriggered = true;
 	}
 
 }

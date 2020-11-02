@@ -29,75 +29,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.io.File;
 import java.io.IOException;
 
-import org.junit.jupiter.api.Test;
-
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 
-public class ProtolockBackwardsCompatibilityCheckerTest {
+public abstract class AbstractBackwardsCompatTest {
 
 	private static final String testdataBaseDirectory = "src/test/resources/protolock";
 	private static final String lockFile = "proto.lock";
 	private static final String sourceFolder = "source";
 	private static final String expectedFolder = "expected";
 
-	@Test
-	public void testAddedField() throws IOException {
-		verify("newfield", "ElementList", true);
-	}
-
-	@Test
-	public void testRemovedField() throws IOException {
-		verify("removedfield", "ElementList", false);
-	}
-
-	@Test
-	public void testAddFieldExistingReservation() throws IOException {
-		verify("existingreservation", "ElementList", false);
-	}
-
-	@Test
-	public void testInjectField() throws IOException {
-		verify("injectedfield", "ElementList", true);
-	}
-
-	@Test
-	public void testChangedFieldTag() throws IOException {
-		verify("changedfieldtag", "ElementList", true);
-	}
-
-	@Test
-	public void testChangedFieldName() throws IOException {
-		verify("changedfieldname", "ElementList", false);
-	}
-
-	@Test
-	public void testNewAndRemovedField() throws IOException {
-		verify("newandremovedfield", "ElementList", false);
-	}
-
-	@Test
-	public void testNestedMessageWithOneOf() throws IOException {
-		verify("nestedmessagewithoneof", "JourneyRefs_RelStructure", true);
-	}
-
-	@Test
-	public void testNestedMessageWithOneOfReorganizedFields() throws IOException {
-		verify("nestedmessagewithoneof_reorganizedfields", "DatedSpecialService_VersionStructure", true);
-	}
-
-	private void verify(String testname, String messageName, boolean failOnRemovedFields) throws IOException {
+	protected void verify(String testname, boolean failOnRemovedFields) throws IOException {
 		ProtolockBackwardsCompatibilityChecker checker = new ProtolockBackwardsCompatibilityChecker();
 		checker.init(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder + "/" + lockFile));
 
 		Schema sourceSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder));
 		ProtoFile sourceProtofile = sourceSchema.protoFile("default/default.proto");
 
-		MessageType type = getType(sourceProtofile, messageName);
-		boolean backwardsIncompatibiltyDetected = checker.resolveBackwardIncompatibilities(sourceProtofile, type);
+		boolean backwardsIncompatibiltyDetected = checker.resolveBackwardIncompatibilities(sourceProtofile);
 
 		Schema expectedSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + expectedFolder));
 
@@ -117,19 +68,10 @@ public class ProtolockBackwardsCompatibilityCheckerTest {
 		}
 	}
 
-	private MessageType getType(ProtoFile protoFile, String messageType) {
-		return (MessageType) protoFile.types()
-				.stream()
-				.filter(e -> e instanceof MessageType)
-				.filter(x -> ((MessageType) x).getName().equals(messageType))
-				.findAny()
-				.get();
-
-	}
-
 	private Schema loadSchema(File path) throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
 		schemaLoader.addSource(path);
 		return schemaLoader.load();
 	}
+
 }

@@ -279,6 +279,8 @@ public final class ProtoParser {
 
 		ImmutableList.Builder<EnumConstantElement> constants = ImmutableList.builder();
 		ImmutableList.Builder<OptionElement> options = ImmutableList.builder();
+		ImmutableList.Builder<ReservedElement> reserveds = ImmutableList.builder();
+
 		reader.require('{');
 		while (true) {
 			String valueDocumentation = reader.readDocumentation();
@@ -290,9 +292,11 @@ public final class ProtoParser {
 				constants.add((EnumConstantElement) declared);
 			} else if (declared instanceof OptionElement) {
 				options.add((OptionElement) declared);
+			} else if (declared instanceof ReservedElement) {
+				reserveds.add((ReservedElement) declared);
 			}
 		}
-		return new EnumElement(location, name, documentation, options.build(), constants.build());
+		return new EnumElement(location, name, documentation, options.build(), reserveds.build(), constants.build());
 	}
 
 	private Object readField(String documentation, Location location, String word) {
