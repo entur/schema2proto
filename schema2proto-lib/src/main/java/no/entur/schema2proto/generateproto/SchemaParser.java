@@ -240,9 +240,11 @@ public class SchemaParser implements ErrorHandler {
 			if (xs.getFacet(XSFacet.FACET_ENUMERATION) != null) {
 				createEnum(typeName, xs.asRestriction(), null);
 			} else if (xs.getFacet(XSFacet.FACET_WHITESPACE) != null && !basicTypes.contains(typeName)) {
+				nestingLevel--;
 				return findFieldType(xs.getSimpleBaseType());
 			}
 		} else if (xs.isList()) {
+			nestingLevel--;
 			return processSimpleType(xs.asList().getItemType(), null);
 		}
 
