@@ -102,7 +102,7 @@ public class FieldConflictChecker {
 				// If an existing field.name (in both proto and protolock) has a new field number, updated field.id to this number. If this number has been used
 				// for
 				// another field, assign this field to a new id in a "safe" number range
-				AtomicInteger nextAvailableFieldNum = findNextAvailableFieldNum(protoMessage, xsdFields);
+				AtomicInteger nextAvailableFieldNum = findNextAvailableFieldNum(protoMessage, xsdFields, lockFields);
 
 				if (!overlappingIds.isEmpty()) {
 					// Check if the new field is using an already allocated id
@@ -163,12 +163,13 @@ public class FieldConflictChecker {
 	}
 
 	@NotNull
-	private AtomicInteger findNextAvailableFieldNum(MessageType e, SortedSet<ProtolockField> xsdFields) {
+	private AtomicInteger findNextAvailableFieldNum(MessageType e, SortedSet<ProtolockField> xsdFields, SortedSet<ProtolockField> lockFields) {
 		AtomicInteger nextAvailableFieldNum = new AtomicInteger(
 				xsdFields.stream().max(Comparator.comparing(ProtolockField::getId)).orElse(new ProtolockField(0, null)).getId() + 1);
 
 		// Check that it is not reserved
-		while (e.getReserveds().stream().anyMatch(s -> s.matchesTag(nextAvailableFieldNum.get()))) {
+		while (e.getReserveds().stream().anyMatch(s -> s.matchesTag(nextAvailableFieldNum.get()))
+				|| lockFields.stream().anyMatch(s -> s.getId() == nextAvailableFieldNum.get())) {
 			nextAvailableFieldNum.incrementAndGet();
 		}
 		return nextAvailableFieldNum;
