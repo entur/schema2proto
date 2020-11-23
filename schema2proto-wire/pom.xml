@@ -4,13 +4,13 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.26</version>
+        <version>1.27</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
     <properties>
         <junit.jupiter.version>5.7.0</junit.jupiter.version>
-        <kotlin.version>1.4.10</kotlin.version>
+        <kotlin.version>1.4.20</kotlin.version>
     </properties>
     <dependencies>
         <dependency>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.18.0</version>
+            <version>3.18.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
