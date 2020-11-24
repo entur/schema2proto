@@ -496,11 +496,10 @@ public class ProtoSerializer {
 
 	private CaseFormat getCaseFormatName(String s) throws IllegalFormatException {
 		if (s.contains("_")) {
-			if (s.toUpperCase().equals(s)) {
-				return CaseFormat.UPPER_UNDERSCORE;
-			}
-			if (s.toLowerCase().equals(s)) {
+			if (Character.isLowerCase(s.charAt(0))) {
 				return CaseFormat.LOWER_UNDERSCORE;
+			} else {
+				return CaseFormat.UPPER_UNDERSCORE;
 			}
 		} else if (s.contains("-")) {
 			if (s.toLowerCase().equals(s)) {

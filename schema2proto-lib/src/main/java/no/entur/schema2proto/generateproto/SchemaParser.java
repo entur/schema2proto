@@ -385,7 +385,8 @@ public class SchemaParser implements ErrorHandler {
 							allSubtitutables.addAll(subsumptionSubstitutables);
 
 							for (XSElementDecl substitutable : allSubtitutables) {
-								if (substitutable.isAbstract() || substitutable.getType().asComplexType().isAbstract()) {
+								if (substitutable.isAbstract()
+										|| (substitutable.getType().isComplexType() && substitutable.getType().asComplexType().isAbstract())) {
 									// No abstract concept in protobuf, only concrete messages
 								} else {
 									addOneOfField(messageType, schemaSet, fieldOptions, fieldLocation, oneOf, substitutable);
