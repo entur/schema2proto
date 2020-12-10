@@ -15,7 +15,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.28</version>
+        <version>1.29</version>
     </parent>
     <artifactId>schema2proto-xsom</artifactId>
     <name>schema2proto-XSOM</name>
@@ -27,7 +27,7 @@
         <copyright.exclude.file>${project.basedir}/copyright-exclude</copyright.exclude.file>
         <copyright.template.file>${project.basedir}/copyright.txt</copyright.template.file>
         <findbugs.exclude>${project.basedir}/exclude-xsom.xml</findbugs.exclude>
-        <relaxng.version>2.3.3</relaxng.version>
+        <relaxng.version>3.0.0</relaxng.version>
         <upper.java.level>9</upper.java.level>
     </properties>
     <dependencies>
