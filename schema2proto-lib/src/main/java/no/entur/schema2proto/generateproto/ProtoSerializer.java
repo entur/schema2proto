@@ -22,6 +22,8 @@
  */
 package no.entur.schema2proto.generateproto;
 
+import static no.entur.schema2proto.generateproto.GoPackageNameHelper.packageNameToGoPackageName;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -180,6 +182,11 @@ public class ProtoSerializer {
 
 		// Add packed=true option to repeated enum or number fields
 		addPackedOptionToRepeatedFields(packageToProtoFileMap, true);
+
+		// Add go_package options to all files
+		if (configuration.includeGoPackageOptions) {
+			includeGoPackageNameOptions(packageToProtoFileMap);
+		}
 
 		// Try to resolve some backward incompatibilities based on protolock
 		boolean possibleIncompatibilitiesDetected = false;
@@ -679,6 +686,14 @@ public class ProtoSerializer {
 				OptionElement optionElement = new OptionElement(option.getKey(), kind, option.getValue(), false);
 				protoFile.getValue().options().add(optionElement);
 			}
+		}
+	}
+
+	private void includeGoPackageNameOptions(Map<String, ProtoFile> packageToProtoFileMap) {
+		for (ProtoFile protoFile : packageToProtoFileMap.values()) {
+			String goPackageName = packageNameToGoPackageName(configuration.goPackageSource, protoFile.packageName());
+			OptionElement optionElement = new OptionElement("go_package", Kind.STRING, goPackageName, false);
+			protoFile.options().add(optionElement);
 		}
 	}
 

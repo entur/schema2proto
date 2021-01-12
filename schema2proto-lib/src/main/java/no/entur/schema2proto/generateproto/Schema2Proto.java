@@ -77,6 +77,8 @@ public class Schema2Proto {
 	private static final String OPTION_PROTOLOCK_FILENAME = "protoLockFile";
 	private static final String OPTION_FAIL_IF_REMOVED_FIELDS = "failIfRemovedFields";
 	private static final String OPTION_DERIVATION_BY_SUBSUMPTION = "derivationBySubsumption";
+	private static final String OPTION_INCLUDE_GO_PACKAGE_OPTIONS = "includeGoPackageOptions";
+	private static final String OPTION_GO_PACKAGE_SOURCE = "goPackageSource";
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
 
 	public Schema2Proto(String[] args) throws IOException {
@@ -258,6 +260,20 @@ public class Schema2Proto {
 				.desc("enable derivation by subsumption https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_INCLUDE_GO_PACKAGE_OPTIONS)
+				.hasArg()
+				.argName("true|false")
+				.desc("Include 'go_package' options in all files")
+				.required(false)
+				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_GO_PACKAGE_SOURCE)
+				.hasArg()
+				.argName("google.golang.org/protobuf/types/known/")
+				.desc("Source path to set as prefix for go_package options")
+				.required(false)
+				.build());
 		return commandLineOptions;
 	}
 
@@ -359,6 +375,8 @@ public class Schema2Proto {
 		configuration.skipEmptyTypeInheritance = configFile.skipEmptyTypeInheritance;
 		configuration.includeXsdOptions = configFile.includeXsdOptions;
 		configuration.derivationBySubsumption = configFile.derivationBySubsumption;
+		configuration.includeGoPackageOptions = configFile.includeGoPackageOptions;
+		configuration.goPackageSource = configFile.goPackageSource;
 
 		Map<String, Object> options = configFile.options;
 		if (configFile.options != null) {
@@ -440,6 +458,7 @@ public class Schema2Proto {
 				}
 			}
 		}
+
 		configuration.options = options;
 		configuration.customImports = parseCommaSeparatedStringValues(cmd, OPTION_CUSTOM_IMPORTS);
 		configuration.customImportLocations = parseCommaSeparatedStringValues(cmd, OPTION_CUSTOM_IMPORT_LOCATIONS);
@@ -477,6 +496,12 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_DERIVATION_BY_SUBSUMPTION)) {
 			configuration.derivationBySubsumption = Boolean.parseBoolean(cmd.getOptionValue(OPTION_DERIVATION_BY_SUBSUMPTION));
+		}
+		if (cmd.hasOption(OPTION_INCLUDE_GO_PACKAGE_OPTIONS)) {
+			configuration.includeGoPackageOptions = Boolean.parseBoolean(cmd.getOptionValue(OPTION_INCLUDE_GO_PACKAGE_OPTIONS));
+		}
+		if (cmd.hasOption(OPTION_GO_PACKAGE_SOURCE)) {
+			configuration.goPackageSource = cmd.getOptionValue(OPTION_GO_PACKAGE_SOURCE);
 		}
 
 		return configuration;

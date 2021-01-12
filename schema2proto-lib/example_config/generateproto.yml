@@ -29,19 +29,19 @@ options:
 
 # Any extra imports added to each proto file. Must be used if referring to external types
 customImports:
-- google/protobuf/timestamp.proto
-- google/protobuf/duration.proto
-- google/protobuf/any.proto
+  - google/protobuf/timestamp.proto
+  - google/protobuf/duration.proto
+  - google/protobuf/any.proto
 
 # Any extra import locations to use when the linker is trying to validate the generated proto files.
 # Used in conjunction with customImports
 customImportLocations:
-- pathToRootFolder1OfProtobufImport
-- pathToRootFolder2OfProtobufImport
+  - pathToRootFolder1OfProtobufImport
+  - pathToRootFolder2OfProtobufImport
 
 # Ignore computed output fields. Note that the field name is the one used before converting to lower_case
 ignoreOutputFields:
-- package.name/MessageName/FieldName
+  - package.name/MessageName/FieldName
 
 # Any type mappings to perform. Use this to either rename message types or to do replacement of default mappings from
 # xml primitives to proto primitives. Regex supported.
@@ -73,3 +73,6 @@ failIfRemovedFields: true
 
 # Support derivation by subsumption. See https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html under "Subsumption"
 derivationBySubsumption: false
+
+# Include 'go_package' options in all files
+includeGoPackageOptions: false
