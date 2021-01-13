@@ -43,7 +43,7 @@ public class GoPackageNameHelper {
 	 * @param packageName proto package name
 	 * @return go package name
 	 */
-	public static String packageNameToGoPackageName(String goPackageSource, String packageName) {
+	public static String packageNameToGoPackageName(String goPackageSourcePrefix, String packageName) {
 		// Go package names should be all lower caps and do not allow underscore
 		String packageNameLegalChars = packageName.replace("_", "").toLowerCase();
 		String[] parts = packageNameLegalChars.split("\\.");
@@ -51,19 +51,27 @@ public class GoPackageNameHelper {
 		// Use last part of proto package name as go package name
 		// Avoid purely numeric package name, concat as many parts as we need to get name with other chars
 		List<String> goPackageNameParts = new ArrayList<>();
+		List<String> goPackagePathParts = new ArrayList<>();
+		boolean nameComplete = false;
 		for (int i = parts.length - 1; i >= 0; i--) {
 			String part = parts[i];
-			goPackageNameParts.add(part);
-			if (!NumberUtils.isCreatable(part)) {
-				break;
+			if (nameComplete) {
+				goPackagePathParts.add(part);
+			} else {
+				goPackageNameParts.add(part);
 			}
-		}
-		if (goPackageSource != null) {
-			goPackageNameParts.add(goPackageSource);
-		}
-		Collections.reverse(goPackageNameParts);
+			if (!NumberUtils.isCreatable(part)) {
+				nameComplete = true;
+			}
 
-		return Joiner.on("").join(goPackageNameParts);
+		}
+
+		Collections.reverse(goPackageNameParts);
+		Collections.reverse(goPackagePathParts);
+
+		String prefix = goPackageSourcePrefix == null ? "" : goPackageSourcePrefix;
+
+		return prefix + Joiner.on("/").join(goPackagePathParts) + "/" + Joiner.on("").join(goPackageNameParts);
 	}
 
 }

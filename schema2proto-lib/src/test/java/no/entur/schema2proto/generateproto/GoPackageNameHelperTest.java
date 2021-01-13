@@ -31,13 +31,13 @@ public class GoPackageNameHelperTest {
 
 	@Test
 	public void whenLastPartInPackageNameIsNumeric_thenUseTwoLastPartsCombinedAsGoPackageName() {
-		assertEquals("gml32", GoPackageNameHelper.packageNameToGoPackageName(null, "net.opengis.www.gml._3_2"));
-		assertEquals("test.org/proto/gml32", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "net.opengis.www.gml._3_2"));
+		assertEquals("net/opengis/www/gml32", GoPackageNameHelper.packageNameToGoPackageName(null, "net.opengis.www.gml._3_2"));
+		assertEquals("test.org/proto/net/opengis/www/gml32", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "net.opengis.www.gml._3_2"));
 	}
 
 	@Test
 	public void whenLastPartInPackageNameIsNotNumeric_thenUsePartAsGoPackageName() {
-		assertEquals("netex", GoPackageNameHelper.packageNameToGoPackageName(null, "uk.org.netex.www.netex"));
-		assertEquals("test.org/proto/netex", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "uk.org.netex.www.netex"));
+		assertEquals("uk/org/netex/www/netex", GoPackageNameHelper.packageNameToGoPackageName(null, "uk.org.netex.www.netex"));
+		assertEquals("test.org/proto/uk/org/netex/www/netex", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "uk.org.netex.www.netex"));
 	}
 }
