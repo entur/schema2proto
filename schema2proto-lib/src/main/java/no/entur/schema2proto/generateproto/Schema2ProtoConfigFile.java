@@ -48,5 +48,5 @@ public class Schema2ProtoConfigFile {
 	public boolean failIfRemovedFields = true;
 	public boolean derivationBySubsumption = false;
 	public boolean includeGoPackageOptions = false;
-	public String goPackageSource;
+	public String goPackageSourcePrefix;
 }
