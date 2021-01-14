@@ -691,9 +691,13 @@ public class ProtoSerializer {
 
 	private void includeGoPackageNameOptions(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (ProtoFile protoFile : packageToProtoFileMap.values()) {
-			String goPackageName = packageNameToGoPackageName(configuration.goPackageSourcePrefix, protoFile.packageName());
-			OptionElement optionElement = new OptionElement("go_package", Kind.STRING, goPackageName, false);
-			protoFile.options().add(optionElement);
+			String optionName = "go_package";
+			boolean alreadySet = protoFile.options().getOptionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
+			if (!alreadySet) {
+				String goPackageName = packageNameToGoPackageName(configuration.goPackageSourcePrefix, protoFile.packageName());
+				OptionElement optionElement = new OptionElement(optionName, OptionElement.Kind.STRING, goPackageName, false);
+				protoFile.options().add(optionElement);
+			}
 		}
 	}
 

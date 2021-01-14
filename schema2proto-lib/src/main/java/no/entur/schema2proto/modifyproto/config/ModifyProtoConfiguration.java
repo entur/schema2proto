@@ -39,5 +39,7 @@ public class ModifyProtoConfiguration {
 	public List<FieldOption> fieldOptions = new ArrayList<>();
 	public boolean includeBaseTypes = false;
 	public File protoLockFile;
+	public boolean includeGoPackageOptions = false;
+	public String goPackageSourcePrefix = null;
 
 }

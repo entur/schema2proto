@@ -22,6 +22,8 @@
  */
 package no.entur.schema2proto.modifyproto;
 
+import static no.entur.schema2proto.generateproto.GoPackageNameHelper.packageNameToGoPackageName;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -142,6 +144,9 @@ public class ModifyProto {
 
 			configuration.basedir = basedir;
 
+			configuration.includeGoPackageOptions = config.includeGoPackageOptions;
+			configuration.goPackageSourcePrefix = config.goPackageSourcePrefix;
+
 			// Run actual proto modification
 			modifyProto(configuration);
 
@@ -224,6 +229,10 @@ public class ModifyProto {
 			}
 		}
 
+		if (configuration.includeGoPackageOptions) {
+			includeGoPackageNameOptions(prunedSchema.protoFiles(), configuration.goPackageSourcePrefix);
+		}
+
 		Set<String> emptyImportLocations = protosLoaded.stream()
 				.map(prunedSchema::protoFile)
 				.filter(Objects::nonNull)
@@ -245,6 +254,18 @@ public class ModifyProto {
 
 		});
 
+	}
+
+	private void includeGoPackageNameOptions(Collection<ProtoFile> protoFiles, String goPackageSourcePrefix) {
+		for (ProtoFile protoFile : protoFiles) {
+			String optionName = "go_package";
+			boolean alreadySet = protoFile.options().getOptionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
+			if (!alreadySet) {
+				String goPackageName = packageNameToGoPackageName(goPackageSourcePrefix, protoFile.packageName());
+				OptionElement optionElement = new OptionElement(optionName, OptionElement.Kind.STRING, goPackageName, false);
+				protoFile.options().add(optionElement);
+			}
+		}
 	}
 
 	private boolean isEmptyFile(ProtoFile p) {
