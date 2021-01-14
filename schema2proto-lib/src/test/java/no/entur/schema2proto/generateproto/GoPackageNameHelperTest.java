@@ -39,5 +39,6 @@ public class GoPackageNameHelperTest {
 	public void whenLastPartInPackageNameIsNotNumeric_thenUsePartAsGoPackageName() {
 		assertEquals("uk/org/netex/www/netex", GoPackageNameHelper.packageNameToGoPackageName(null, "uk.org.netex.www.netex"));
 		assertEquals("test.org/proto/uk/org/netex/www/netex", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "uk.org.netex.www.netex"));
+		assertEquals("test.org/proto/netex", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "netex"));
 	}
 }
