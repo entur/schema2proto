@@ -69,9 +69,19 @@ public class GoPackageNameHelper {
 		Collections.reverse(goPackageNameParts);
 		Collections.reverse(goPackagePathParts);
 
-		String prefix = goPackageSourcePrefix == null ? "" : goPackageSourcePrefix;
+		StringBuilder sb = new StringBuilder();
+		if (goPackageSourcePrefix != null) {
+			sb.append(goPackageSourcePrefix);
+			if (!goPackageSourcePrefix.endsWith("/")) {
+				sb.append("/");
+			}
+		}
+		if (!goPackagePathParts.isEmpty()) {
+			sb.append(Joiner.on("/").join(goPackagePathParts)).append("/");
+		}
 
-		return prefix + Joiner.on("/").join(goPackagePathParts) + "/" + Joiner.on("").join(goPackageNameParts);
+		sb.append(Joiner.on("").join(goPackageNameParts));
+		return sb.toString();
 	}
 
 }

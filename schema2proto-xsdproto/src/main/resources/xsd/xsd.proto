@@ -1,7 +1,6 @@
 // xsd.proto at 0:0
 syntax = "proto3";
 package xsd;
-option go_package = "github.com/entur/abt-protobuf/go/xsd/xsdproto";
 import "google/protobuf/descriptor.proto";
 
 // Information elements extracted from the xsd structure

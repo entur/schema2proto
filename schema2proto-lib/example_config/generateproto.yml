@@ -76,3 +76,4 @@ derivationBySubsumption: false
 
 # Include 'go_package' options in all files
 includeGoPackageOptions: false
+goPackageSourcePrefix: xxx.github/go/
