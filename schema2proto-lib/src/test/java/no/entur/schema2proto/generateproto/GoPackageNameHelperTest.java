@@ -31,8 +31,8 @@ public class GoPackageNameHelperTest {
 
 	@Test
 	public void whenLastPartInPackageNameIsNumeric_thenUseTwoLastPartsCombinedAsGoPackageName() {
-		assertEquals("net/opengis/www/gml32", GoPackageNameHelper.packageNameToGoPackageName(null, "net.opengis.www.gml._3_2"));
-		assertEquals("test.org/proto/net/opengis/www/gml32", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "net.opengis.www.gml._3_2"));
+		assertEquals("net/opengis/www/gml/_3_2", GoPackageNameHelper.packageNameToGoPackageName(null, "net.opengis.www.gml._3_2"));
+		assertEquals("test.org/proto/net/opengis/www/gml/_3_2", GoPackageNameHelper.packageNameToGoPackageName("test.org/proto/", "net.opengis.www.gml._3_2"));
 	}
 
 	@Test
