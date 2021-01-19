@@ -23,14 +23,6 @@ package no.entur.schema2proto.generateproto;
  * #L%
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.math.NumberUtils;
-
-import com.google.common.base.Joiner;
-
 public class GoPackageNameHelper {
 
 	private GoPackageNameHelper() {
@@ -44,30 +36,6 @@ public class GoPackageNameHelper {
 	 * @return go package name
 	 */
 	public static String packageNameToGoPackageName(String goPackageSourcePrefix, String packageName) {
-		// Go package names should be all lower caps and do not allow underscore
-		String packageNameLegalChars = packageName.replace("_", "").toLowerCase();
-		String[] parts = packageNameLegalChars.split("\\.");
-
-		// Use last part of proto package name as go package name
-		// Avoid purely numeric package name, concat as many parts as we need to get name with other chars
-		List<String> goPackageNameParts = new ArrayList<>();
-		List<String> goPackagePathParts = new ArrayList<>();
-		boolean nameComplete = false;
-		for (int i = parts.length - 1; i >= 0; i--) {
-			String part = parts[i];
-			if (nameComplete) {
-				goPackagePathParts.add(part);
-			} else {
-				goPackageNameParts.add(part);
-			}
-			if (!NumberUtils.isCreatable(part)) {
-				nameComplete = true;
-			}
-
-		}
-
-		Collections.reverse(goPackageNameParts);
-		Collections.reverse(goPackagePathParts);
 
 		StringBuilder sb = new StringBuilder();
 		if (goPackageSourcePrefix != null) {
@@ -76,11 +44,7 @@ public class GoPackageNameHelper {
 				sb.append("/");
 			}
 		}
-		if (!goPackagePathParts.isEmpty()) {
-			sb.append(Joiner.on("/").join(goPackagePathParts)).append("/");
-		}
-
-		sb.append(Joiner.on("").join(goPackageNameParts));
+		sb.append(packageName.replace(".", "/"));
 		return sb.toString();
 	}
 
