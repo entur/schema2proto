@@ -31,42 +31,42 @@ public class ProtolockBackwardsCompatibilityCheckerEnumTest extends AbstractBack
 
 	@Test
 	public void testAddedEnumConstant() throws IOException {
-		verify("newenumconstant", true);
+		verify("newenumconstant", true, "default/default.proto");
 	}
 
 	@Test
 	public void testRemovedEnumConstant() throws IOException {
-		verify("removedenumconstant", false);
+		verify("removedenumconstant", false, "default/default.proto");
 	}
 
 	@Test
 	public void testAddEnumConstantExistingReservation() throws IOException {
-		verify("existingreservationenumconstant", false);
+		verify("existingreservationenumconstant", false, "default/default.proto");
 	}
 
 	@Test
 	public void testInjectEnumConstant() throws IOException {
-		verify("injectenumconstant", true);
+		verify("injectenumconstant", true, "default/default.proto");
 	}
 
 	@Test
 	public void testChangedEnumConstantTag() throws IOException {
-		verify("changedenumconstanttag", true);
+		verify("changedenumconstanttag", true, "default/default.proto");
 	}
 
 	@Test
 	public void testChangedEnumConstantName() throws IOException {
-		verify("changedenumconstantname", false);
+		verify("changedenumconstantname", false, "default/default.proto");
 	}
 
 	@Test
 	public void testNewAndRemoveEnumConstant() throws IOException {
-		verify("newandremovedenumconstant", false);
+		verify("newandremovedenumconstant", false, "default/default.proto");
 	}
 
 	@Test
 	public void testNestedMessageWithEnum() throws IOException {
-		verify("nestedmessagewithenum", false);
+		verify("nestedmessagewithenum", false, "default/default.proto");
 	}
 
 }

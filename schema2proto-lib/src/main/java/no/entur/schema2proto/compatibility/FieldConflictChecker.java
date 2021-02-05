@@ -55,10 +55,50 @@ public class FieldConflictChecker {
 	private boolean failIfRemovedFieldsTriggered;
 
 	public boolean tryResolveFieldConflicts(ProtoFile file, MessageType protoMessage, ProtolockMessage protolockMessage) {
+
+		// Compute helper maps
 		SortedSet<ProtolockField> lockFields = Collections.unmodifiableSortedSet(getFields(protolockMessage)); // from proto.lock
+		BiMap<String, Integer> lockFieldsInLockMapNameToId = createBiMap(lockFields);
+		Map<Integer, String> lockFieldsInLockMapIdToName = lockFieldsInLockMapNameToId.inverse();
+
+		boolean allConflictsResolved = false;
+		while (!allConflictsResolved) {
+			SortedSet<ProtolockField> xsdFields2 = Collections.unmodifiableSortedSet(
+					new TreeSet<>(protoMessage.fieldsAndOneOfFields().stream().map(f -> new ProtolockField(f.tag(), f.name())).collect(Collectors.toSet()))); // from
+
+			allConflictsResolved = true;
+			for (ProtolockField xsdField : xsdFields2) {
+				// Is the ID the same as before?
+
+				if (lockFields.contains(xsdField)) {
+
+				} else {
+					// Check if field is used by another field in lockfile
+					if (lockFieldsInLockMapIdToName.containsKey(xsdField.getId()) || lockFieldsInLockMapNameToId.containsKey(xsdField.getName())
+							|| isReserved(protolockMessage, xsdField)) {
+
+						Integer originalIdForField = lockFieldsInLockMapNameToId.get(xsdField.getName());
+						if (originalIdForField == null) {
+							originalIdForField = findNextAvailableFieldNum(protoMessage, xsdFields2, lockFields).get();
+						}
+						Optional<Field> intrudingField = getField(protoMessage, xsdField.getName());
+						intrudingField.get().updateTag(originalIdForField);
+
+						//
+						allConflictsResolved = false;
+						break;
+					}
+					// if yes assign a new number
+					// if no all ok
+					// tryResolveFieldConflicts(file, protoMessage, protolockMessage);
+				}
+				// allConflictsResolved = true;
+			}
+		}
+
 		SortedSet<ProtolockField> xsdFields = Collections.unmodifiableSortedSet(
 				new TreeSet<>(protoMessage.fieldsAndOneOfFields().stream().map(f -> new ProtolockField(f.tag(), f.name())).collect(Collectors.toSet()))); // from
-		// parsed
+
 		// Find fields that are new
 		Set<ProtolockField> newFieldsInXsd = new TreeSet<>(xsdFields); // from parsed / converted xsd
 		newFieldsInXsd.removeAll(lockFields);
@@ -66,85 +106,55 @@ public class FieldConflictChecker {
 		Set<ProtolockField> surplusLockFields = new TreeSet<>(lockFields); // from proto.lock
 		surplusLockFields.removeAll(xsdFields);
 
-		if (newFieldsInXsd.isEmpty() && surplusLockFields.isEmpty()) {
-			// No mismatch, only minor details
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("No added or removed fields in proto {} {}", file.name(), protoMessage.getName());
-			}
-		} else if (newFieldsInXsd.isEmpty() && !surplusLockFields.isEmpty()) {
-			// Find fields that are removed (make reserved)
+		if (!surplusLockFields.isEmpty()) {
 			surplusLockFields.stream().forEach(newField -> reserveField(file, protoMessage, newField));
-
-		} else if (!newFieldsInXsd.isEmpty() && surplusLockFields.isEmpty()) {
-			// Only new fields from xsd
-			newFieldsInXsd.stream().forEach(newField -> LOGGER.debug("Added field in proto {} {} : {}", file.name(), protoMessage.getName(), newField));
-		} else {
-
-			// Compute helper maps
-			BiMap<String, Integer> xsdFieldsNameToId = createBiMap(newFieldsInXsd);
-			Map<Integer, String> xsdFieldsIdToName = xsdFieldsNameToId.inverse();
-
-			BiMap<String, Integer> newFieldsInLockMapNameToId = createBiMap(surplusLockFields);
-			Map<Integer, String> newFieldsInLockMapIdToName = newFieldsInLockMapNameToId.inverse();
-
-			TreeSet<String> overlappingNames = new TreeSet<>(xsdFieldsNameToId.keySet());
-			overlappingNames.retainAll(newFieldsInLockMapNameToId.keySet());
-
-			TreeSet<Integer> overlappingIds = new TreeSet<>(xsdFieldsNameToId.values());
-			overlappingIds.retainAll(newFieldsInLockMapNameToId.values());
-
-			if (!(overlappingIds.isEmpty() && overlappingNames.isEmpty())) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Incompatible changes in proto {} {} , overlapping ids={}, overlapping fieldnames={}", file.name(), protoMessage.getName(),
-							overlappingIds, overlappingNames);
-				}
-
-				// If an existing field.name (in both proto and protolock) has a new field number, updated field.id to this number. If this number has been used
-				// for
-				// another field, assign this field to a new id in a "safe" number range
-				AtomicInteger nextAvailableFieldNum = findNextAvailableFieldNum(protoMessage, xsdFields, lockFields);
-
-				if (!overlappingIds.isEmpty()) {
-					// Check if the new field is using an already allocated id
-					int overlappingId = overlappingIds.first();
-					String originalFieldNameUsingThisId = newFieldsInLockMapIdToName.get(overlappingId);
-					if (originalFieldNameUsingThisId != null) {
-						// Find field that has take newFields original number
-						String intrudingFieldName = xsdFieldsIdToName.get(overlappingId);
-						Optional<Field> intrudingField = getField(protoMessage, intrudingFieldName);
-						Optional<Field> existingField = getField(protoMessage, originalFieldNameUsingThisId);
-
-						Integer idFromLockFile = newFieldsInLockMapNameToId.get(intrudingFieldName);
-						updateFieldTag(nextAvailableFieldNum, overlappingId, intrudingField, existingField, idFromLockFile);
-					}
-
-				} else if (!overlappingNames.isEmpty()) {
-
-					String overlappingName = overlappingNames.first();
-
-					// Check if the new field is using an already allocated name (changed id)
-					Integer originalFieldIdForNewName = newFieldsInLockMapNameToId.get(overlappingName);
-					if (originalFieldIdForNewName != null) {
-						// Find field that has take newFields original number
-						Integer intrudingFieldId = xsdFieldsNameToId.get(overlappingName);
-						Optional<Field> intrudingField = getField(protoMessage, intrudingFieldId);
-						Optional<Field> existingField = getField(protoMessage, originalFieldIdForNewName);
-
-						Integer idFromLockFile = newFieldsInLockMapNameToId.get(overlappingName);
-						updateFieldTag(nextAvailableFieldNum, originalFieldIdForNewName, intrudingField, existingField, idFromLockFile);
-					}
-				}
-				tryResolveFieldConflicts(file, protoMessage, protolockMessage);
-
-			} else {
-				// If neither overlapping field names nor ids, no problem. Add reserved keyword for removed fields
-				surplusLockFields.stream().forEach(newField -> {
-					reserveField(file, protoMessage, newField);
-					LOGGER.debug("Removed field in proto {}: {}, adding reserved section", file.name(), newField);
-				});
-			}
-
+			failIfRemovedFieldsTriggered = true;
 		}
+
+		/*
+		 * if (newFieldsInXsd.isEmpty() && surplusLockFields.isEmpty()) { // No mismatch, only minor details if (LOGGER.isDebugEnabled()) {
+		 * LOGGER.debug("No added or removed fields in proto {} {}", file.name(), protoMessage.getName()); } } else if (newFieldsInXsd.isEmpty() &&
+		 * !surplusLockFields.isEmpty()) { // Find fields that are removed (make reserved) surplusLockFields.stream().forEach(newField -> reserveField(file,
+		 * protoMessage, newField));
+		 * 
+		 * } else if (!newFieldsInXsd.isEmpty() && surplusLockFields.isEmpty()) { // Only new fields from xsd newFieldsInXsd.stream().forEach(newField ->
+		 * LOGGER.debug("Added field in proto {} {} : {}", file.name(), protoMessage.getName(), newField)); } else {
+		 */
+		/*
+		 * if (!overlappingIds.isEmpty() || !overlappingNames.isEmpty()) { if (LOGGER.isDebugEnabled()) {
+		 * LOGGER.debug("Incompatible changes in proto {} {} , overlapping ids={}, overlapping fieldnames={}", file.name(), protoMessage.getName(),
+		 * overlappingIds, overlappingNames); } AtomicInteger nextAvailableFieldNum = findNextAvailableFieldNum(protoMessage, xsdFields, lockFields);
+		 * 
+		 * // If an existing field.name (in both proto and protolock) has a new field number, updated field.id to this number. If this number has been used //
+		 * for // another field, assign this field to a new id in a "safe" number range
+		 * 
+		 * if (!overlappingIds.isEmpty()) { // Check if the new field is using an already allocated id int overlappingId = overlappingIds.first(); String
+		 * originalFieldNameUsingThisId = surplusFieldsInLockMapIdToName.get(overlappingId); if (originalFieldNameUsingThisId != null) { // Find field that has
+		 * take newFields original number String intrudingFieldName = newXsdFieldsIdToName.get(overlappingId); Optional<Field> intrudingField =
+		 * getField(protoMessage, intrudingFieldName); Optional<Field> existingField = getField(protoMessage, originalFieldNameUsingThisId);
+		 * 
+		 * Integer idFromLockFile = surplusFieldsInLockMapNameToId.get(intrudingFieldName); updateFieldTag(nextAvailableFieldNum, overlappingId, intrudingField,
+		 * existingField, idFromLockFile); }
+		 * 
+		 * } else if (!overlappingNames.isEmpty()) {
+		 * 
+		 * String overlappingName = overlappingNames.first();
+		 * 
+		 * // Check if the new field is using an already allocated name (changed id) Integer originalFieldIdForNewName =
+		 * surplusFieldsInLockMapNameToId.get(overlappingName); if (originalFieldIdForNewName != null) { // Find field that has take newFields original number
+		 * Integer intrudingFieldId = newXsdFieldsNameToId.get(overlappingName); Optional<Field> intrudingField = getField(protoMessage, intrudingFieldId);
+		 * Optional<Field> existingField = getField(protoMessage, originalFieldIdForNewName);
+		 * 
+		 * Integer idFromLockFile = surplusFieldsInLockMapNameToId.get(overlappingName); updateFieldTag(nextAvailableFieldNum, originalFieldIdForNewName,
+		 * intrudingField, existingField, idFromLockFile); } } tryResolveFieldConflicts(file, protoMessage, protolockMessage);
+		 */
+		/*
+		 * } else { // If neither overlapping field names nor ids, no problem. Add reserved keyword for removed fields
+		 * surplusLockFields.stream().forEach(newField -> { reserveField(file, protoMessage, newField);
+		 * LOGGER.debug("Removed field in proto {}: {}, adding reserved section", file.name(), newField); }); }
+		 */
+
+		/* } */
 		return failIfRemovedFieldsTriggered;
 
 	}
@@ -175,12 +185,25 @@ public class FieldConflictChecker {
 		return nextAvailableFieldNum;
 	}
 
-	private Optional<Field> getField(MessageType e, String intrudingFieldName) {
-		return e.fieldsAndOneOfFields().stream().filter(z -> z.name().equals(intrudingFieldName)).findFirst();
+	private boolean isReserved(ProtolockMessage protolockMessage, ProtolockField field) {
+
+		boolean reserved = false;
+		if (protolockMessage.getReservedIds() != null) {
+			reserved |= Arrays.stream(protolockMessage.getReservedIds()).anyMatch(e -> e == field.getId());
+		}
+		if (protolockMessage.getReservedNames() != null) {
+			reserved |= Arrays.stream(protolockMessage.getReservedNames()).anyMatch(e -> e.equals(field.getName()));
+		}
+
+		return reserved;
 	}
 
-	private Optional<Field> getField(MessageType e, Integer intrudingFieldId) {
-		return e.fieldsAndOneOfFields().stream().filter(z -> z.tag() == intrudingFieldId).findFirst();
+	private Optional<Field> getField(MessageType e, String fieldName) {
+		return e.fieldsAndOneOfFields().stream().filter(z -> z.name().equals(fieldName)).findFirst();
+	}
+
+	private Optional<Field> getField(MessageType e, Integer fieldId) {
+		return e.fieldsAndOneOfFields().stream().filter(z -> z.tag() == fieldId).findFirst();
 	}
 
 	private void reserveField(ProtoFile file, MessageType e, ProtolockField newField) {
@@ -195,7 +218,6 @@ public class FieldConflictChecker {
 		LOGGER.warn(
 				"Possible backwards incompatibility detected, must be checked manually! Removed field in proto {}, message {}, field {}, blocking field name and id for future use by adding 'reserved' statement",
 				file.name(), e.getName(), newField);
-		failIfRemovedFieldsTriggered = true;
 	}
 
 	public SortedSet<ProtolockField> getFields(ProtolockMessage protolockMessage) {

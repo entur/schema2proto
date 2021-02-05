@@ -25,10 +25,18 @@ package no.entur.schema2proto.compatibility;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.util.Iterator;
+import java.util.Locale;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.squareup.wire.schema.Linker;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
@@ -41,25 +49,30 @@ public abstract class AbstractBackwardsCompatTest {
 	private static final String sourceFolder = "source";
 	private static final String expectedFolder = "expected";
 
-	protected void verify(String testname, boolean failOnRemovedFields) throws IOException {
+	protected void verify(String testname, boolean failOnRemovedFields, String protoFile) throws IOException {
 		ProtolockBackwardsCompatibilityChecker checker = new ProtolockBackwardsCompatibilityChecker();
 		checker.init(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder + "/" + lockFile));
 
 		Schema sourceSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder));
-		ProtoFile sourceProtofile = sourceSchema.protoFile("default/default.proto");
+		link(sourceSchema, false, testname);
+		ProtoFile sourceProtofile = sourceSchema.protoFile(protoFile);
 
 		boolean backwardsIncompatibiltyDetected = checker.resolveBackwardIncompatibilities(sourceProtofile);
 
-		Schema expectedSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + expectedFolder));
+		// Verify that schema still links
+		boolean linkedOk = link(sourceSchema, true, testname);
+		assertTrue(linkedOk);
 
-		ProtoFile expectedProtofile = expectedSchema.protoFile("default/default.proto");
+		Schema expectedSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + expectedFolder));
+		link(expectedSchema, false, testname);
+		ProtoFile expectedProtofile = expectedSchema.protoFile(protoFile);
 
 		// Remove file location comment as it should be the only difference between the two files
 		sourceProtofile.setLocation(new Location("", "", -1, -1));
 		expectedProtofile.setLocation(new Location("", "", -1, -1));
 
-		System.out.println("Expected\n" + expectedProtofile.toSchema());
-		System.out.println("Actual\n" + sourceProtofile.toSchema());
+		// System.out.println("Expected\n" + expectedProtofile.toSchema());
+		// System.out.println("Actual\n" + sourceProtofile.toSchema());
 
 		assertEquals(expectedProtofile.toSchema(), sourceProtofile.toSchema());
 
@@ -72,6 +85,56 @@ public abstract class AbstractBackwardsCompatTest {
 		SchemaLoader schemaLoader = new SchemaLoader();
 		schemaLoader.addSource(path);
 		return schemaLoader.load();
+	}
+
+	private boolean link(Schema schema, boolean dumpIfNotLinkable, String testname) throws IOException {
+		Linker linker = new Linker(schema.protoFiles());
+		try {
+			linker.link();
+		} catch (Exception e) {
+			System.out.println("Linking failed, the proto file is not valid" + e);
+			if (dumpIfNotLinkable) {
+				File dumpFolder = new File("target/compatibilitytest_dump");
+				dumpFolder.mkdirs();
+				System.out.println("Dumpfolder: " + dumpFolder.getAbsolutePath());
+				for (ProtoFile protoFile : schema.protoFiles()) {
+					File destFolder = createPackageFolderStructure(new File(dumpFolder, testname), protoFile.packageName());
+					File outputFile = new File(destFolder, protoFile.name().toLowerCase(Locale.ROOT));
+					try (Writer writer = new FileWriter(outputFile)) {
+						writer.write(protoFile.toSchema());
+					}
+				}
+
+			}
+			return false;
+		}
+
+		return true;
+	}
+
+	private File createPackageFolderStructure(File outputDirectory, String packageName) {
+
+		String folderSubstructure = getPathFromPackageName(packageName);
+		File dstFolder = new File(outputDirectory, folderSubstructure);
+		dstFolder.mkdirs();
+
+		return dstFolder;
+
+	}
+
+	@NotNull
+	private String getPathFromPackageName(String packageName) {
+		return packageName.replace('.', '/');
+	}
+
+	public static <T> Iterable<T> getIterableFromIterator(Iterator<T> iterator) {
+		return new Iterable<T>() {
+
+			@Override
+			public Iterator<T> iterator() {
+				return iterator;
+			}
+		};
 	}
 
 }

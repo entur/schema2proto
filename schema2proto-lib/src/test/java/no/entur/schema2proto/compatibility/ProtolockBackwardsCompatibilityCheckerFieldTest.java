@@ -31,47 +31,52 @@ public class ProtolockBackwardsCompatibilityCheckerFieldTest extends AbstractBac
 
 	@Test
 	public void testAddedField() throws IOException {
-		verify("newfield", true);
+		verify("newfield", true, "default/default.proto");
 	}
 
 	@Test
 	public void testRemovedField() throws IOException {
-		verify("removedfield", false);
+		verify("removedfield", false, "default/default.proto");
 	}
 
 	@Test
 	public void testAddFieldExistingReservation() throws IOException {
-		verify("existingreservation", false);
+		verify("existingreservation", false, "default/default.proto");
 	}
 
 	@Test
 	public void testInjectField() throws IOException {
-		verify("injectedfield", true);
+		verify("injectedfield", true, "default/default.proto");
 	}
 
 	@Test
 	public void testChangedFieldTag() throws IOException {
-		verify("changedfieldtag", true);
+		verify("changedfieldtag", true, "default/default.proto");
 	}
 
 	@Test
 	public void testChangedFieldName() throws IOException {
-		verify("changedfieldname", false);
+		verify("changedfieldname", false, "default/default.proto");
 	}
 
 	@Test
 	public void testNewAndRemovedField() throws IOException {
-		verify("newandremovedfield", false);
+		verify("newandremovedfield", false, "default/default.proto");
 	}
 
 	@Test
 	public void testNestedMessageWithOneOf() throws IOException {
-		verify("nestedmessagewithoneof", true);
+		verify("nestedmessagewithoneof", true, "default/default.proto");
 	}
 
 	@Test
 	public void testNestedMessageWithOneOfReorganizedFields() throws IOException {
-		verify("nestedmessagewithoneof_reorganizedfields", true);
+		verify("nestedmessagewithoneof_reorganizedfields", true, "default/default.proto");
+	}
+
+	@Test
+	public void testBugIgnoredReservation() throws IOException {
+		verify("bug_ignoredreservation", false, "uk/org/netex/www/netex/uk_org_netex_www_netex.proto");
 	}
 
 }

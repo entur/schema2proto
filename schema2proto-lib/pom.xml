@@ -4,12 +4,12 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.35</version>
+        <version>1.36</version>
     </parent>
     <artifactId>schema2proto-lib</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <junit.jupiter.version>5.7.0</junit.jupiter.version>
+        <junit.jupiter.version>5.7.1</junit.jupiter.version>
     </properties>
     <dependencies>
         <dependency>

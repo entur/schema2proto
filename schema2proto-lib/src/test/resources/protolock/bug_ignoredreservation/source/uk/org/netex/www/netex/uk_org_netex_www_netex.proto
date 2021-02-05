@@ -1,0 +1,17 @@
+// uk_org_netex_www_netex.proto at 0:0
+syntax = "proto3";
+package uk.org.netex.www.netex;
+
+
+option java_multiple_files = true;
+
+message ChoiceWrapper_EntityInVersionStructure {
+  oneof EntityInVersionStructure {
+    string distance_matrix_element = 394;
+    string distance_matrix_element_price = 395;
+    string dynamic_distance_matrix_element = 396;
+    string usage_parameter_price = 397;
+    string type_of_usage_parameter = 398;
+    string validity_parameter_assignment = 399;
+  }
+}
