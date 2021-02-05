@@ -1,0 +1,61 @@
+{
+  "definitions": [
+    {
+      "protopath": "uk:/:org:/:netex:/:www:/:netex:/:uk_org_netex_www_netex.proto",
+      "def": {
+        "enums": [
+        ],
+        "messages": [
+          {
+            "name": "ChoiceWrapper_EntityInVersionStructure",
+            "fields": [
+              {
+                "id": 394,
+                "name": "geographical_unit_price",
+                "type": "string"
+              },
+              {
+                "id": 395,
+                "name": "geographical_interval_price",
+                "type": "string"
+              },
+              {
+                "id": 396,
+                "name": "group_of_distance_matrix_elements",
+                "type": "string"
+              },
+              {
+                "id": 397,
+                "name": "distance_matrix_element",
+                "type": "string"
+              },
+              {
+                "id": 398,
+                "name": "distance_matrix_element_price",
+                "type": "string"
+              },
+              {
+                "id": 399,
+                "name": "usage_parameter_price",
+                "type": "string"
+              }
+            ],
+            "reserved_ids": [
+            ],
+            "reserved_names": [
+            ]
+          }
+        ],
+        "package": {
+          "name": "uk.org.netex.www.netex"
+        },
+        "options": [
+          {
+            "name": "java_multiple_files",
+            "value": "true"
+          }
+        ]
+      }
+    }
+  ]
+}
