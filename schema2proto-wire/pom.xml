@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
     <properties>
         <junit.jupiter.version>5.7.1</junit.jupiter.version>
-        <kotlin.version>1.4.31</kotlin.version>
+        <kotlin.version>1.4.32</kotlin.version>
     </properties>
     <dependencies>
         <dependency>
