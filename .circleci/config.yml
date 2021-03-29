@@ -132,13 +132,11 @@ jobs:
       - restore_cache:
           keys:
             - cache-dependencies-20200928
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U
+      - run: mvn verify
       - save_cache:
           paths:
             - ~/.m2
           key: cache-dependencies-20200928
-      # Cannot use -o because of snapshot dependencies. Using deploy &  -Dmaven.deploy.skip=true to download ALL necessary dependencies
-      - run: mvn verify
       - persist_to_workspace:
           root: ../
           paths:
@@ -166,13 +164,11 @@ jobs:
       - restore_cache:
           keys:
             - cache-dependencies-20200928
-      - run: mvn de.qaware.maven:go-offline-maven-plugin:resolve-dependencies -U
+      - run: mvn verify
       - save_cache:
           paths:
             - ~/.m2
           key: cache-dependencies-20200928
-      # Cannot use -o because of snapshot dependencies. Using deploy &  -Dmaven.deploy.skip=true to download ALL necessary dependencies
-      - run: mvn verify
       - run:
           name: Save test results
           command: |

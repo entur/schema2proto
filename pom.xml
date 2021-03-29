@@ -101,11 +101,6 @@
         </pluginManagement>
         <plugins>
             <plugin>
-                <groupId>de.qaware.maven</groupId>
-                <artifactId>go-offline-maven-plugin</artifactId>
-                <version>1.2.8</version>
-            </plugin>
-            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
                 <configuration>
