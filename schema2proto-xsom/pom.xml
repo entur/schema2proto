@@ -27,7 +27,7 @@
         <copyright.exclude.file>${project.basedir}/copyright-exclude</copyright.exclude.file>
         <copyright.template.file>${project.basedir}/copyright.txt</copyright.template.file>
         <findbugs.exclude>${project.basedir}/exclude-xsom.xml</findbugs.exclude>
-        <relaxng.version>3.0.0</relaxng.version>
+        <relaxng.version>3.0.1</relaxng.version>
         <upper.java.level>9</upper.java.level>
     </properties>
     <dependencies>
