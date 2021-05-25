@@ -4,13 +4,13 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.37</version>
+        <version>1.38</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <junit.jupiter.version>5.7.1</junit.jupiter.version>
-        <kotlin.version>1.4.32</kotlin.version>
+        <junit.jupiter.version>5.7.2</junit.jupiter.version>
+        <kotlin.version>1.5.10</kotlin.version>
     </properties>
     <dependencies>
         <dependency>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>io.github.java-diff-utils</groupId>
             <artifactId>java-diff-utils</artifactId>
-            <version>4.9</version>
+            <version>4.10</version>
             <scope>test</scope>
         </dependency>
         <dependency>
