@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +68,7 @@ import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.OneOf;
 import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
+import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
@@ -93,6 +95,8 @@ public class ProtoSerializer {
 	private TypeAndNameMapper typeAndFieldNameMapper;
 
 	private Set<String> basicTypes = new HashSet<>();
+
+	private Map<String, String> customTypeImportToProtoFile = new HashMap<>();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProtoSerializer.class);
 
@@ -399,14 +403,64 @@ public class ProtoSerializer {
 	}
 
 	@NotNull
+	private String getPathFromPackageNameAndType(String packageName, Type type) {
+
+		String protoFileName = customTypeImportToProtoFile.get(buildFullyQualifiedTypeName(packageName, type));
+		if (protoFileName != null) {
+			return protoFileName;
+		} else {
+			return getPathFromPackageName(packageName);
+		}
+	}
+
+	@NotNull
 	private String getPathFromPackageName(String packageName) {
 		return packageName.replace('.', '/');
 	}
 
-	// converts e.g. google/protobuf/timestamp.proto => google.protobuf.timestamp
+	private String buildFullyQualifiedTypeName(String packageName, Type type) {
+		return packageName + "." + type.type().simpleName();
+	}
+
+	// Loads imported file and reads all qualified types
 	@NotNull
-	private String getPackageFromPathName(String pathName) {
-		return pathName.replace(".proto", "").replace('/', '.');
+	private List<String> getFullyQualifiedTypes(String pathName) {
+		List<String> typeNames = new ArrayList<>();
+		try {
+			for (String customImportLocation : configuration.customImportLocations) {
+				File path = new File(customImportLocation);
+				if (!path.exists()) {
+					throw new ConversionException("Custom import location " + customImportLocation + " does not exist");
+				} else {
+					File fileToImport = new File(path, pathName);
+					if (fileToImport.exists()) {
+						SchemaLoader schemaLoader = new SchemaLoader();
+						schemaLoader.addSource(path);
+						schemaLoader.addProto(pathName);
+						Schema schema = schemaLoader.load();
+						ProtoFile customImportFile = schema.protoFile(pathName);
+
+						for (Type type : customImportFile.types()) {
+							String qualifiedName = buildFullyQualifiedTypeName(customImportFile.packageName(), type);
+							typeNames.add(qualifiedName);
+
+							customTypeImportToProtoFile.put(qualifiedName, pathName);
+						}
+						break;
+					}
+				}
+			}
+			if (typeNames.isEmpty()) {
+				throw new ConversionException("Custom import file " + pathName + " not found, looked in folders "
+						+ ReflectionToStringBuilder.toString(configuration.customImportLocations.toArray()));
+			}
+
+		} catch (IOException e) {
+			throw new ConversionException("Could not get packageName from custom imported file " + pathName, e);
+		}
+
+		return typeNames;
+
 	}
 
 	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix) {
@@ -754,11 +808,13 @@ public class ProtoSerializer {
 			for (String customImport : configuration.customImports) {
 				boolean customImportInUse = false;
 
-				String importPackage = getPackageFromPathName(customImport);
-				for (Type type : file.types()) {
-					customImportInUse = isCustomImportInUseInNestedTypes(importPackage, type);
-					if (customImportInUse) {
-						break;
+				List<String> qualifiedTypes = getFullyQualifiedTypes(customImport);
+				typeloop: for (Type type : file.types()) {
+					for (String qualifiedType : qualifiedTypes) {
+						customImportInUse = isCustomImportInUseInNestedTypes(qualifiedType, type);
+						if (customImportInUse) {
+							break typeloop;
+						}
 					}
 				}
 				if (customImportInUse) {
@@ -827,7 +883,7 @@ public class ProtoSerializer {
 				// Add import
 				ProtoFile fileToImport = packageToProtoFileMap.get(packageName);
 				if (fileToImport != null) {
-					imports.add(getPathFromPackageName(packageName) + "/" + fileToImport.location().getPath());
+					imports.add(getPathFromPackageNameAndType(packageName, messageType) + "/" + fileToImport.location().getPath());
 				} else {
 					LOGGER.error("Tried to create import for field packageName {}, but no such protofile exist", packageName);
 				}
