@@ -9,7 +9,7 @@
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <junit.jupiter.version>5.7.2</junit.jupiter.version>
+        <junit.jupiter.version>5.8.0</junit.jupiter.version>
         <kotlin.version>1.5.30</kotlin.version>
     </properties>
     <dependencies>
