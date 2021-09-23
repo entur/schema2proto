@@ -41,6 +41,7 @@ public class ModifyProtoConfigFile {
 	public boolean includeBaseTypes;
 	public List<FieldOption> fieldOptions;
 	public String protoLockFile;
+	public boolean failIfRemovedFields = true;
 	public boolean includeGoPackageOptions = false;
 	public String goPackageSourcePrefix = null;
 }

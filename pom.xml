@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.39</version>
+    <version>1.40</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - Xsd schema to protobuf</description>
@@ -15,15 +15,15 @@
         <module>schema2proto-xsom</module>
     </modules>
     <properties>
-        <kotlin.version>1.5.10</kotlin.version>
-        <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
+        <kotlin.version>1.5.31</kotlin.version>
+        <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.8.1</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotless.version>2.11.1</spotless.version>
+        <spotless.version>2.13.1</spotless.version>
     </properties>
     <build>
         <pluginManagement>

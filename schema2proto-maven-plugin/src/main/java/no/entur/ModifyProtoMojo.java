@@ -35,6 +35,7 @@ import org.apache.maven.project.MavenProject;
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.modifyproto.InvalidProtobufException;
 import no.entur.schema2proto.modifyproto.ModifyProto;
+import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
 
 @Mojo(name = "modify", defaultPhase = LifecyclePhase.PROCESS_RESOURCES)
 public class ModifyProtoMojo extends AbstractMojo {
@@ -48,6 +49,12 @@ public class ModifyProtoMojo extends AbstractMojo {
 	@Parameter(readonly = true, defaultValue = "${project}")
 	private MavenProject project;
 
+	/**
+	 * Fail if backwards compat check fails
+	 */
+	@Parameter(property = "failIfRemovedFields")
+	private Boolean failIfRemovedFields;
+
 	public void execute() throws MojoExecutionException {
 
 		if (configFile == null || !configFile.exists()) {
@@ -55,9 +62,16 @@ public class ModifyProtoMojo extends AbstractMojo {
 		}
 
 		getLog().info(String.format("Modifying proto files from using config file %s. Output is defined in config file", configFile));
-
 		try {
-			new ModifyProto().modifyProto(configFile, project.getBasedir());
+
+			ModifyProtoConfiguration configuration = ModifyProto.parseConfigurationFile(configFile, project.getBasedir());
+
+			// Override based on maven parameter -DfailIfRemovedFields
+			if (failIfRemovedFields != null) {
+				configuration.failIfRemovedFields = failIfRemovedFields;
+			}
+
+			new ModifyProto().modifyProto(configuration);
 		} catch (IOException e) {
 			throw new MojoExecutionException("Error modifying proto files", e);
 		} catch (InvalidConfigurationException e) {
