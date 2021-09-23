@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -65,6 +66,7 @@ import com.squareup.wire.schema.internal.parser.OptionReader;
 import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
+import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
 import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
@@ -76,8 +78,7 @@ public class ModifyProto {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModifyProto.class);
 
-	public void modifyProto(File configFile, File basedir) throws IOException, InvalidConfigurationException, InvalidProtobufException {
-
+	public static ModifyProtoConfiguration parseConfigurationFile(File configFile, File basedir) throws IOException, InvalidConfigurationException {
 		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
 
 		try (InputStream in = Files.newInputStream(configFile.toPath())) {
@@ -137,6 +138,8 @@ public class ModifyProto {
 				configuration.protoLockFile = new File(basedir, config.protoLockFile);
 			}
 
+			configuration.failIfRemovedFields = config.failIfRemovedFields;
+
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(
 						config.customImportLocations.stream().filter(e -> StringUtils.trimToNull(e) != null).collect(Collectors.toList()));
@@ -147,13 +150,9 @@ public class ModifyProto {
 			configuration.includeGoPackageOptions = config.includeGoPackageOptions;
 			configuration.goPackageSourcePrefix = config.goPackageSourcePrefix;
 
-			// Run actual proto modification
-			modifyProto(configuration);
-
-		} catch (Exception e) {
-			LOGGER.error("Error modifying file", e);
-			throw e;
 		}
+
+		return configuration;
 	}
 
 	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException, InvalidConfigurationException {
@@ -217,13 +216,15 @@ public class ModifyProto {
 			addFieldOption(fieldOption, prunedSchema);
 		}
 
+		Set<Boolean> possibleIncompatibilitiesDetected = new HashSet<>();
+
 		if (configuration.protoLockFile != null) {
 			try {
 				ProtolockBackwardsCompatibilityChecker backwardsCompatibilityChecker = new ProtolockBackwardsCompatibilityChecker();
 				backwardsCompatibilityChecker.init(configuration.protoLockFile);
 				ImmutableList<ProtoFile> files = prunedSchema.protoFiles();
 
-				files.stream().forEach(file -> backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file));
+				files.stream().forEach(file -> possibleIncompatibilitiesDetected.add(backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file)));
 			} catch (FileNotFoundException e) {
 				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
 			}
@@ -253,6 +254,11 @@ public class ModifyProto {
 			LOGGER.info("Wrote file {}", outputFile.getPath());
 
 		});
+
+		if (configuration.failIfRemovedFields && possibleIncompatibilitiesDetected.contains(Boolean.TRUE)) {
+			throw new BackwardsCompatibilityCheckException(
+					"Backwards incompatibilities detected. Check warnings messages above. To ignore warnings, rerun with -DfailIfRemovedFields=false");
+		}
 
 	}
 
