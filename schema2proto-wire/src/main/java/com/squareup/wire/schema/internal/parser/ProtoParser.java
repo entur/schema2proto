@@ -392,7 +392,7 @@ public final class ProtoParser {
 			if (type.equals("group")) {
 				groups.add(readGroup(location, nestedDocumentation, null));
 			}
-			if (type.equals("option")) {
+			else if (type.equals("option")) {
 				options.add(new OptionReader(reader).readOption('='));
 				reader.require(';');
 			} else {
