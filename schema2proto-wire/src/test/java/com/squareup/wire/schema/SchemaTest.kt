@@ -1434,7 +1434,7 @@ class SchemaTest {
                     .schema()
             Assertions.assertTrue(false)
         } catch (expected: IllegalStateException) {
-            assertThat(expected).hasMessage("/source/test.proto at 5:5: 'group' is not supported")
+            assertThat(expected).hasMessage("Syntax error in /source/test.proto at 9:3: expected a word")
         }
     }
 
