@@ -391,8 +391,7 @@ public final class ProtoParser {
 			String type = reader.readDataType();
 			if (type.equals("group")) {
 				groups.add(readGroup(location, nestedDocumentation, null));
-			}
-			else if (type.equals("option")) {
+			} else if (type.equals("option")) {
 				options.add(new OptionReader(reader).readOption('='));
 				reader.require(';');
 			} else {
