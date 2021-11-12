@@ -162,7 +162,16 @@ public final class Options {
 			// This is an option declared by an extension.
 			Map<String, Field> extensionsForType = messageType.extensionFieldsMap();
 
-			path = resolveFieldPath(option.getName(), extensionsForType.keySet());
+			StringBuilder pathBuilder = new StringBuilder();
+			pathBuilder.append(option.getName());
+			if (option.getValue() instanceof OptionElement) {
+				OptionElement optionElement = (OptionElement) option.getValue();
+				if (optionElement.getName().contains(".")) {
+					pathBuilder.append(".");
+					pathBuilder.append(optionElement.getName());
+				}
+			}
+			path = resolveFieldPath(pathBuilder.toString(), extensionsForType.keySet());
 			String packageName = linker.packageName();
 			if (path == null && packageName != null) {
 				// If the path couldn't be resolved, attempt again by prefixing it with the package name.
@@ -188,7 +197,6 @@ public final class Options {
 				return null; // Unable to dereference this path segment.
 			}
 		}
-
 		last.put(ProtoMember.get(lastProtoType, field), canonicalizeValue(linker, field, option.getValue()));
 		return result;
 	}

@@ -186,9 +186,15 @@ class OptionsTest {
         |  optional BarOptions bar = 2;
         |}
         |message BarOptions {
+        |  
         |  optional int32 baz = 2;
+        |  oneof enav {
+        |  Code code = 1235; 
         |}
-        |
+        |}
+        |message Code{
+        |optional bool  defined_only = 2;
+        |}
         |extend google.protobuf.OneofOptions {
         |  optional bool required = 1071;
         |}
@@ -201,6 +207,7 @@ class OptionsTest {
         |option (required) = true;
         |int32 b = 2 [(foo) = { bar { baz: 123 } }];
         |string c = 3 [(foo) = { bar { baz: 456 } }];
+        |string d = 4 [(foo).bar.enav.code = {defined_only : true}];
         |}
         |}
         """.trimMargin()
@@ -224,5 +231,8 @@ class OptionsTest {
 
         assertThat(message.field("c")!!.options().map())
             .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "456".toBigDecimal()))))
+
+        val chainedOptions = message.field("d")!!.options()
+        assertThat(chainedOptions).isNotNull
     }
 }
