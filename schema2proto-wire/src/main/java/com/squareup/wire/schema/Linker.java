@@ -275,7 +275,14 @@ public final class Linker {
 			Field extensionField = resolve(field, typeExtensions);
 			if (extensionField != null)
 				return extensionField;
+
+			String finalField = field;
+			if (messageType.oneOfs().stream().anyMatch(o -> o.name().equals(finalField))) {
+				return messageType.oneOfs().stream().filter(o -> o.name().equals(finalField)).findFirst().get().fields().get(0);
+
+			}
 		}
+		// TODO oneof
 
 		return null; // Unable to traverse this field path.
 	}

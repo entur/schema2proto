@@ -187,6 +187,9 @@ class OptionsTest {
         |}
         |message BarOptions {
         |  optional int32 baz = 2;
+        |  oneof enav {
+        |  Code code = 1235; 
+        |}
         |}
         |message Code{
         |optional bool  defined_only = 2;
@@ -229,6 +232,6 @@ class OptionsTest {
             .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "456".toBigDecimal()))))
 
         val chainedOptions = message.field("d")!!.options()
-        assertThat(chainedOptions.map()).isNotNull
+        assertThat(chainedOptions.map()).isNotEmpty
     }
 }
