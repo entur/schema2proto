@@ -197,6 +197,7 @@ public final class Options {
 				return null; // Unable to dereference this path segment.
 			}
 		}
+
 		last.put(ProtoMember.get(lastProtoType, field), canonicalizeValue(linker, field, option.getValue()));
 		return result;
 	}
@@ -238,16 +239,17 @@ public final class Options {
 			OptionElement option = (OptionElement) value;
 
 			String optionname = option.getName();
-			if (optionname.contains(".")) {
-				optionname = optionname.substring(0, optionname.indexOf("."));
-			}
-
 			Field field = linker.dereference(context, optionname);
 			if (field == null) {
-				linker.addError("unable to resolve option %s on %s", option.getName(), context.type());
+				return null;
 			} else {
 				ProtoMember protoMember = ProtoMember.get(context.type(), field);
-				result.put(protoMember, canonicalizeValue(linker, field, option.getValue()));
+				Object canonicalizeValue = canonicalizeValue(linker, field, option.getValue());
+				if (canonicalizeValue != null) {
+					result.put(protoMember, canonicalizeValue);
+				} else {
+					return null;
+				}
 			}
 			return coerceValueForField(context, result.build());
 		}
