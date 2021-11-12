@@ -379,6 +379,7 @@ public final class ProtoParser {
 
 		ImmutableList.Builder<FieldElement> fields = ImmutableList.builder();
 		ImmutableList.Builder<GroupElement> groups = ImmutableList.builder();
+		ImmutableList.Builder<OptionElement> options = ImmutableList.builder();
 
 		reader.require('{');
 		while (true) {
@@ -390,11 +391,15 @@ public final class ProtoParser {
 			String type = reader.readDataType();
 			if (type.equals("group")) {
 				groups.add(readGroup(location, nestedDocumentation, null));
+			}
+			if (type.equals("option")) {
+				options.add(new OptionReader(reader).readOption('='));
+				reader.require(';');
 			} else {
 				fields.add(readField(location, nestedDocumentation, null, type));
 			}
 		}
-		return new OneOfElement(name, documentation, fields.build(), groups.build());
+		return new OneOfElement(name, documentation, fields.build(), groups.build(), options.build());
 	}
 
 	private GroupElement readGroup(Location location, String documentation, Field.Label label) {

@@ -68,6 +68,7 @@ public final class Options {
 	public static final ProtoType ENUM_VALUE_OPTIONS = ProtoType.get("google.protobuf.EnumValueOptions");
 	public static final ProtoType SERVICE_OPTIONS = ProtoType.get("google.protobuf.ServiceOptions");
 	public static final ProtoType METHOD_OPTIONS = ProtoType.get("google.protobuf.MethodOptions");
+	public static final ProtoType ONE_OF_OPTIONS = ProtoType.get("google.protobuf.OneofOptions");
 
 	private final ProtoType optionType;
 	private final List<OptionElement> optionElements;
