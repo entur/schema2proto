@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -322,7 +323,8 @@ public final class Options {
 	}
 
 	private ImmutableMap<ProtoMember, Object> union(Linker linker, Map<ProtoMember, Object> a, Map<ProtoMember, Object> b) {
-		Map<ProtoMember, Object> result = new LinkedHashMap<>(a);
+		Map<ProtoMember, Object> result = new LinkedHashMap<>(
+				a.entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 		for (Map.Entry<ProtoMember, Object> entry : b.entrySet()) {
 			Object aValue = result.get(entry.getKey());
 			Object bValue = entry.getValue();
