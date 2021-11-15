@@ -7,6 +7,7 @@ import "validate/validate.proto";
 message A {
     // Time individual response element was created.
     uint64 response_timestamp = 1 [(validate.rules).uint64.gte = 20];
+    string customer_account_id = 2 [(validate.rules).string.pattern = "^([A-Z]{3}):([A-Za-z]+):([0-9ÆØÅæøåA-Za-z_\\-]+)$"];
 }
 
 message B {
