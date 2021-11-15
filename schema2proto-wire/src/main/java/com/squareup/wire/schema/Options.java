@@ -323,20 +323,17 @@ public final class Options {
 	}
 
 	private ImmutableMap<ProtoMember, Object> union(Linker linker, Map<ProtoMember, Object> a, Map<ProtoMember, Object> b) {
-		Map<ProtoMember, Object> result = new LinkedHashMap<>(
-				a.entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+		Map<ProtoMember, Object> result = new LinkedHashMap<>(a);
 		for (Map.Entry<ProtoMember, Object> entry : b.entrySet()) {
 			Object aValue = result.get(entry.getKey());
 			Object bValue = entry.getValue();
-			Object union = aValue != null && bValue != null ? union(linker, aValue, bValue) : null;
+			Object union = aValue != null ? union(linker, aValue, bValue) : bValue;
 			if (union != null) {
 				result.put(entry.getKey(), union);
-			} else {
-				System.out.println(aValue);
-				System.out.println(bValue);
 			}
 		}
-		return ImmutableMap.copyOf(result);
+		return ImmutableMap
+				.copyOf(result.entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 	}
 
 	private ImmutableList<Object> union(List<?> a, List<?> b) {
