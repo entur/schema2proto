@@ -380,7 +380,7 @@ public final class Options {
 
 		} else if (o instanceof Map) {
 			ImmutableMap.Builder<ProtoMember, Object> builder = ImmutableMap.builder();
-			for (Map.Entry<?, ?> entry : ((Map<?, ?>) o).entrySet()) {
+			for (Map.Entry<?, ?> entry : ((Map<?, ?>) o).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toList())) {
 				ProtoMember protoMember = (ProtoMember) entry.getKey();
 				if (!markSet.contains(protoMember)) {
 					continue; // Prune this field.
@@ -397,10 +397,14 @@ public final class Options {
 		} else if (o instanceof List) {
 			ImmutableList.Builder<Object> builder = ImmutableList.builder();
 			for (Object value : ((List) o)) {
-				Object retainedValue = retainAll(schema, markSet, type, value);
-				if (retainedValue != null) {
-					builder.add(retainedValue); // This retained value is non-empty.
+				if (value != null) {
+					Object retainedValue = retainAll(schema, markSet, type, value);
+					if (retainedValue != null) {
+						builder.add(retainedValue); // This retained value is non-empty.
+					}
+
 				}
+
 			}
 			ImmutableList<Object> list = builder.build();
 			return !list.isEmpty() ? list : null;
