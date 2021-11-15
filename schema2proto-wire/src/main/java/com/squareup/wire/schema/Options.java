@@ -43,7 +43,6 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,9 +199,9 @@ public final class Options {
 				return null; // Unable to dereference this path segment.
 			}
 			i++;
-			if(field.name().contains(".") && field.name().endsWith(path[path.length-1])){
+			if (field.name().contains(".") && field.name().endsWith(path[path.length - 1])) {
 				found = true;
-				lastProtoType=field.type();
+				lastProtoType = field.type();
 			}
 		}
 
@@ -250,15 +249,13 @@ public final class Options {
 			Field field = linker.dereference(context, optionname);
 			if (field == null && option.getKind() != OptionElement.Kind.MAP) {
 				return null;
-			}
-			else if(field == null && option.getKind() == OptionElement.Kind.MAP){
-					Map<String, Object> mapOption = (Map<String, Object>) option.getValue();
-					mapOption.entrySet().forEach(e -> {
-						result.put(ProtoMember.get(context.getElementType()+"#"+e.getKey()), e.getValue());
-					});
+			} else if (field == null && option.getKind() == OptionElement.Kind.MAP) {
+				Map<String, Object> mapOption = (Map<String, Object>) option.getValue();
+				mapOption.entrySet().stream().filter(e -> e.getValue() != null).forEach(e -> {
+					result.put(ProtoMember.get(context.packageName() + "." + context.getElementType() + "#" + e.getKey()), e.getValue());
+				});
 
 			}
-
 
 			else {
 				ProtoMember protoMember = ProtoMember.get(context.type(), field);
