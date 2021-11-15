@@ -43,6 +43,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -249,7 +250,17 @@ public final class Options {
 			Field field = linker.dereference(context, optionname);
 			if (field == null && option.getKind() != OptionElement.Kind.MAP) {
 				return null;
-			} else if(option.getKind() != OptionElement.Kind.MAP){
+			}
+			else if(field == null && option.getKind() == OptionElement.Kind.MAP){
+					Map<String, Object> mapOption = (Map<String, Object>) option.getValue();
+					mapOption.entrySet().forEach(e -> {
+						result.put(ProtoMember.get(context.getElementType()+"#"+e.getKey()), e.getValue());
+					});
+
+			}
+
+
+			else {
 				ProtoMember protoMember = ProtoMember.get(context.type(), field);
 				Object canonicalizeValue = canonicalizeValue(linker, field, option.getValue());
 				if (canonicalizeValue != null) {
@@ -258,12 +269,7 @@ public final class Options {
 					return null;
 				}
 			}
-			else{
-				Map<String, Object> mapOption = (Map<String, Object>) option.getValue();
-				mapOption.entrySet().forEach(e -> {
-					result.put(ProtoMember.get(context.getElementType()+"#"+e.getKey()), e.getValue());
-				});
-			}
+
 			return coerceValueForField(context, result.build());
 		}
 
