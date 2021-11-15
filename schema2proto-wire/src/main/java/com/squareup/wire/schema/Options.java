@@ -327,7 +327,9 @@ public final class Options {
 			Object aValue = result.get(entry.getKey());
 			Object bValue = entry.getValue();
 			Object union = aValue != null ? union(linker, aValue, bValue) : bValue;
-			result.put(entry.getKey(), union);
+			if (union != null) {
+				result.put(entry.getKey(), union);
+			}
 		}
 		return ImmutableMap.copyOf(result);
 	}
