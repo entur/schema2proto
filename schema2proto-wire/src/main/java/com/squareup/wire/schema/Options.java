@@ -164,7 +164,6 @@ public final class Options {
 
 			StringBuilder pathBuilder = new StringBuilder();
 			pathBuilder.append(option.getName());
-			// TODO array
 			if (option.getValue() instanceof OptionElement) {
 				OptionElement optionElement = (OptionElement) option.getValue();
 				if (optionElement.getName().contains(".")) {
@@ -196,14 +195,14 @@ public final class Options {
 			lastProtoType = field.type();
 			last = nested;
 			field = linker.dereference(field, path[i]);
-			if (field != null && field.name().equals(path[path.length - 1])) {
-				found = true;
-				lastProtoType = field.type();
-			}
 			if (field == null) {
 				return null; // Unable to dereference this path segment.
 			}
 			i++;
+			if(field.name().contains(".") && field.name().endsWith(path[path.length-1])){
+				found = true;
+				lastProtoType=field.type();
+			}
 		}
 
 		last.put(ProtoMember.get(lastProtoType, field), canonicalizeValue(linker, field, option.getValue()));
@@ -245,15 +244,12 @@ public final class Options {
 		if (value instanceof OptionElement) {
 			ImmutableMap.Builder<ProtoMember, Object> result = ImmutableMap.builder();
 			OptionElement option = (OptionElement) value;
-			if (option.getKind() == OptionElement.Kind.MAP) {
-				return getFromMap(linker, context, (Map<?, ?>) option.getValue());
 
-			}
-			String optionname = option.getName().substring(option.getName().lastIndexOf(".") + 1);
+			String optionname = option.getName();
 			Field field = linker.dereference(context, optionname);
-			if (field == null) {
+			if (field == null && option.getKind() != OptionElement.Kind.MAP) {
 				return null;
-			} else {
+			} else if(option.getKind() != OptionElement.Kind.MAP){
 				ProtoMember protoMember = ProtoMember.get(context.type(), field);
 				Object canonicalizeValue = canonicalizeValue(linker, field, option.getValue());
 				if (canonicalizeValue != null) {
@@ -262,11 +258,28 @@ public final class Options {
 					return null;
 				}
 			}
+			else{
+				Map<String, Object> mapOption = (Map<String, Object>) option.getValue();
+				mapOption.entrySet().forEach(e -> {
+					result.put(ProtoMember.get(context.getElementType()+"#"+e.getKey()), e.getValue());
+				});
+			}
 			return coerceValueForField(context, result.build());
 		}
 
 		if (value instanceof Map) {
-			return getFromMap(linker, context, (Map<?, ?>) value);
+			ImmutableMap.Builder<ProtoMember, Object> result = ImmutableMap.builder();
+			for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+				String name = (String) entry.getKey();
+				Field field = linker.dereference(context, name);
+				if (field == null) {
+					linker.addError("unable to resolve option %s on %s", name, context.type());
+				} else {
+					ProtoMember protoMember = ProtoMember.get(context.type(), field);
+					result.put(protoMember, canonicalizeValue(linker, field, entry.getValue()));
+				}
+			}
+			return coerceValueForField(context, result.build());
 		}
 
 		if (value instanceof List) {
@@ -282,21 +295,6 @@ public final class Options {
 		}
 
 		throw new IllegalArgumentException("Unexpected option value: " + value);
-	}
-
-	private Object getFromMap(Linker linker, Field context, Map<?, ?> value) {
-		ImmutableMap.Builder<ProtoMember, Object> result = ImmutableMap.builder();
-		for (Map.Entry<?, ?> entry : value.entrySet()) {
-			String name = (String) entry.getKey();
-			Field field = linker.dereference(context, name);
-			if (field == null) {
-				linker.addError("unable to resolve option %s on %s", name, context.type());
-			} else {
-				ProtoMember protoMember = ProtoMember.get(context.type(), field);
-				result.put(protoMember, canonicalizeValue(linker, field, entry.getValue()));
-			}
-		}
-		return coerceValueForField(context, result.build());
 	}
 
 	private Object coerceValueForField(Field context, Object value) {

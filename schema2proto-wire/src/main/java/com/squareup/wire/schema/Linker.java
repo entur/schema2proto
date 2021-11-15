@@ -278,8 +278,10 @@ public final class Linker {
 
 			String finalField = field;
 			if (messageType.oneOfs().stream().anyMatch(o -> o.name().equals(finalField))) {
-				return messageType.oneOfs().stream().filter(o -> o.name().equals(finalField)).findFirst().get().fields().get(0);
-
+				OneOf oneOf = messageType.oneOfs().stream().filter(o -> o.name().equals(finalField)).findFirst().get();
+				Field oneofField = oneOf.fields().get(0);
+				oneofField.updateName(self.name()+"."+oneOf.name()+"."+oneofField.name());
+				return oneofField;
 			}
 		}
 		// TODO oneof
