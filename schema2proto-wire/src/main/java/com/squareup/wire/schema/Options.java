@@ -206,7 +206,10 @@ public final class Options {
 			}
 		}
 
-		last.put(ProtoMember.get(lastProtoType, field), canonicalizeValue(linker, field, option.getValue()));
+		Object value = canonicalizeValue(linker, field, option.getValue());
+		if (value != null) {
+			last.put(ProtoMember.get(lastProtoType, field), value);
+		}
 		return result;
 	}
 
