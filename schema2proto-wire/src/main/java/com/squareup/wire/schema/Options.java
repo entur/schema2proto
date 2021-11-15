@@ -326,9 +326,12 @@ public final class Options {
 		for (Map.Entry<ProtoMember, Object> entry : b.entrySet()) {
 			Object aValue = result.get(entry.getKey());
 			Object bValue = entry.getValue();
-			Object union = aValue != null ? union(linker, aValue, bValue) : bValue;
+			Object union = aValue != null && bValue != null ? union(linker, aValue, bValue) : null;
 			if (union != null) {
 				result.put(entry.getKey(), union);
+			} else {
+				System.out.println(aValue);
+				System.out.println(bValue);
 			}
 		}
 		return ImmutableMap.copyOf(result);
