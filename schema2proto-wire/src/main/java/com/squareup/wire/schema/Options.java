@@ -386,7 +386,7 @@ public final class Options {
 					continue; // Prune this field.
 				}
 				Field field = schema.getField(protoMember);
-				Object retainedValue = retainAll(schema, markSet, field.type(), entry.getValue());
+				Object retainedValue = field != null ? retainAll(schema, markSet, field.type(), entry.getValue()) : null;
 				if (retainedValue != null) {
 					builder.put(protoMember, retainedValue); // This retained field is non-empty.
 				}
