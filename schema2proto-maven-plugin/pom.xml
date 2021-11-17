@@ -5,7 +5,6 @@
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
         <version>1.45-SNAPSHOT</version>
-
     </parent>
     <artifactId>schema2proto-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>

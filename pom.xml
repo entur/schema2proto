@@ -4,7 +4,6 @@
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
     <version>1.45-SNAPSHOT</version>
-
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - XSD schema to protobuf.</description>
