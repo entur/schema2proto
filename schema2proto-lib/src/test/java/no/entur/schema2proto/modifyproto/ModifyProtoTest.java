@@ -252,4 +252,18 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expected, "mergefrom.proto", generatedRootFolder, "simple.proto");
 
 	}
+
+	@Test
+	public void removeFieldKeepOptions() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+
+		File expected = new File("src/test/resources/modify/expected/withoptions").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/withoptions").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.excludes = Collections.singletonList("LangType");
+
+		modifyProto(configuration);
+		compareExpectedAndGenerated(expected, "no_langtype.proto", generatedRootFolder, "simple.proto");
+	}
 }

@@ -377,7 +377,7 @@ public class SchemaParser implements ErrorHandler {
 							}
 
 							List<Field> fields = new ArrayList<>();
-							OneOf oneOf = new OneOf(oneOfName, fieldDoc, fields);
+							OneOf oneOf = new OneOf(oneOfName, fieldDoc, fields, null);
 							messageType.oneOfs().add(oneOf);
 
 							LinkedHashSet<XSElementDecl> allSubtitutables = new LinkedHashSet<>();

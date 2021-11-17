@@ -49,11 +49,13 @@ public final class OneOf {
 	private final String name;
 	private String documentation;
 	private final List<Field> fields;
+	private final Options options;
 
-	public OneOf(String name, String documentation, List<Field> fields) {
+	public OneOf(String name, String documentation, List<Field> fields, Options options) {
 		this.name = name;
 		this.documentation = documentation;
 		this.fields = fields;
+		this.options = options;
 	}
 
 	public String name() {
@@ -68,6 +70,10 @@ public final class OneOf {
 		return fields;
 	}
 
+	public Options options() {
+		return options;
+	}
+
 	void link(Linker linker) {
 		for (Field field : fields) {
 			field.link(linker);
@@ -75,6 +81,7 @@ public final class OneOf {
 	}
 
 	void linkOptions(Linker linker) {
+		options.link(linker);
 		for (Field field : fields) {
 			field.linkOptions(linker);
 		}
@@ -84,7 +91,7 @@ public final class OneOf {
 		ImmutableList<Field> retainedFields = Field.retainAll(schema, markSet, enclosingType, fields);
 		if (retainedFields.isEmpty())
 			return null;
-		return new OneOf(name, documentation, retainedFields);
+		return new OneOf(name, documentation, retainedFields, options.retainAll(schema, markSet));
 	}
 
 	static ImmutableList<OneOf> fromElements(String packageName, List<OneOfElement> elements, boolean extension) {
@@ -94,7 +101,8 @@ public final class OneOf {
 				GroupElement group = oneOf.getGroups().get(0);
 				throw new IllegalStateException(group.getLocation() + ": 'group' is not supported");
 			}
-			oneOfs.add(new OneOf(oneOf.getName(), oneOf.getDocumentation(), Field.fromElements(packageName, oneOf.getFields(), extension)));
+			oneOfs.add(new OneOf(oneOf.getName(), oneOf.getDocumentation(), Field.fromElements(packageName, oneOf.getFields(), extension),
+					new Options(Options.ONE_OF_OPTIONS, oneOf.getOptions())));
 		}
 		return oneOfs.build();
 	}
@@ -102,8 +110,8 @@ public final class OneOf {
 	static ImmutableList<OneOfElement> toElements(List<OneOf> oneOfs) {
 		ImmutableList.Builder<OneOfElement> elements = new ImmutableList.Builder<>();
 		for (OneOf oneOf : oneOfs) {
-			elements.add(new OneOfElement(oneOf.name, oneOf.documentation, Field.toElements(oneOf.fields), Collections.emptyList() // groups
-			));
+			elements.add(new OneOfElement(oneOf.name, oneOf.documentation, Field.toElements(oneOf.fields), Collections.emptyList(), // groups
+					Collections.emptyList()));
 		}
 		return elements.build();
 	}

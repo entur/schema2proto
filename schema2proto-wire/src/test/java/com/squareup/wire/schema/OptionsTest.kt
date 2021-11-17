@@ -176,4 +176,62 @@ class OptionsTest {
     fun resolveFieldPathDoesntMatch() {
         assertThat(Options.resolveFieldPath("a.b", setOf("c", "d"))).isNull()
     }
+
+    @Test
+    fun parseOneOfOptions(){
+        val schema =  RepoBuilder().add("foo.proto",
+            """
+        |import "google/protobuf/descriptor.proto";
+        |message FooOptions {
+        |  optional BarOptions bar = 2;
+        |}
+        |message BarOptions {
+        |  optional int32 baz = 2;
+        |  oneof enav {
+        |  Code code = 1235; 
+        |}
+        |}
+        |message Code{
+        |optional bool  defined_only = 2;
+        |}
+        |extend google.protobuf.OneofOptions {
+        |  optional bool required = 1071;
+        |}
+        |extend google.protobuf.FieldOptions {
+        |  optional FooOptions foo = 1234;
+        |}
+        |
+        |message Message {
+        |oneof a {
+        |option (required) = true;
+        |int32 b = 2 [(foo) = { bar { baz: 123 } }];
+        |string c = 3 [(foo) = { bar { baz: 456 } }];
+        |string d = 4 [(foo).bar.enav.code = {defined_only : true}];
+        |}
+        |}
+        """.trimMargin()
+        ).schema()
+
+        val foo = ProtoMember.get(Options.FIELD_OPTIONS, "foo")
+        val bar = ProtoMember.get(ProtoType.get("FooOptions"), "bar")
+        val baz = ProtoMember.get(ProtoType.get("BarOptions"), "baz")
+        val boo = ProtoMember.get(Options.ONE_OF_OPTIONS, "required")
+
+
+
+        val message = schema.getType("Message") as MessageType
+        assertThat(message.field("b")!!.options().map())
+            .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "123".toBigDecimal()))))
+
+
+        val oneOf = message.oneOfs().get(0)
+        assertThat(oneOf.options().map())
+            .isEqualTo(mapOf(boo to true))
+
+        assertThat(message.field("c")!!.options().map())
+            .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "456".toBigDecimal()))))
+
+        val chainedOptions = message.field("d")!!.options()
+        assertThat(chainedOptions.map()).isNotEmpty
+    }
 }
