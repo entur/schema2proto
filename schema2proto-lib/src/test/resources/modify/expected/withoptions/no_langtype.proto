@@ -1,0 +1,28 @@
+// default.proto at 0:0
+syntax = "proto3";
+import "validate/validate.proto";
+
+
+// Type for Status of termination response.
+message A {
+    // Time individual response element was created.
+    uint64 response_timestamp = 1 [(validate.rules).uint64.gte = 20];
+    string customer_account_id = 2 [(validate.rules).string.pattern = "^([A-Z]{3}):([A-Za-z]+):([0-9ÆØÅæøåA-Za-z_\\-]+)$"];
+}
+
+message B {
+    // SimpleContent value of element
+    repeated string value = 2 [(validate.rules).repeated.min_items = 1];
+    FangType fang = 3 [(validate.rules).enum = {defined_only : true, not_in : 0
+    }];
+
+}
+
+enum FangType {
+    // Default
+    FANG_TYPE_UNSPECIFIED = 0;
+    FANG_TYPE_A = 1;
+    FANG_TYPE_B = 2;
+}
+
+

@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -68,6 +69,7 @@ public final class Options {
 	public static final ProtoType ENUM_VALUE_OPTIONS = ProtoType.get("google.protobuf.EnumValueOptions");
 	public static final ProtoType SERVICE_OPTIONS = ProtoType.get("google.protobuf.ServiceOptions");
 	public static final ProtoType METHOD_OPTIONS = ProtoType.get("google.protobuf.MethodOptions");
+	public static final ProtoType ONE_OF_OPTIONS = ProtoType.get("google.protobuf.OneofOptions");
 
 	private final ProtoType optionType;
 	private final List<OptionElement> optionElements;
@@ -161,7 +163,16 @@ public final class Options {
 			// This is an option declared by an extension.
 			Map<String, Field> extensionsForType = messageType.extensionFieldsMap();
 
-			path = resolveFieldPath(option.getName(), extensionsForType.keySet());
+			StringBuilder pathBuilder = new StringBuilder();
+			pathBuilder.append(option.getName());
+			if (option.getValue() instanceof OptionElement) {
+				OptionElement optionElement = (OptionElement) option.getValue();
+				if (optionElement.getName().contains(".")) {
+					pathBuilder.append(".");
+					pathBuilder.append(optionElement.getName());
+				}
+			}
+			path = resolveFieldPath(pathBuilder.toString(), extensionsForType.keySet());
 			String packageName = linker.packageName();
 			if (path == null && packageName != null) {
 				// If the path couldn't be resolved, attempt again by prefixing it with the package name.
@@ -177,7 +188,9 @@ public final class Options {
 		Map<ProtoMember, Object> result = new LinkedHashMap<>();
 		Map<ProtoMember, Object> last = result;
 		ProtoType lastProtoType = messageType.type();
-		for (int i = 1; i < path.length; i++) {
+		int i = 1;
+		boolean found = false;
+		while (i < path.length && !found) {
 			Map<ProtoMember, Object> nested = new LinkedHashMap<>();
 			last.put(ProtoMember.get(lastProtoType, field), nested);
 			lastProtoType = field.type();
@@ -186,9 +199,17 @@ public final class Options {
 			if (field == null) {
 				return null; // Unable to dereference this path segment.
 			}
+			i++;
+			if (field.name().contains(".") && field.name().endsWith(path[path.length - 1])) {
+				found = true;
+				lastProtoType = field.type();
+			}
 		}
 
-		last.put(ProtoMember.get(lastProtoType, field), canonicalizeValue(linker, field, option.getValue()));
+		Object value = canonicalizeValue(linker, field, option.getValue());
+		if (value != null) {
+			last.put(ProtoMember.get(lastProtoType, field), value);
+		}
 		return result;
 	}
 
@@ -229,17 +250,27 @@ public final class Options {
 			OptionElement option = (OptionElement) value;
 
 			String optionname = option.getName();
-			if (optionname.contains(".")) {
-				optionname = optionname.substring(0, optionname.indexOf("."));
+			Field field = linker.dereference(context, optionname);
+			if (field == null && option.getKind() != OptionElement.Kind.MAP) {
+				return null;
+			} else if (field == null && option.getKind() == OptionElement.Kind.MAP) {
+				Map<String, Object> mapOption = (Map<String, Object>) option.getValue();
+				mapOption.entrySet().stream().filter(e -> e.getValue() != null).forEach(e -> {
+					result.put(ProtoMember.get(context.packageName() + "." + context.getElementType() + "#" + e.getKey()), e.getValue());
+				});
+
 			}
 
-			Field field = linker.dereference(context, optionname);
-			if (field == null) {
-				linker.addError("unable to resolve option %s on %s", option.getName(), context.type());
-			} else {
+			else {
 				ProtoMember protoMember = ProtoMember.get(context.type(), field);
-				result.put(protoMember, canonicalizeValue(linker, field, option.getValue()));
+				Object canonicalizeValue = canonicalizeValue(linker, field, option.getValue());
+				if (canonicalizeValue != null) {
+					result.put(protoMember, canonicalizeValue);
+				} else {
+					return null;
+				}
 			}
+
 			return coerceValueForField(context, result.build());
 		}
 
@@ -300,9 +331,12 @@ public final class Options {
 			Object aValue = result.get(entry.getKey());
 			Object bValue = entry.getValue();
 			Object union = aValue != null ? union(linker, aValue, bValue) : bValue;
-			result.put(entry.getKey(), union);
+			if (union != null) {
+				result.put(entry.getKey(), union);
+			}
 		}
-		return ImmutableMap.copyOf(result);
+		return ImmutableMap
+				.copyOf(result.entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 	}
 
 	private ImmutableList<Object> union(List<?> a, List<?> b) {
@@ -346,13 +380,13 @@ public final class Options {
 
 		} else if (o instanceof Map) {
 			ImmutableMap.Builder<ProtoMember, Object> builder = ImmutableMap.builder();
-			for (Map.Entry<?, ?> entry : ((Map<?, ?>) o).entrySet()) {
+			for (Map.Entry<?, ?> entry : ((Map<?, ?>) o).entrySet().stream().filter(e -> e.getValue() != null).collect(Collectors.toList())) {
 				ProtoMember protoMember = (ProtoMember) entry.getKey();
 				if (!markSet.contains(protoMember)) {
 					continue; // Prune this field.
 				}
 				Field field = schema.getField(protoMember);
-				Object retainedValue = retainAll(schema, markSet, field.type(), entry.getValue());
+				Object retainedValue = field != null ? retainAll(schema, markSet, field.type(), entry.getValue()) : null;
 				if (retainedValue != null) {
 					builder.put(protoMember, retainedValue); // This retained field is non-empty.
 				}
@@ -363,10 +397,14 @@ public final class Options {
 		} else if (o instanceof List) {
 			ImmutableList.Builder<Object> builder = ImmutableList.builder();
 			for (Object value : ((List) o)) {
-				Object retainedValue = retainAll(schema, markSet, type, value);
-				if (retainedValue != null) {
-					builder.add(retainedValue); // This retained value is non-empty.
+				if (value != null) {
+					Object retainedValue = retainAll(schema, markSet, type, value);
+					if (retainedValue != null) {
+						builder.add(retainedValue); // This retained value is non-empty.
+					}
+
 				}
+
 			}
 			ImmutableList<Object> list = builder.build();
 			return !list.isEmpty() ? list : null;
