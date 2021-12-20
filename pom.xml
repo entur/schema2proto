@@ -21,6 +21,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.8.4</maven.version>
+        <owasp-dependency-check.version>6.5.0</owasp-dependency-check.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spotless.version>2.17.7</spotless.version>
@@ -171,6 +172,26 @@
                             <goal>sort</goal>
                         </goals>
                         <phase>initialize</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${owasp-dependency-check.version}</version>
+                <configuration>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <failOnError>true</failOnError>
+                    <skipTestScope>true</skipTestScope>
+                    <!-- suppressionFiles: see https://jeremylong.github.io/DependencyCheck/general/suppression.html -->
+                    <suppressionFiles>
+                        <suppressionFile>${maven.multiModuleProjectDirectory}/owasp_supressions.xml</suppressionFile>
+                    </suppressionFiles>
+                </configuration>
+                <executions>
+                    <execution>
+                        <!-- run only using explicit command -->
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>
