@@ -24,7 +24,7 @@
         <owasp-dependency-check.version>6.5.0</owasp-dependency-check.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotless.version>2.17.6</spotless.version>
+        <spotless.version>2.17.7</spotless.version>
     </properties>
     <build>
         <pluginManagement>
