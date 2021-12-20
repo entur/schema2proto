@@ -4,12 +4,12 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.45</version>
+        <version>1.46</version>
     </parent>
     <artifactId>schema2proto-lib</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <junit.jupiter.version>5.8.1</junit.jupiter.version>
+        <junit.jupiter.version>5.8.2</junit.jupiter.version>
     </properties>
     <dependencies>
         <dependency>
@@ -30,7 +30,7 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.29</version>
+            <version>1.30</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

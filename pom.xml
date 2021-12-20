@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.45</version>
+    <version>1.46</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - XSD schema to protobuf.</description>
@@ -15,15 +15,16 @@
         <module>schema2proto-xsom</module>
     </modules>
     <properties>
-        <kotlin.version>1.6.0</kotlin.version>
+        <kotlin.version>1.6.10</kotlin.version>
         <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.version>3.8.3</maven.version>
+        <maven.version>3.8.4</maven.version>
+        <owasp-dependency-check.version>6.5.0</owasp-dependency-check.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotless.version>2.17.4</spotless.version>
+        <spotless.version>2.17.7</spotless.version>
     </properties>
     <build>
         <pluginManagement>
@@ -72,7 +73,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.1</version>
+                    <version>3.6.2</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -145,7 +146,7 @@
             <plugin>
                 <groupId>com.amashchenko.maven.plugin</groupId>
                 <artifactId>gitflow-maven-plugin</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
                 <configuration>
                     <allowSnapshots>false</allowSnapshots>
                     <verbose>true</verbose>
@@ -171,6 +172,26 @@
                             <goal>sort</goal>
                         </goals>
                         <phase>initialize</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${owasp-dependency-check.version}</version>
+                <configuration>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <failOnError>true</failOnError>
+                    <skipTestScope>true</skipTestScope>
+                    <!-- suppressionFiles: see https://jeremylong.github.io/DependencyCheck/general/suppression.html -->
+                    <suppressionFiles>
+                        <suppressionFile>${maven.multiModuleProjectDirectory}/owasp_supressions.xml</suppressionFile>
+                    </suppressionFiles>
+                </configuration>
+                <executions>
+                    <execution>
+                        <!-- run only using explicit command -->
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>
