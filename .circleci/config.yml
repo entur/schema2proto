@@ -142,7 +142,8 @@ jobs:
     executor: java
     steps:
       - checkout
-      - generate-maven-settings-file
+      - generate-maven-settings-file:
+          settings-file: *maven-settings-file
       - maven/with_cache:
           verify_dependencies: false
           steps:
@@ -165,7 +166,7 @@ workflows:
               only: develop
     jobs:
       - owasp/maven_owasp_dependency_check:
-          executor: abt-java
+          executor: java
           context: global
           wrapped_pre_steps:
             - run: mvn clean install -Dmaven.test.skip=true
