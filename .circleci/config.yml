@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   maven: entur/maven-orb@0.0.9
-  owasp: entur/owasp@dev:wrappedCommands
+  owasp: entur/owasp@0.0.17
   queue: eddiewebb/queue@volatile
 
 executors:
