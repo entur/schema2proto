@@ -86,9 +86,9 @@ public class ProtoSerializer {
 	public static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
 	public static final String XSDOPTIONS_PROTO_IMPORT = "xsd/xsd.proto";
 	public static final String DASH = "-";
-	public static final String[] PACKABLE_SCALAR_TYPES = new String[] { "int32", "int64", "uint32", "uint64", "sint32", "sint64", "bool" };
+	protected static final String[] PACKABLE_SCALAR_TYPES = new String[] { "int32", "int64", "uint32", "uint64", "sint32", "sint64", "bool" };
 
-	public static final Set<String> PACKABLE_SCALAR_TYPES_SET = new HashSet<>(Arrays.asList(PACKABLE_SCALAR_TYPES));
+	protected static final Set<String> PACKABLE_SCALAR_TYPES_SET = new HashSet<>(Arrays.asList(PACKABLE_SCALAR_TYPES));
 
 	private Schema2ProtoConfiguration configuration;
 
@@ -251,15 +251,15 @@ public class ProtoSerializer {
 	private void sortFieldsByTag(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (ProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> {
-				mt.nestedTypes().stream().filter(e -> e instanceof MessageType).forEach(z -> sortFieldsByTag((MessageType) z));
+				mt.nestedTypes().stream().filter(MessageType.class::isInstance).forEach(z -> sortFieldsByTag((MessageType) z));
 				sortFieldsByTag(mt);
 			});
 		}
 	}
 
 	private void sortFieldsByTag(MessageType mt) {
-		Collections.sort(mt.fields(), Comparator.comparingInt(e -> e.tag()));
-		mt.oneOfs().forEach(oneOf -> Collections.sort(oneOf.fields(), Comparator.comparingInt(e -> e.tag())));
+		Collections.sort(mt.fields(), Comparator.comparingInt(Field::tag));
+		mt.oneOfs().forEach(oneOf -> Collections.sort(oneOf.fields(), Comparator.comparingInt(Field::tag)));
 	}
 
 	private boolean resolveBackwardIncompatibilities(Map<String, ProtoFile> packageToProtoFileMap) {
@@ -311,14 +311,12 @@ public class ProtoSerializer {
 		if (packageName != null) {
 			protoFile = packageToProtoFileMap.get(packageName);
 		}
-		return protoFile.types().stream().filter(e -> e instanceof EnumType).anyMatch(e -> ((EnumType) e).name().equals(elementType.getElementType()));
+		return protoFile.types().stream().filter(EnumType.class::isInstance).anyMatch(e -> ((EnumType) e).name().equals(elementType.getElementType()));
 	}
 
 	private void removeUnwantedFields(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (ProtoFile file : packageToProtoFileMap.values()) {
-			messageTypes(file.types()).forEach(mt -> {
-				removeUnwantedFields(file, "", mt);
-			});
+			messageTypes(file.types()).forEach(mt -> removeUnwantedFields(file, "", mt));
 		}
 	}
 
@@ -333,9 +331,7 @@ public class ProtoSerializer {
 
 		final String nestedPath = nestedPathBuilder.toString();
 
-		messageTypes(mt.nestedTypes()).forEach(nestedType -> {
-			removeUnwantedFields(file, nestedPath, nestedType);
-		});
+		messageTypes(mt.nestedTypes()).forEach(nestedType -> removeUnwantedFields(file, nestedPath, nestedType));
 
 		String path = "";
 		if (!outerMessagePath.equals("")) {
@@ -653,10 +649,7 @@ public class ProtoSerializer {
 				String[] parts = transformationBasis.split(" ");
 				List<String> modifiedParts = new ArrayList<>();
 				for (String part : parts) {
-					for (String s : StringUtils.splitByCharacterTypeCamelCase(part)) {
-						// Split by camel case as well as number
-						modifiedParts.add(s);
-					}
+					modifiedParts.addAll(Arrays.asList(StringUtils.splitByCharacterTypeCamelCase(part)));
 				}
 
 				// Join all parts by underscore
@@ -1003,13 +996,13 @@ public class ProtoSerializer {
 
 	private void replaceTypes(Map<String, ProtoFile> packageToProtoFileMap) {
 		for (ProtoFile file : packageToProtoFileMap.values()) {
-			replaceTypes_(file.types());
+			replaceTypesRecursive(file.types());
 		}
 	}
 
-	private void replaceTypes_(List<Type> types) {
+	private void replaceTypesRecursive(List<Type> types) {
 		messageTypes(types).forEach(mt -> {
-			replaceTypes_(mt.nestedTypes());
+			replaceTypesRecursive(mt.nestedTypes());
 			replaceTypes(mt.fieldsAndOneOfFields());
 		});
 
@@ -1352,7 +1345,7 @@ public class ProtoSerializer {
 	}
 
 	private Stream<MessageType> messageTypes(List<Type> types) {
-		return types.stream().filter(t -> t instanceof MessageType).map(mt -> (MessageType) mt);
+		return types.stream().filter(MessageType.class::isInstance).map(MessageType.class::cast);
 	}
 
 }

@@ -96,6 +96,7 @@ public class SchemaParser implements ErrorHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 	private static final String DEFAULT_PROTO_PRIMITIVE = "string";
 	private static final String SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION = "SimpleContent value of element";
+	public static final String VALUE = "value";
 
 	private final Map<String, ProtoFile> packageToProtoFileMap = new TreeMap<>();
 
@@ -722,19 +723,19 @@ public class SchemaParser implements ErrorHandler {
 
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
-					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, "value",
+					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, VALUE,
 							SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(), simpleTypeName, fieldOptions, true);
 					addField(messageType, field);
 
 				} else if (basicTypes.contains(name)) {
-					Field field = new Field(null, fieldLocation, label, "value", SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(), name,
+					Field field = new Field(null, fieldLocation, label, VALUE, SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(), name,
 							fieldOptions, true);
 					addField(messageType, field);
 
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
 					if (primitiveType != null) {
-						Field field = new Field(null, fieldLocation, label, "value", SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(),
+						Field field = new Field(null, fieldLocation, label, VALUE, SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(),
 								primitiveType.getName(), fieldOptions, true);
 						addField(messageType, field);
 
@@ -890,8 +891,8 @@ public class SchemaParser implements ErrorHandler {
 
 		long numExistingWrappers = enclosingType.nestedTypes()
 				.stream()
-				.filter(e -> e instanceof MessageType)
-				.map(e -> (MessageType) e)
+				.filter(MessageType.class::isInstance)
+				.map(MessageType.class::cast)
 				.filter(e -> e.getName().startsWith(wrapperPrefix))
 				.count();
 		String wrapperPostfix = (enclosingComplexType.isGlobal() ? enclosingComplexType.getName() : enclosingName);

@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -80,6 +81,7 @@ public class Schema2Proto {
 	private static final String OPTION_INCLUDE_GO_PACKAGE_OPTIONS = "includeGoPackageOptions";
 	private static final String OPTION_GO_PACKAGE_SOURCE_PREFIX = "goPackageSourcePrefix";
 	private static final Logger LOGGER = LoggerFactory.getLogger(Schema2Proto.class);
+	public static final String TRUE_FALSE = "true|false";
 
 	public Schema2Proto(String[] args) throws IOException {
 		Options commandLineOptions = createCommandLineOptions();
@@ -138,7 +140,7 @@ public class Schema2Proto {
 				.desc("name of configfile specifying these parameters (instead of supplying them on the command line)")
 				.required(false)
 				.hasArg()
-				.argName("outputFilename")
+				.argName(OPTION_OUTPUT_FILENAME)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_PACKAGE)
@@ -198,56 +200,56 @@ public class Schema2Proto {
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_MESSAGE_DOCS)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("include documentation of messages in output, defaults to true")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_FIELD_DOCS)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("include documentation for fields in output, defaults to true")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_SOURCE_LOCATION_IN_DOC)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("include xsd source location relative to source xsd file in docs, defaults to false")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INHERITANCE_TO_COMPOSITION)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("define each xsd extension base level as a message field instead of copying all inherited fields")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_VALIDATION_RULES)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("generate envoypropxy/protoc-gen-validate validation rules from xsd rules")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_SKIP_EMPTY_TYPE_INHERITANCE)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("skip types just redefining other types with a different name")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_XSD_OPTIONS)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("include message options describing the xsd type hierarchy")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_FAIL_IF_REMOVED_FIELDS)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("when using backwards compatibility check via proto.lock file, fail if proto fields are removed")
 				.required(false)
 				.build());
@@ -256,14 +258,14 @@ public class Schema2Proto {
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_DERIVATION_BY_SUBSUMPTION)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("enable derivation by subsumption https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()
 				.longOpt(OPTION_INCLUDE_GO_PACKAGE_OPTIONS)
 				.hasArg()
-				.argName("true|false")
+				.argName(TRUE_FALSE)
 				.desc("Include 'go_package' options in all files")
 				.required(false)
 				.build());
@@ -341,27 +343,19 @@ public class Schema2Proto {
 
 		Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();
 		if (configFile.customTypeMappings != null) {
-			for (Entry<String, String> kv : configFile.customTypeMappings.entrySet()) {
-				Pattern p = Pattern.compile(kv.getKey());
-				customTypeMappings.put(p, kv.getValue());
-			}
+			customTypeMappings.putAll(parseRegexpKeyValue(configFile.customTypeMappings));
 		}
 
 		Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();
 		if (configFile.customTypeReplacements != null) {
-			for (Entry<String, String> kv : configFile.customTypeReplacements.entrySet()) {
-				Pattern p = Pattern.compile(kv.getKey());
-				customTypeReplacements.put(p, kv.getValue());
-			}
+			customTypeReplacements.putAll(parseRegexpKeyValue(configFile.customTypeReplacements));
 		}
 
 		Map<Pattern, String> customNameMappings = new LinkedHashMap<>();
 		if (configFile.customNameMappings != null) {
-			for (Entry<String, String> kv : configFile.customNameMappings.entrySet()) {
-				Pattern p = Pattern.compile(kv.getKey());
-				customNameMappings.put(p, kv.getValue());
-			}
+			customNameMappings.putAll(parseRegexpKeyValue(configFile.customNameMappings));
 		}
+
 		configuration.customTypeMappings.putAll(customTypeMappings);
 		configuration.customTypeReplacements.putAll(customTypeReplacements);
 		configuration.customNameMappings.putAll(customNameMappings);
@@ -384,15 +378,10 @@ public class Schema2Proto {
 		}
 
 		if (configFile.customImports != null) {
-			for (String importStatment : configFile.customImports) {
-				configuration.customImports.add(importStatment);
-			}
-
+			configuration.customImports.addAll(configFile.customImports);
 		}
 		if (configFile.customImportLocations != null) {
-			for (String importLocation : configFile.customImportLocations) {
-				configuration.customImportLocations.add(importLocation);
-			}
+			configuration.customImportLocations.addAll(configFile.customImportLocations);
 		}
 
 		if (configFile.ignoreOutputFields != null) {
@@ -409,6 +398,18 @@ public class Schema2Proto {
 		configuration.failIfRemovedFields = configFile.failIfRemovedFields;
 	}
 
+	private static Map<Pattern, String> parseRegexpKeyValue(Map<String, String> customTypeMappings) {
+		Map<Pattern, String> result = new HashMap<>();
+
+		for (Entry<String, String> kv : customTypeMappings.entrySet()) {
+			Pattern p = Pattern.compile(kv.getKey());
+			result.put(p, kv.getValue());
+		}
+
+		return result;
+	}
+
+	@SuppressWarnings("java:S3776")
 	private static Schema2ProtoConfiguration parseCommandLineOptions(CommandLine cmd) throws InvalidConfigurationException {
 
 		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
@@ -510,9 +511,7 @@ public class Schema2Proto {
 	private static List<String> parseCommaSeparatedStringValues(CommandLine cmd, String optionName) {
 		List<String> imports = new ArrayList<>();
 		if (cmd.hasOption(optionName)) {
-			for (String mapping : cmd.getOptionValue(optionName).split(",")) {
-				imports.add(mapping);
-			}
+			imports.addAll(Arrays.asList(cmd.getOptionValue(optionName).split(",")));
 		}
 		return imports;
 	}
