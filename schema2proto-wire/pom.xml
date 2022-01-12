@@ -4,7 +4,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.46</version>
+        <version>1.47</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.21.0</version>
+            <version>3.22.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
