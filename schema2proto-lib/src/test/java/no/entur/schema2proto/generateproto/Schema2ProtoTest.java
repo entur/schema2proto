@@ -25,7 +25,10 @@ package no.entur.schema2proto.generateproto;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -120,10 +123,14 @@ public class Schema2ProtoTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/complexTypeRenaming.proto", generatedRootFolder, "org/myrecipies/org_myrecipies.proto");
 	}
 
-	private Map<Pattern, String> toMap(String data) {
-		return Arrays.stream(data.split(","))
+	private SortedMap<Pattern, String> toMap(String data) {
+		Map unsortedMap = Arrays.stream(data.split(","))
 				.map(entry -> entry.split(":"))
 				.collect(Collectors.toMap(strings -> Pattern.compile(strings[0]), strings -> strings[1]));
+
+		SortedMap<Pattern, String> sortedMap = new TreeMap<>(Comparator.comparing(Pattern::pattern));
+		sortedMap.putAll(unsortedMap);
+		return sortedMap;
 	}
 
 }

@@ -22,28 +22,14 @@
  */
 package no.entur.schema2proto.compatibility.protolock;
 
-import com.google.gson.annotations.SerializedName;
-
-public class ProtolockMessage {
+public class ProtolockMessage extends AbstractProtolockTypeEntry {
 	String name;
 	ProtolockField[] fields;
-	@SerializedName("reserved_ids")
-	Integer[] reservedIds;
-	@SerializedName(("reserved_names"))
-	String[] reservedNames;
 	ProtolockMessage[] messages;
 	ProtolockEnum[] enums;
 
 	public ProtolockEnum[] getEnums() {
 		return enums;
-	}
-
-	public Integer[] getReservedIds() {
-		return reservedIds;
-	}
-
-	public String[] getReservedNames() {
-		return reservedNames;
 	}
 
 	public ProtolockMessage[] getMessages() {

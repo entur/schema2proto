@@ -84,6 +84,12 @@ public class SchemaParserTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void testEmptyGroup() throws IOException {
+		generateProtobufNoOptions("basic/emptygroup.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/emptygroup.proto", generatedRootFolder, "default/default.proto");
+	}
+
+	@Test
 	public void testBasicExtensionBaseComposition() throws IOException {
 		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
 		configuration.inheritanceToComposition = true;

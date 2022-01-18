@@ -24,10 +24,10 @@ package no.entur.schema2proto.generateproto;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 public class Schema2ProtoConfiguration {
@@ -38,12 +38,12 @@ public class Schema2ProtoConfiguration {
 	public String defaultProtoPackage = null;
 	public String forceProtoPackage = null;
 	public boolean inheritanceToComposition = false;
-	public Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();;
-	public Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();;
-	public Map<Pattern, String> customNameMappings = new LinkedHashMap<>();;
+	public SortedMap<Pattern, String> customTypeMappings = new TreeMap<>(Comparator.comparing(Pattern::pattern));;
+	public SortedMap<Pattern, String> customTypeReplacements = new TreeMap<>(Comparator.comparing(Pattern::pattern));;
+	public SortedMap<Pattern, String> customNameMappings = new TreeMap<>(Comparator.comparing(Pattern::pattern));;
 	public List<String> customImports = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
-	public Map<String, Object> options = new HashMap<>();
+	public SortedMap<String, Object> options = new TreeMap<>();
 	public List<FieldPath> ignoreOutputFields = new ArrayList<>();
 	public boolean includeMessageDocs = true;
 	public boolean includeFieldDocs = true;

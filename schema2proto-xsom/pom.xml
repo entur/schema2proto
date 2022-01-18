@@ -15,7 +15,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.47</version>
+        <version>1.48</version>
     </parent>
     <artifactId>schema2proto-xsom</artifactId>
     <name>schema2proto-XSOM</name>
@@ -23,12 +23,10 @@
         documents and inspect information in them. It is expected to be useful for applications that need to take XML
         Schema as an input.</description>
     <properties>
-        <base.java.level>7</base.java.level>
         <copyright.exclude.file>${project.basedir}/copyright-exclude</copyright.exclude.file>
         <copyright.template.file>${project.basedir}/copyright.txt</copyright.template.file>
         <findbugs.exclude>${project.basedir}/exclude-xsom.xml</findbugs.exclude>
         <relaxng.version>3.0.2</relaxng.version>
-        <upper.java.level>9</upper.java.level>
     </properties>
     <dependencies>
         <dependency>
@@ -76,8 +74,8 @@
                     <execution>
                         <id>default-compile</id>
                         <configuration>
-                            <source>${upper.java.level}</source>
-                            <target>${upper.java.level}</target>
+                            <source>${maven.compiler.source}</source>
+                            <target>${maven.compiler.target}</target>
                         </configuration>
                     </execution>
                     <execution>
@@ -85,12 +83,6 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
-                        <configuration>
-                            <release>${base.java.level}</release>
-                            <excludes>
-                                <exclude>module-info.java</exclude>
-                            </excludes>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

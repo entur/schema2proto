@@ -52,6 +52,9 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 	private FieldConflictChecker fieldConflictChecker = new FieldConflictChecker();
 
+	private final String reservationDoc = "Reservation added by schema2proto";
+	private final Location reservationLocation = new Location("", "", 0, 0);
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProtolockBackwardsCompatibilityChecker.class);
 
 	public void init(File protoLockFile) throws FileNotFoundException {
@@ -63,18 +66,16 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return definitions;
 	}
 
-	private void copyReservations(ProtolockMessage protolockMessage, MessageType e) {
-		String reservationDoc = "Reservation added by schema2proto";
-		Location loc = new Location("", "", 0, 0);
-
+	private void copyReservations(ProtolockMessage protolockMessage, MessageType protoMessage) {
 		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
-			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> e.addReserved(reservationDoc, loc, reservedId));
+			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> protoMessage.addReserved(reservationDoc, reservationLocation, reservedId));
 		}
 		if (protolockMessage.getReservedNames() != null && protolockMessage.getReservedNames().length > 0) {
-			Arrays.stream(protolockMessage.getReservedNames()).forEach(reservedName -> e.addReserved(reservationDoc, loc, reservedName));
+			Arrays.stream(protolockMessage.getReservedNames())
+					.forEach(reservedName -> protoMessage.addReserved(reservationDoc, reservationLocation, reservedName));
 		}
 
-		e.nestedTypes().stream().filter(z -> z instanceof MessageType).map(k -> (MessageType) k).forEach(nestedType -> {
+		protoMessage.nestedTypes().stream().filter(z -> z instanceof MessageType).map(k -> (MessageType) k).forEach(nestedType -> {
 			if (protolockMessage.getMessages() != null) {
 				Arrays.stream(protolockMessage.getMessages()).forEach(nestedProtolockMessage -> {
 					if (nestedProtolockMessage.getName().equals(nestedType.getName())) {
@@ -86,44 +87,42 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 	}
 
-	private void copyReservations(ProtolockEnum protolockMessage, EnumType e) {
-		String reservationDoc = "Reservation added by schema2proto";
-		Location loc = new Location("", "", 0, 0);
-
-		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
-			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> e.addReserved(reservationDoc, loc, reservedId));
+	private void copyReservations(ProtolockEnum protolockEnum, EnumType protoEnum) {
+		LOGGER.debug("Copying reservations for message {} and enum {}", protolockEnum, protoEnum);
+		if (protolockEnum.getReservedIds() != null && protolockEnum.getReservedIds().length > 0) {
+			Arrays.stream(protolockEnum.getReservedIds()).forEach(reservedId -> protoEnum.addReserved(reservationDoc, reservationLocation, reservedId));
 		}
-		if (protolockMessage.getReservedNames() != null && protolockMessage.getReservedNames().length > 0) {
-			Arrays.stream(protolockMessage.getReservedNames()).forEach(reservedName -> e.addReserved(reservationDoc, loc, reservedName));
+		if (protolockEnum.getReservedNames() != null && protolockEnum.getReservedNames().length > 0) {
+			Arrays.stream(protolockEnum.getReservedNames()).forEach(reservedName -> protoEnum.addReserved(reservationDoc, reservationLocation, reservedName));
 		}
-
 	}
 
-	public boolean resolveBackwardIncompatibilities(ProtoFile file) {
+	public boolean resolveBackwardIncompatibilities(ProtoFile protoFile) {
+		LOGGER.debug("Trying to resolve backward incompabilities in file {}", protoFile);
 
 		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
 
-		ProtolockFile protolockFile = getProtolockFile(file);
+		ProtolockFile protolockFile = getProtolockFile(protoFile);
 
 		if (protolockFile != null) {
 
 			// For each enum on file level (global enums)
-			file.types().stream().filter(type -> type instanceof EnumType).map(enumType -> (EnumType) enumType).forEach(enumType -> {
+			protoFile.types().stream().filter(type -> type instanceof EnumType).map(enumType -> (EnumType) enumType).forEach(enumType -> {
 				Arrays.stream(protolockFile.getEnums()).filter(pe -> pe.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
 					copyReservations(protolockEnum, enumType);
 
-					if (enumConflictChecker.tryResolveEnumConflicts(file, enumType, protolockEnum)) {
+					if (enumConflictChecker.tryResolveEnumConflicts(protoFile, enumType, protolockEnum)) {
 						failIfRemovedFieldsTriggered.set(true);
 					}
 				});
 
 			});
 
-			file.types().stream().filter(z -> z instanceof MessageType).map(ke -> (MessageType) ke).forEach(e -> {
+			protoFile.types().stream().filter(z -> z instanceof MessageType).map(ke -> (MessageType) ke).forEach(e -> {
 				// For each root level message in file
 				ProtolockMessage protolockMessage = getProtolockMessage(protolockFile, e);
 				if (protolockMessage != null) {
-					if (resolveBackwardIncompatibilities(file, protolockMessage, e)) {
+					if (resolveBackwardIncompatibilities(protoFile, protolockMessage, e)) {
 						failIfRemovedFieldsTriggered.set(true);
 					}
 
@@ -134,24 +133,25 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return failIfRemovedFieldsTriggered.get();
 	}
 
-	private boolean resolveBackwardIncompatibilities(ProtoFile file, ProtolockMessage protolockMessage, MessageType e) {
+	private boolean resolveBackwardIncompatibilities(ProtoFile protoFile, ProtolockMessage protolockMessage, MessageType protoMessage) {
+		LOGGER.debug("Resolving backward compabilities in file {}, message {}", protoFile.name(), protoMessage);
 
 		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
 		// Copy previous reservations since the schema generator has no info about them
-		copyReservations(protolockMessage, e);
+		copyReservations(protolockMessage, protoMessage);
 
-		if (fieldConflictChecker.tryResolveFieldConflicts(file, e, protolockMessage)) {
+		if (fieldConflictChecker.tryResolveFieldConflicts(protoFile, protoMessage, protolockMessage)) {
 			failIfRemovedFieldsTriggered.set(true);
 		}
 
-		if (tryResolveEnumConflicts(file, e, protolockMessage)) {
+		if (tryResolveEnumConflicts(protoFile, protoMessage, protolockMessage)) {
 			failIfRemovedFieldsTriggered.set(true);
 		}
 
-		e.nestedTypes().stream().filter(type -> type instanceof MessageType).map(r -> (MessageType) r).forEach(nestedProtoMessage -> {
+		protoMessage.nestedTypes().stream().filter(type -> type instanceof MessageType).map(r -> (MessageType) r).forEach(nestedProtoMessage -> {
 			ProtolockMessage nestedProtolockMessage = getNestedProtolockMessage(protolockMessage, nestedProtoMessage);
 			if (nestedProtolockMessage != null) {
-				if (resolveBackwardIncompatibilities(file, nestedProtolockMessage, nestedProtoMessage)) {
+				if (resolveBackwardIncompatibilities(protoFile, nestedProtolockMessage, nestedProtoMessage)) {
 					failIfRemovedFieldsTriggered.set(true);
 				}
 			}
@@ -161,7 +161,8 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 	}
 
-	private boolean tryResolveEnumConflicts(ProtoFile file, MessageType protoMessage, ProtolockMessage protolockMessage) {
+	private boolean tryResolveEnumConflicts(ProtoFile protoFile, MessageType protoMessage, ProtolockMessage protolockMessage) {
+		LOGGER.debug("Trying to resolve enum conflicts in file {}, message {}", protoFile.name(), protoMessage);
 		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
 		// For each enum in proto, try to find mismatching enum values and resolve
 		protoMessage.nestedTypes().stream().filter(type -> type instanceof EnumType).map(type -> (EnumType) type).forEach(enumType -> {
@@ -169,7 +170,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 			if (protolockMessage.getEnums() != null) {
 				Arrays.stream(protolockMessage.getEnums()).filter(e -> e.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
 					copyReservations(protolockEnum, enumType);
-					if (enumConflictChecker.tryResolveEnumConflicts(file, enumType, protolockEnum)) {
+					if (enumConflictChecker.tryResolveEnumConflicts(protoFile, enumType, protolockEnum)) {
 						failIfRemovedFieldsTriggered.set(true);
 					}
 				});
@@ -178,18 +179,18 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return failIfRemovedFieldsTriggered.get();
 	}
 
-	private ProtolockMessage getProtolockMessage(ProtolockFile protolockFile, MessageType e) {
+	private ProtolockMessage getProtolockMessage(ProtolockFile protolockFile, MessageType protoMessage) {
 		if (protolockFile != null && protolockFile.getMessages() != null) {
-			return Arrays.stream(protolockFile.getMessages()).filter(message -> message.getName().equals(e.getName())).findFirst().orElse(null);
+			return Arrays.stream(protolockFile.getMessages()).filter(message -> message.getName().equals(protoMessage.getName())).findFirst().orElse(null);
 		}
 
 		return null;
 	}
 
-	private ProtolockMessage getNestedProtolockMessage(ProtolockMessage protolockMessage, MessageType nestedType) {
+	private ProtolockMessage getNestedProtolockMessage(ProtolockMessage protolockMessage, MessageType nestedProtoMessage) {
 		if (protolockMessage != null && protolockMessage.getMessages() != null) {
 			return Arrays.stream(protolockMessage.getMessages())
-					.filter(subMessage -> subMessage.getName().equals(nestedType.getName()))
+					.filter(subMessage -> subMessage.getName().equals(nestedProtoMessage.getName()))
 					.findFirst()
 					.orElse(null);
 		} else {
@@ -197,11 +198,11 @@ public class ProtolockBackwardsCompatibilityChecker {
 		}
 	}
 
-	private ProtolockFile getProtolockFile(ProtoFile file) {
-		String fullPath = file.toString();
+	private ProtolockFile getProtolockFile(ProtoFile protoFile) {
+		String fullPath = protoFile.toString();
 		if (!fullPath.contains("/")) {
 			// Assume no package in filename yet
-			fullPath = file.packageName().replace(".", "/") + "/" + file.toString();
+			fullPath = protoFile.packageName().replace(".", "/") + "/" + protoFile.toString();
 		}
 
 		for (ProtolockDefinition def : definitions.getDefinitions()) {
@@ -210,7 +211,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 			}
 		}
 
-		LOGGER.warn("Could not find a matching entry in proto.lock for {}", file.name());
+		LOGGER.warn("Could not find a matching entry in proto.lock for {}", protoFile.name());
 		return null;
 	}
 

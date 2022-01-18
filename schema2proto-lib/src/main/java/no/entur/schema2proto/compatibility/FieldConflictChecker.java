@@ -57,31 +57,34 @@ public class FieldConflictChecker {
 	public boolean tryResolveFieldConflicts(ProtoFile file, MessageType protoMessage, ProtolockMessage protolockMessage) {
 
 		// Compute helper maps
-		SortedSet<ProtolockField> lockFields = Collections.unmodifiableSortedSet(getFields(protolockMessage)); // from proto.lock
-		BiMap<String, Integer> lockFieldsInLockMapNameToId = createBiMap(lockFields);
+		SortedSet<ProtolockField> lockFileFields = Collections.unmodifiableSortedSet(getFields(protolockMessage)); // from proto.lock
+		BiMap<String, Integer> lockFieldsInLockMapNameToId = createBiMap(lockFileFields);
 		Map<Integer, String> lockFieldsInLockMapIdToName = lockFieldsInLockMapNameToId.inverse();
 
 		boolean allConflictsResolved = false;
 		while (!allConflictsResolved) {
-			SortedSet<ProtolockField> xsdFields2 = Collections.unmodifiableSortedSet(
+			SortedSet<ProtolockField> protoMessageFieldAsLockFields = Collections.unmodifiableSortedSet(
 					new TreeSet<>(protoMessage.fieldsAndOneOfFields().stream().map(f -> new ProtolockField(f.tag(), f.name())).collect(Collectors.toSet()))); // from
 
 			allConflictsResolved = true;
-			for (ProtolockField xsdField : xsdFields2) {
+			for (ProtolockField protoMessageFieldAsLockField : protoMessageFieldAsLockFields) {
+				LOGGER.debug("Checking proto message field {}", protoMessageFieldAsLockField);
+
 				// Is the ID the same as before?
 
-				if (lockFields.contains(xsdField)) {
+				if (!lockFileFields.contains(protoMessageFieldAsLockField)) {
+					LOGGER.debug("Lock file does not contain proto message field {}", protoMessageFieldAsLockField);
 
-				} else {
 					// Check if field is used by another field in lockfile
-					if (lockFieldsInLockMapIdToName.containsKey(xsdField.getId()) || lockFieldsInLockMapNameToId.containsKey(xsdField.getName())
-							|| isReserved(protolockMessage, xsdField)) {
+					if (lockFieldsInLockMapIdToName.containsKey(protoMessageFieldAsLockField.getId())
+							|| lockFieldsInLockMapNameToId.containsKey(protoMessageFieldAsLockField.getName())
+							|| isReserved(protolockMessage, protoMessageFieldAsLockField)) {
 
-						Integer originalIdForField = lockFieldsInLockMapNameToId.get(xsdField.getName());
+						Integer originalIdForField = lockFieldsInLockMapNameToId.get(protoMessageFieldAsLockField.getName());
 						if (originalIdForField == null) {
-							originalIdForField = findNextAvailableFieldNum(protoMessage, xsdFields2, lockFields).get();
+							originalIdForField = findNextAvailableFieldNum(protoMessage, protoMessageFieldAsLockFields, lockFileFields).get();
 						}
-						Optional<Field> intrudingField = getField(protoMessage, xsdField.getName());
+						Optional<Field> intrudingField = getField(protoMessage, protoMessageFieldAsLockField.getName());
 						intrudingField.get().updateTag(originalIdForField);
 
 						//
@@ -91,6 +94,8 @@ public class FieldConflictChecker {
 					// if yes assign a new number
 					// if no all ok
 					// tryResolveFieldConflicts(file, protoMessage, protolockMessage);
+				} else {
+					LOGGER.debug("Lock file contains proto message field {}", protoMessageFieldAsLockField);
 				}
 				// allConflictsResolved = true;
 			}
@@ -101,9 +106,9 @@ public class FieldConflictChecker {
 
 		// Find fields that are new
 		Set<ProtolockField> newFieldsInXsd = new TreeSet<>(xsdFields); // from parsed / converted xsd
-		newFieldsInXsd.removeAll(lockFields);
+		newFieldsInXsd.removeAll(lockFileFields);
 
-		Set<ProtolockField> surplusLockFields = new TreeSet<>(lockFields); // from proto.lock
+		Set<ProtolockField> surplusLockFields = new TreeSet<>(lockFileFields); // from proto.lock
 		surplusLockFields.removeAll(xsdFields);
 
 		if (!surplusLockFields.isEmpty()) {
@@ -187,15 +192,19 @@ public class FieldConflictChecker {
 
 	private boolean isReserved(ProtolockMessage protolockMessage, ProtolockField field) {
 
-		boolean reserved = false;
-		if (protolockMessage.getReservedIds() != null) {
-			reserved |= Arrays.stream(protolockMessage.getReservedIds()).anyMatch(e -> e == field.getId());
-		}
 		if (protolockMessage.getReservedNames() != null) {
-			reserved |= Arrays.stream(protolockMessage.getReservedNames()).anyMatch(e -> e.equals(field.getName()));
+			boolean reservedFieldName = Arrays.stream(protolockMessage.getReservedNames()).anyMatch(e -> e.equals(field.getName()));
+			if (reservedFieldName) {
+				throw new BackwardsCompatibilityCheckException("Field " + field.getName() + " in message " + protolockMessage.getName() + " has reappeared");
+			}
 		}
 
-		return reserved;
+		boolean reservedFieldNum = false;
+		if (protolockMessage.getReservedIds() != null) {
+			reservedFieldNum |= Arrays.stream(protolockMessage.getReservedIds()).anyMatch(e -> e == field.getId());
+		}
+
+		return reservedFieldNum;
 	}
 
 	private Optional<Field> getField(MessageType e, String fieldName) {

@@ -82,13 +82,12 @@ import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecke
 
 public class ProtoSerializer {
 
-	public static final String UNDERSCORE = "_";
-	public static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
-	public static final String XSDOPTIONS_PROTO_IMPORT = "xsd/xsd.proto";
-	public static final String DASH = "-";
-	protected static final String[] PACKABLE_SCALAR_TYPES = new String[] { "int32", "int64", "uint32", "uint64", "sint32", "sint64", "bool" };
-
-	protected static final Set<String> PACKABLE_SCALAR_TYPES_SET = new HashSet<>(Arrays.asList(PACKABLE_SCALAR_TYPES));
+	private static final String VALIDATION_PROTO_IMPORT = "validate/validate.proto";
+	private static final String XSDOPTIONS_PROTO_IMPORT = "xsd/xsd.proto";
+	private static final String UNDERSCORE = "_";
+	private static final String DASH = "-";
+	private static final String[] PACKABLE_SCALAR_TYPES = new String[] { "int32", "int64", "uint32", "uint64", "sint32", "sint64", "bool" };
+	private static final Set<String> PACKABLE_SCALAR_TYPES_SET = new HashSet<>(Arrays.asList(PACKABLE_SCALAR_TYPES));
 
 	private Schema2ProtoConfiguration configuration;
 
@@ -263,6 +262,7 @@ public class ProtoSerializer {
 	}
 
 	private boolean resolveBackwardIncompatibilities(Map<String, ProtoFile> packageToProtoFileMap) {
+		LOGGER.debug("Checking for backward incompatible changes");
 
 		AtomicBoolean possibleIncompatibilitiesDetected = new AtomicBoolean(false);
 
@@ -272,6 +272,7 @@ public class ProtoSerializer {
 			}
 		}
 
+		LOGGER.debug("Checking for backward incompatible changes - completed");
 		return possibleIncompatibilitiesDetected.get();
 	}
 
