@@ -262,6 +262,7 @@ public class ProtoSerializer {
 	}
 
 	private boolean resolveBackwardIncompatibilities(Map<String, ProtoFile> packageToProtoFileMap) {
+		LOGGER.debug("Checking for backward incompatible changes");
 
 		AtomicBoolean possibleIncompatibilitiesDetected = new AtomicBoolean(false);
 
@@ -271,6 +272,7 @@ public class ProtoSerializer {
 			}
 		}
 
+		LOGGER.debug("Checking for backward incompatible changes - completed");
 		return possibleIncompatibilitiesDetected.get();
 	}
 
