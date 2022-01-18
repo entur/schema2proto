@@ -30,11 +30,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
@@ -341,17 +343,17 @@ public class Schema2Proto {
 
 		configuration.outputFilename = configFile.outputFilename;
 
-		Map<Pattern, String> customTypeMappings = new LinkedHashMap<>();
+		SortedMap<Pattern, String> customTypeMappings = new TreeMap<>(Comparator.comparing(Pattern::pattern));
 		if (configFile.customTypeMappings != null) {
 			customTypeMappings.putAll(parseRegexpKeyValue(configFile.customTypeMappings));
 		}
 
-		Map<Pattern, String> customTypeReplacements = new LinkedHashMap<>();
+		SortedMap<Pattern, String> customTypeReplacements = new TreeMap<>(Comparator.comparing(Pattern::pattern));
 		if (configFile.customTypeReplacements != null) {
 			customTypeReplacements.putAll(parseRegexpKeyValue(configFile.customTypeReplacements));
 		}
 
-		Map<Pattern, String> customNameMappings = new LinkedHashMap<>();
+		SortedMap<Pattern, String> customNameMappings = new TreeMap<>(Comparator.comparing(Pattern::pattern));
 		if (configFile.customNameMappings != null) {
 			customNameMappings.putAll(parseRegexpKeyValue(configFile.customNameMappings));
 		}
@@ -440,7 +442,7 @@ public class Schema2Proto {
 		configuration.customTypeReplacements = parseRegexMap(cmd, OPTION_CUSTOM_TYPE_REPLACINGS);
 		configuration.customNameMappings = parseRegexMap(cmd, OPTION_CUSTOM_NAME_MAPPINGS);
 
-		HashMap<String, Object> options = new LinkedHashMap<>();
+		SortedMap<String, Object> options = new TreeMap<>();
 		if (cmd.hasOption(OPTION_OPTIONS)) {
 			for (String mapping : cmd.getOptionValue(OPTION_OPTIONS).split(",")) {
 				int colon = mapping.indexOf(':');
@@ -516,8 +518,8 @@ public class Schema2Proto {
 		return imports;
 	}
 
-	private static HashMap<Pattern, String> parseRegexMap(CommandLine cmd, String optionName) {
-		HashMap<Pattern, String> customTypeMappings = new LinkedHashMap<>();
+	private static SortedMap<Pattern, String> parseRegexMap(CommandLine cmd, String optionName) {
+		SortedMap<Pattern, String> customTypeMappings = new TreeMap<>();
 		if (cmd.hasOption(optionName)) {
 			for (String mapping : cmd.getOptionValue(optionName).split(",")) {
 				int colon = mapping.indexOf(':');
