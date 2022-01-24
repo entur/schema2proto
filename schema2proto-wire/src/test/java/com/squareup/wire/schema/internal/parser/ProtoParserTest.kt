@@ -1603,7 +1603,7 @@ class ProtoParserTest {
     fun stringWithSingleQuotes() {
         val proto = """
         |message Foo {
-        |  optional string name = 1[default = 'single\"quotes'];
+        |  optional string name = 1[default = 'single"quotes'];
         |}
         """.trimMargin()
 
