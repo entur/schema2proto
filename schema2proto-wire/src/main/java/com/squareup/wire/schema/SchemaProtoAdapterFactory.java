@@ -118,7 +118,7 @@ final class SchemaProtoAdapterFactory {
 		final EnumType enumType;
 
 		EnumAdapter(EnumType enumType) {
-			super(FieldEncoding.VARINT, null); // null == JvmClassMappingKt.getKotlinClass(Object.class)
+			super(FieldEncoding.VARINT, (Class<?>) null); // null == JvmClassMappingKt.getKotlinClass(Object.class)
 			this.enumType = enumType;
 		}
 
@@ -158,7 +158,7 @@ final class SchemaProtoAdapterFactory {
 		final boolean includeUnknown;
 
 		MessageAdapter(boolean includeUnknown) {
-			super(FieldEncoding.LENGTH_DELIMITED, null); // null = JvmClassMappingKt.getKotlinClass(Map.class)
+			super(FieldEncoding.LENGTH_DELIMITED, (Class<?>) null); // null = JvmClassMappingKt.getKotlinClass(Map.class)
 			this.includeUnknown = includeUnknown;
 		}
 
