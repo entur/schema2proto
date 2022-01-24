@@ -39,6 +39,7 @@ class OptionsTest {
             |message Bar {
             |  optional int32 a = 1 [(foo_options).opt1 = 123, (foo_options).opt2 = "baz"];
             |  optional int32 b = 2 [(foo_options) = { opt1: 456 opt2: "quux" }];
+            |  optional int32 c = 3 [(foo_options) = { opt2: "^([A-Z]{3}):([A-Za-z]+):([0-9ÆØÅæøåA-Za-z_\-]+)${'$'}" }];
             |}
             """.trimMargin()
                 )
@@ -53,6 +54,8 @@ class OptionsTest {
                 .isEqualTo(mapOf(fooOptions to mapOf(opt1 to "123".toBigDecimal(), opt2 to "baz")))
         assertThat(bar.field("b")!!.options().map())
                 .isEqualTo(mapOf(fooOptions to mapOf(opt1 to "456".toBigDecimal(), opt2 to "quux")))
+        assertThat(bar.field("c")!!.options().map())
+                .isEqualTo(mapOf(fooOptions to mapOf(opt2 to "^([A-Z]{3}):([A-Za-z]+):([0-9ÆØÅæøåA-Za-z_\\-]+)\$")))
     }
 
     @Test
@@ -178,9 +181,9 @@ class OptionsTest {
     }
 
     @Test
-    fun parseOneOfOptions(){
-        val schema =  RepoBuilder().add("foo.proto",
-            """
+    fun parseOneOfOptions() {
+        val schema = RepoBuilder().add("foo.proto",
+                """
         |import "google/protobuf/descriptor.proto";
         |message FooOptions {
         |  optional BarOptions bar = 2;
@@ -218,18 +221,17 @@ class OptionsTest {
         val boo = ProtoMember.get(Options.ONE_OF_OPTIONS, "required")
 
 
-
         val message = schema.getType("Message") as MessageType
         assertThat(message.field("b")!!.options().map())
-            .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "123".toBigDecimal()))))
+                .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "123".toBigDecimal()))))
 
 
         val oneOf = message.oneOfs().get(0)
         assertThat(oneOf.options().map())
-            .isEqualTo(mapOf(boo to true))
+                .isEqualTo(mapOf(boo to true))
 
         assertThat(message.field("c")!!.options().map())
-            .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "456".toBigDecimal()))))
+                .isEqualTo(mapOf(foo to mapOf(bar to mapOf(baz to "456".toBigDecimal()))))
 
         val chainedOptions = message.field("d")!!.options()
         assertThat(chainedOptions.map()).isNotEmpty
