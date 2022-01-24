@@ -173,6 +173,7 @@ public final class SyntaxReader {
 					break;
 				default:
 					// use char as-is
+					result.append('\\');
 					break;
 				}
 			}
