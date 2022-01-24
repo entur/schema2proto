@@ -21,7 +21,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.version>3.8.4</maven.version>
-        <owasp-dependency-check.version>6.5.2</owasp-dependency-check.version>
+        <owasp-dependency-check.version>6.5.3</owasp-dependency-check.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spotless.version>2.17.7</spotless.version>
