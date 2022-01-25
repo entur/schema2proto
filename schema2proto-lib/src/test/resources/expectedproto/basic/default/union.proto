@@ -5,6 +5,6 @@ package default;
 
 message DirectPositionList {
   uint32 count = 1;
-  // SimpleContent value of element
+
   string value = 2;
 }

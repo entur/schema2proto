@@ -56,15 +56,15 @@ import org.xml.sax.SAXParseException;
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Field;
-import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.OneOf;
 import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
-import com.squareup.wire.schema.ProtoFile.Syntax;
 import com.squareup.wire.schema.ProtoType;
 import com.squareup.wire.schema.Type;
+import com.squareup.wire.schema.Field.Label;
+import com.squareup.wire.schema.ProtoFile.Syntax;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.sun.xml.xsom.XSAttContainer;
 import com.sun.xml.xsom.XSAttGroupDecl;
@@ -95,8 +95,7 @@ public class SchemaParser implements ErrorHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaParser.class);
 	private static final String DEFAULT_PROTO_PRIMITIVE = "string";
-	private static final String SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION = "SimpleContent value of element";
-	public static final String VALUE = "value";
+	public static final String SIMPLECONTENT_VALUE_FIELD_NAME = "value";
 
 	private final Map<String, ProtoFile> packageToProtoFileMap = new TreeMap<>();
 
@@ -328,7 +327,7 @@ public class SchemaParser implements ErrorHandler {
 				processedXmlObjects.add(currElementDecl);
 
 				XSType type = currElementDecl.getType();
-				String fieldDoc = resolveDocumentationAnnotation(currElementDecl);
+				String fieldDoc = resolveDocumentationAnnotation(currElementDecl, false);
 				Location fieldLocation = getLocation(currElementDecl);
 
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
@@ -419,8 +418,8 @@ public class SchemaParser implements ErrorHandler {
 				fieldLocation = messageType.location();
 			}
 
-			Field field = new Field(null, fieldLocation, label, "any", resolveDocumentationAnnotation(currTerm.asWildcard()), messageType.getNextFieldNum(),
-					"anyType", fieldOptions, true);
+			Field field = new Field(null, fieldLocation, label, "any", resolveDocumentationAnnotation(currTerm.asWildcard(), false),
+					messageType.getNextFieldNum(), "anyType", fieldOptions, true);
 			addField(messageType, field);
 
 		} else {
@@ -443,7 +442,7 @@ public class SchemaParser implements ErrorHandler {
 
 	private void addOneOfField(MessageType messageType, XSSchemaSet schemaSet, Options fieldOptions, Location fieldLocation, OneOf oneOf,
 			XSElementDecl element) {
-		String doc = resolveDocumentationAnnotation(element);
+		String doc = resolveDocumentationAnnotation(element, false);
 
 		String typeName = element.getType().getName();
 		if (typeName == null) {
@@ -595,7 +594,7 @@ public class SchemaParser implements ErrorHandler {
 
 			if (messageType == null && !basicTypes.contains(typeName)) {
 
-				String doc = resolveDocumentationAnnotation(complexType);
+				String doc = resolveDocumentationAnnotation(complexType, true);
 				Location location = getLocation(complexType);
 
 				List<OptionElement> messageOptions = new ArrayList<>();
@@ -717,25 +716,26 @@ public class SchemaParser implements ErrorHandler {
 				Location fieldLocation = getLocation(xsSimpleType);
 				Label label = isList || isCurrentOrParentList(xsSimpleType) ? Label.REPEATED : null;
 				Options fieldOptions = getFieldOptions(xsSimpleType);
+				String doc = resolveDocumentationAnnotation(complexType, false);
 
 				if (name == null) {
 					String simpleTypeName = findFieldType(xsSimpleType);
 
 					String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(xsSimpleType.getTargetNamespace(),
 							configuration.forceProtoPackage);
-					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, VALUE,
-							SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(), simpleTypeName, fieldOptions, true);
+					Field field = new Field(basicTypes.contains(simpleTypeName) ? null : packageName, fieldLocation, label, SIMPLECONTENT_VALUE_FIELD_NAME, doc,
+							messageType.getNextFieldNum(), simpleTypeName, fieldOptions, true);
 					addField(messageType, field);
 
 				} else if (basicTypes.contains(name)) {
-					Field field = new Field(null, fieldLocation, label, VALUE, SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(), name,
-							fieldOptions, true);
+					Field field = new Field(null, fieldLocation, label, SIMPLECONTENT_VALUE_FIELD_NAME, doc, messageType.getNextFieldNum(), name, fieldOptions,
+							true);
 					addField(messageType, field);
 
 				} else {
 					XSSimpleType primitiveType = xsSimpleType.getPrimitiveType();
 					if (primitiveType != null) {
-						Field field = new Field(null, fieldLocation, label, VALUE, SIMPLECONTENT_VALUE_DEFAULT_DOCUMENTATION, messageType.getNextFieldNum(),
+						Field field = new Field(null, fieldLocation, label, SIMPLECONTENT_VALUE_FIELD_NAME, doc, messageType.getNextFieldNum(),
 								primitiveType.getName(), fieldOptions, true);
 						addField(messageType, field);
 
@@ -838,7 +838,7 @@ public class SchemaParser implements ErrorHandler {
 
 			if (type.getPrimitiveType() != null || type.isList() || type.isUnion()) {
 				String fieldName = decl.getName();
-				String doc = resolveDocumentationAnnotation(decl);
+				String doc = resolveDocumentationAnnotation(decl, false);
 				int tag = messageType.getNextFieldNum();
 				Location fieldLocation = getLocation(decl);
 				Options fieldOptions = getFieldOptions(decl);
@@ -954,7 +954,7 @@ public class SchemaParser implements ErrorHandler {
 
 			// Create new message type enclosed in existing
 
-			String doc = resolveDocumentationAnnotation(modelGroup);
+			String doc = resolveDocumentationAnnotation(modelGroup, false);
 			Location location = getLocation(modelGroup);
 
 			// Add message type to file
@@ -997,7 +997,7 @@ public class SchemaParser implements ErrorHandler {
 		}
 	}
 
-	private String resolveDocumentationAnnotation(XSComponent xsComponent) {
+	private String resolveDocumentationAnnotation(XSComponent xsComponent, boolean keepFirst) {
 		String doc = "";
 		if (xsComponent.getAnnotation() != null && xsComponent.getAnnotation().getAnnotation() instanceof Node) {
 			Node annotationEl = (Node) xsComponent.getAnnotation().getAnnotation();
@@ -1012,6 +1012,9 @@ public class SchemaParser implements ErrorHandler {
 						if (childNodes.item(j) instanceof Text) {
 							doc = childNodes.item(j).getNodeValue();
 						}
+					}
+					if (keepFirst) {
+						break;
 					}
 				}
 
@@ -1069,7 +1072,7 @@ public class SchemaParser implements ErrorHandler {
 			while (it.hasNext()) {
 				List<OptionElement> optionElements = new ArrayList<>();
 				XSFacet next = it.next();
-				String doc = resolveDocumentationAnnotation(next);
+				String doc = resolveDocumentationAnnotation(next, false);
 				String enumValue = next.getValue().value;
 
 				if (!addedValues.contains(enumValue)) {
@@ -1081,7 +1084,7 @@ public class SchemaParser implements ErrorHandler {
 			List<OptionElement> enumOptionElements = new ArrayList<>();
 			Options enumOptions = new Options(Options.ENUM_OPTIONS, enumOptionElements);
 
-			String doc = resolveDocumentationAnnotation(type);
+			String doc = resolveDocumentationAnnotation(type, false);
 
 			ProtoType definedProtoType;
 			if (enclosingType == null) {
