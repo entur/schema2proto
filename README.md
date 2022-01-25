@@ -6,6 +6,10 @@ This tool does 2 things:
 * Modifies existing proto files by adding, modifying and removing fields, messages etc. Also support for merging proto
   files using the same package
 
+# Artifacts
+
+Artifacts are pushed to maven central: https://search.maven.org/search?q=schema2proto
+
 ## Usage
 
 ### Standalone (Only for converting XSD to PROTO)
