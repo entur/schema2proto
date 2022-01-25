@@ -203,6 +203,12 @@ public class SchemaParserTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/packed.proto", generatedRootFolder, "default/default.proto");
 	}
 
+	@Test
+	public void testSimpleContentDoc() throws IOException {
+		generateProtobufNoOptions("basic/simplecontentdoc.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/simplecontentdoc.proto", generatedRootFolder, "default/default.proto");
+	}
+
 	// @Test
 	public void testIncludeXsdOptions() throws IOException {
 		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:complexType name="File">
+        <xsd:annotation>
+            <xsd:documentation>
+                My jdoc for the File class
+            </xsd:documentation>
+        </xsd:annotation>
+
+        <xsd:simpleContent>
+            <xsd:annotation>
+                <xsd:documentation>
+                    My jdoc for my "value" simpleContent
+                </xsd:documentation>
+            </xsd:annotation>
+
+            <xsd:extension base="xsd:base64Binary">
+                <xsd:attribute name="id" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The ID attribute of this file
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:schema>
