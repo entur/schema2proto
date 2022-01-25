@@ -1,0 +1,11 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+// My jdoc for the File class
+message File {
+  // The ID attribute of this file
+  string id = 1;
+  // My jdoc for my "value" simpleContent
+  bytes value = 2;
+}

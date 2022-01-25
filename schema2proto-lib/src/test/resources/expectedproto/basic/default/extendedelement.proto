@@ -3,7 +3,7 @@ syntax = "proto3";
 package default;
 
 message TariffZoneRefStructure {
-  // SimpleContent value of element
+
   string value = 1;
 }
 message RelationshipStructure {
@@ -19,7 +19,7 @@ message ValidityParameters_RelStructure {
   }
 }
 message TariffZoneRefType {
-  // SimpleContent value of element
+
   string value = 1;
 }
 message OneToManyRelationshipStructure {

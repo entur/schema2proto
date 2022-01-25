@@ -4,12 +4,12 @@ package default;
 
 message DirectPositionList {
   uint32 count = 1;
-  // SimpleContent value of element
+
   repeated double value = 2;
 }
 message DirectPositionType {
   uint32 count = 1;
-  // SimpleContent value of element
+
   repeated double value = 2;
 }
 // Allowed values for Payment method.
@@ -27,6 +27,6 @@ message UseOfSimpleTypeWithList {
 }
 message VectorType {
   uint32 count = 1;
-  // SimpleContent value of element
+
   repeated double value = 2;
 }

@@ -10,7 +10,7 @@ message TerminationResponseStatusStructure {
 
 message NaturalLanguagePlaceNameStructure {
     LangType lang = 1;
-    // SimpleContent value of element
+
     string value = 2;
 
 }

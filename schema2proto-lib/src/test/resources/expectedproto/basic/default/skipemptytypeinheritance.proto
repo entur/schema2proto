@@ -7,11 +7,11 @@ message A {
   ClassOfUseRefWithAttributesType class_of_use_ref_with_attributes = 2;
 }
 message ClassOfUseRefStructure {
-  // SimpleContent value of element
+
   string value = 1;
 }
 message ClassOfUseRefWithAttributesType {
   string attribute = 1;
-  // SimpleContent value of element
+
   string value = 2;
 }

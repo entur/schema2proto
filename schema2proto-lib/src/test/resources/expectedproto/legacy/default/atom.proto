@@ -32,7 +32,7 @@ message IdType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  // SimpleContent value of element
+  // The Atom id construct is defined in section 4.2.6 of the format spec.
   string value = 3;
 }
 // The Atom text construct is defined in section 3.1 of the format spec.
@@ -57,7 +57,6 @@ message DateTimeType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  // SimpleContent value of element
   uint64 value = 3;
 }
 // The Atom generator element is defined in section 4.2.4 of the format spec.
@@ -68,7 +67,7 @@ message GeneratorType {
   string base = 3;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 4;
-  // SimpleContent value of element
+  // The Atom generator element is defined in section 4.2.4 of the format spec.
   string value = 5;
 }
 // The Atom cagegory construct is defined in section 4.2.2 of the format spec.
@@ -136,7 +135,7 @@ message IconType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  // SimpleContent value of element
+  // The Atom icon construct is defined in section 4.2.5 of the format spec.
   string value = 3;
 }
 message UriType {
@@ -144,7 +143,7 @@ message UriType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  // SimpleContent value of element
+
   string value = 3;
 }
 // The Atom link construct is defined in section 3.4 of the format spec.
@@ -181,7 +180,7 @@ message LogoType {
   string base = 1;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 2;
-  // SimpleContent value of element
+  // The Atom logo construct is defined in section 4.2.8 of the format spec.
   string value = 3;
 }
 // The Atom content construct is defined in section 4.1.3 of the format spec.

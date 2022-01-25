@@ -19,19 +19,19 @@ message ConcreteCType {
 
 message SiteElementRefStructure {
   string ref = 1;
-  // SimpleContent value of element
+
   string value = 2;
 }
 
 message SiteComponentRefStructure {
   string ref = 2;
-  // SimpleContent value of element
+
   string value = 3;
 }
 
 message StopPlaceSpaceRefStructure {
   string ref = 2;
-  // SimpleContent value of element
+
   string value = 3;
 }
 
