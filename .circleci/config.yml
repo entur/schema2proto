@@ -32,9 +32,6 @@ aliases:
       git pull --no-edit
       git checkout develop
       mvn gitflow:release-start gitflow:release-finish -DskipTests=true -Dspotless.check.skip=true -Prelease -DpostReleaseGoals=deploy -DargLine='-Prelease -DskipTests' -B
-      git checkout master
-      git pull --no-edit
-      mvn deploy -DskipTests -Pentur-maven-central-local
       fi
 
   - &import_gpg_key
@@ -46,67 +43,12 @@ aliases:
     "\"<settings xsi:schemaLocation='http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd' xmlns='http://maven.apache.org/SETTINGS/1.1.0'
                   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
                 <servers>
-                <server>
-                       <username>$SONATYPE_USERNAME</username>
-                       <password>$SONATYPE_PASSWORD</password>
+                  <server>
+                    <username>$SONATYPE_USERNAME</username>
+                    <password>$SONATYPE_PASSWORD</password>
                     <id>ossrh</id>
                   </server>
-                  <server>
-                    <username>$ARTIFACTORY_USER</username>
-                    <password>$ARTIFACTORY_PASSWORD</password>
-                    <id>central</id>
-                  </server>
-                  <server>
-                    <username>$ARTIFACTORY_USER</username>
-                    <password>$ARTIFACTORY_PASSWORD</password>
-                    <id>snapshots</id>
-                  </server>
-                  <server>
-                    <username>$ARTIFACTORY_USER</username>
-                    <password>$ARTIFACTORY_PASSWORD</password>
-                    <id>entur-maven-central-local</id>
-                  </server>
                 </servers>
-              <profiles>
-            <profile>
-              <repositories>
-                <repository>
-                  <snapshots>
-                    <enabled>false</enabled>
-                  </snapshots>
-                  <id>central</id>
-                  <name>entur-team-kontobasert-billettering-release</name>
-                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-release</url>
-                </repository>
-                <repository>
-                  <snapshots />
-                  <id>snapshots</id>
-                  <name>entur-team-kontobasert-billettering-snapshot</name>
-                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-snapshot</url>
-                </repository>
-              </repositories>
-              <pluginRepositories>
-                <pluginRepository>
-                  <snapshots>
-                    <enabled>false</enabled>
-                  </snapshots>
-                  <id>central</id>
-                  <name>entur-team-kontobasert-billettering-release</name>
-                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-release</url>
-                </pluginRepository>
-                <pluginRepository>
-                  <snapshots />
-                  <id>snapshots</id>
-                  <name>entur-team-kontobasert-billettering-snapshot</name>
-                  <url>https://entur2.jfrog.io/entur2/entur-team-kontobasert-billettering-snapshot</url>
-                </pluginRepository>
-              </pluginRepositories>
-              <id>artifactory</id>
-            </profile>
-                </profiles>
-                <activeProfiles>
-                  <activeProfile>artifactory</activeProfile>
-                </activeProfiles>
               </settings>\""
 
 commands:
