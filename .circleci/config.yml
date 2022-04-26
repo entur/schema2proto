@@ -8,7 +8,7 @@ orbs:
 executors:
   java:
     docker:
-      - image: cimg/openjdk:11.0.13
+      - image: cimg/openjdk:17.0.3
         auth:
           username: $DOCKERHUB_LOGIN
           password: $DOCKERHUB_PASSWORD
