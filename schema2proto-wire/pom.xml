@@ -4,13 +4,13 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.55</version>
+        <version>1.56</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
     <properties>
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
-        <kotlin.version>1.6.10</kotlin.version>
+        <kotlin.version>1.6.21</kotlin.version>
         <wire.version>3.7.1</wire.version>
     </properties>
     <dependencies>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>31.0.1-jre</version>
+            <version>31.1-jre</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
