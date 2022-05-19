@@ -108,14 +108,15 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 			// For each enum on file level (global enums)
 			protoFile.types().stream().filter(type -> type instanceof EnumType).map(enumType -> (EnumType) enumType).forEach(enumType -> {
-				Arrays.stream(protolockFile.getEnums()).filter(pe -> pe.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
-					copyReservations(protolockEnum, enumType);
+				if (protolockFile.getEnums() != null) {
+					Arrays.stream(protolockFile.getEnums()).filter(pe -> pe.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
+						copyReservations(protolockEnum, enumType);
 
-					if (enumConflictChecker.tryResolveEnumConflicts(protoFile, enumType, protolockEnum)) {
-						failIfRemovedFieldsTriggered.set(true);
-					}
-				});
-
+						if (enumConflictChecker.tryResolveEnumConflicts(protoFile, enumType, protolockEnum)) {
+							failIfRemovedFieldsTriggered.set(true);
+						}
+					});
+				}
 			});
 
 			protoFile.types().stream().filter(z -> z instanceof MessageType).map(ke -> (MessageType) ke).forEach(e -> {
