@@ -4,13 +4,13 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.59</version>
+        <version>1.60</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
     <properties>
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
-        <kotlin.version>1.7.0</kotlin.version>
+        <kotlin.version>1.7.10</kotlin.version>
         <wire.version>3.7.1</wire.version>
     </properties>
     <dependencies>
