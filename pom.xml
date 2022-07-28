@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.67</version>
+    <version>1.68</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - XSD schema to protobuf.</description>
@@ -24,7 +24,7 @@
         <owasp-dependency-check.version>7.1.1</owasp-dependency-check.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotless.version>2.23.0</spotless.version>
+        <spotless.version>2.24.0</spotless.version>
     </properties>
     <build>
         <pluginManagement>
