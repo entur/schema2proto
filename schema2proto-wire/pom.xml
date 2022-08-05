@@ -11,7 +11,7 @@
     <properties>
         <junit.jupiter.version>5.9.0</junit.jupiter.version>
         <kotlin.version>1.7.10</kotlin.version>
-        <wire.version>3.7.1</wire.version>
+        <wire.version>4.4.1</wire.version>
     </properties>
     <dependencies>
         <dependency>
