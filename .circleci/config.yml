@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  maven: entur/maven-orb@0.0.10
+  maven: entur/maven-orb@0.0.11
   owasp: entur/owasp@0.0.18
   queue: eddiewebb/queue@volatile
 
