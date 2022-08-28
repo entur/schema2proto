@@ -4,7 +4,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.76</version>
+        <version>1.77</version>
     </parent>
     <artifactId>schema2proto-lib</artifactId>
     <packaging>jar</packaging>
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.30</version>
+            <version>1.31</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
