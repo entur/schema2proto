@@ -51,9 +51,9 @@ public abstract class AbstractBackwardsCompatTest {
 
 	protected void verify(String testname, boolean failOnRemovedFields, String protoFile) throws IOException {
 		ProtolockBackwardsCompatibilityChecker checker = new ProtolockBackwardsCompatibilityChecker();
-		checker.init(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder + "/" + lockFile));
+		checker.init(new File(String.join(File.pathSeparator, new[] { testdataBaseDirectory, testname, source, lockFile })));
 
-		Schema sourceSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder));
+		Schema sourceSchema = loadSchema(new File(String.join(File.pathSeparator, new[] { testdataBaseDirectory, testname, sourceFolder })));
 		link(sourceSchema, false, testname);
 		ProtoFile sourceProtofile = sourceSchema.protoFile(protoFile);
 
@@ -63,7 +63,7 @@ public abstract class AbstractBackwardsCompatTest {
 		boolean linkedOk = link(sourceSchema, true, testname);
 		assertTrue(linkedOk);
 
-		Schema expectedSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + expectedFolder));
+		Schema expectedSchema = loadSchema(new File(String.join(File.pathSeparator, new[] { testdataBaseDirectory, testname, expectedFolder })));
 		link(expectedSchema, false, testname);
 		ProtoFile expectedProtofile = expectedSchema.protoFile(protoFile);
 
