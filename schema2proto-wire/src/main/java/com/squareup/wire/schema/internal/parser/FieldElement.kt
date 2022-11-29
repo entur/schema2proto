@@ -35,7 +35,7 @@ data class FieldElement(
         appendDocumentation(this, documentation)
 
         if (label != null) {
-            append("${label.name.toLowerCase(Locale.US)} ")
+            append("${label.name.lowercase(Locale.US)} ")
         }
         append("$type $name = $tag")
 

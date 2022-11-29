@@ -215,7 +215,7 @@ public class ProtoSerializer {
 				ProtoFile protoFile = packageToProtoFileMap.entrySet().iterator().next().getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
 
-				File outputFile = new File(destFolder, configuration.outputFilename.toLowerCase());
+				File outputFile = new File(destFolder, configuration.outputFilename.lowercase());
 				try (Writer writer = new FileWriter(outputFile)) {
 					writer.write(protoFile.toSchema());
 
@@ -227,7 +227,7 @@ public class ProtoSerializer {
 			for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
 				ProtoFile protoFile = entry.getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
-				File outputFile = new File(destFolder, protoFile.location().getPath().toLowerCase());
+				File outputFile = new File(destFolder, protoFile.location().getPath().lowercase());
 
 				try (Writer writer = new FileWriter(outputFile)) {
 					writer.write(protoFile.toSchema());
@@ -560,7 +560,7 @@ public class ProtoSerializer {
 				return CaseFormat.UPPER_UNDERSCORE;
 			}
 		} else if (s.contains("-")) {
-			if (s.toLowerCase().equals(s)) {
+			if (s.lowercase().equals(s)) {
 				return CaseFormat.LOWER_HYPHEN;
 			}
 		} else {

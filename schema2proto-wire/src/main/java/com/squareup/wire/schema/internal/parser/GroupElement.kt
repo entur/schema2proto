@@ -32,7 +32,7 @@ data class GroupElement(
     fun toSchema() = buildString {
         appendDocumentation(this, documentation)
         if (label != null) {
-            append("${label.name.toLowerCase(Locale.US)} ")
+            append("${label.name.lowercase(Locale.US)} ")
         }
         append("group $name = $tag {")
         if (fields.isNotEmpty()) {
