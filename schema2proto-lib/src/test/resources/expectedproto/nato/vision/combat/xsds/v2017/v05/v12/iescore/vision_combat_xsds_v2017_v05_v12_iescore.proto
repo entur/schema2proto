@@ -1,0 +1,13 @@
+// vision_combat_xsds_v2017_v05_v12_iescore.proto at 0:0
+syntax = "proto3";
+package vision.combat.xsds.v2017.v05.v12.iescore;
+
+import "vision/combat/xsds/v2017/v05/v12/locations/vision_combat_xsds_v2017_v05_v12_locations.proto";
+
+message CoreLocationType {}
+message ThingType {
+  oneof CoreLocationType {
+    vision.combat.xsds.v2017.v05.v12.locations.LocationType location = 1;
+    vision.combat.xsds.v2017.v05.v12.locations.PointType point = 2;
+  }
+}
