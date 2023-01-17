@@ -39,10 +39,10 @@ public class DerivationBySubsumptionTest extends AbstractMappingTest {
 		Schema2Proto.main(new String[] { "--outputDirectory=target/generated-proto/nato/", "--derivationBySubsumption=true",
 				"src/test/resources/xsd/nato/Locations.xsd" });
 
-		compareExpectedAndGenerated(expectedRootFolder, "vision/combat/xsds/_2017/_05/_12/iescore/vision_combat_xsds__2017__05__12_iescore.proto",
-				generatedRootFolder, "vision/combat/xsds/_2017/_05/_12/iescore/vision_combat_xsds__2017__05__12_iescore.proto");
-		compareExpectedAndGenerated(expectedRootFolder, "vision/combat/xsds/_2017/_05/_12/locations/vision_combat_xsds__2017__05__12_locations.proto",
-				generatedRootFolder, "vision/combat/xsds/_2017/_05/_12/locations/vision_combat_xsds__2017__05__12_locations.proto");
+		compareExpectedAndGenerated(expectedRootFolder, "vision/combat/xsds/v2017/v05/v12/iescore/vision_combat_xsds_v2017_v05_v12_iescore.proto",
+				generatedRootFolder, "vision/combat/xsds/v2017/v05/v12/iescore/vision_combat_xsds_v2017_v05_v12_iescore.proto");
+		compareExpectedAndGenerated(expectedRootFolder, "vision/combat/xsds/v2017/v05/v12/locations/vision_combat_xsds_v2017_v05_v12_locations.proto",
+				generatedRootFolder, "vision/combat/xsds/v2017/v05/v12/locations/vision_combat_xsds_v2017_v05_v12_locations.proto");
 	}
 
 }
