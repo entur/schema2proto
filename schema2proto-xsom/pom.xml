@@ -15,7 +15,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.80</version>
+        <version>1.81</version>
     </parent>
     <artifactId>schema2proto-xsom</artifactId>
     <name>schema2proto-XSOM</name>
@@ -89,7 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>copy-relaxng-to-mp</id>
