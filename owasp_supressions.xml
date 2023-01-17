@@ -14,5 +14,13 @@
         <packageUrl regex="true">^pkg:maven/no\.entur/schema2proto\-wire@.*$</packageUrl>
         <cpe>cpe:/a:wire:wire</cpe>
     </suppress>
-
+    <suppress>
+        <!-- excessive memory use -->
+        <cve>CVE-2022-3064</cve>
+    </suppress>
+    <suppress>
+        <!-- parsing untrusted yaml -->
+        <cve>CVE-2022-1471</cve>
+    </suppress>
+    
 </suppressions>

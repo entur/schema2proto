@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.80-SNAPSHOT</version>
+    <version>1.81-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - XSD schema to protobuf.</description>
@@ -15,16 +15,16 @@
         <module>schema2proto-xsom</module>
     </modules>
     <properties>
-        <kotlin.version>1.7.22</kotlin.version>
+        <kotlin.version>1.8.0</kotlin.version>
         <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.version>3.8.6</maven.version>
-        <owasp-dependency-check.version>7.3.2</owasp-dependency-check.version>
+        <maven.version>3.8.7</maven.version>
+        <owasp-dependency-check.version>7.4.4</owasp-dependency-check.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotless.version>2.28.0</spotless.version>
+        <spotless.version>2.30.0</spotless.version>
     </properties>
     <build>
         <pluginManagement>
@@ -73,7 +73,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.7.0</version>
+                    <version>3.7.1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -96,7 +96,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-invoker-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.4.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
