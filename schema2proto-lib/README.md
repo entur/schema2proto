@@ -26,7 +26,7 @@ Generate proto files from xsd file. Either --configFile or --outputDirectory mus
                                                                                     true
     --includeSourceLocationInDoc <true|false>                                       include xsd source location relative to source xsd file
                                                                                     in docs, defaults to false
-    --includeValidationRules <true|false>                                           generate envoypropxy/protoc-gen-validate validation
+    --includeValidationRules <true|false>                                           generate bufbuild/protoc-gen-validate validation
                                                                                     rules from xsd rules
     --includeXsdOptions <true|false>                                                include message options describing the xsd type
                                                                                     hierarchy
@@ -43,6 +43,7 @@ Generate proto files from xsd file. Either --configFile or --outputDirectory mus
 
 ## Config parameters
 
-Each parameter is explained in the example config file. The parameters have identical name on the command line as well as in the config file.
+Each parameter is explained in the example config file. The parameters have identical name on the command line as well
+as in the config file.
 
 See [example configuration file with comments here](example_config) .
