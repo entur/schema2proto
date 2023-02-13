@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   maven: entur/maven-orb@0.0.12
   owasp: entur/owasp@0.0.18
-  queue: eddiewebb/queue@1.10.0
+  queue: eddiewebb/queue@1.12.0
 
 executors:
   java:
