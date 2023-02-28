@@ -231,7 +231,7 @@ public class Schema2Proto {
 				.longOpt(OPTION_INCLUDE_VALIDATION_RULES)
 				.hasArg()
 				.argName(TRUE_FALSE)
-				.desc("generate envoypropxy/protoc-gen-validate validation rules from xsd rules")
+				.desc("generate bufbuild/protoc-gen-validate validation rules from xsd rules")
 				.required(false)
 				.build());
 		commandLineOptions.addOption(Option.builder()

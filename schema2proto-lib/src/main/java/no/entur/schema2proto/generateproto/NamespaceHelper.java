@@ -141,7 +141,7 @@ public class NamespaceHelper {
 		String escapedPart = StringUtils.replaceEach(pathpart, new String[] { PACKAGE_SEPARATOR, "-", ":", "#" }, new String[] { "_", "_", "_", "_" });
 
 		if (Character.isDigit(escapedPart.charAt(0))) {
-			escapedPart = "_" + escapedPart; // Prefix leading number
+			escapedPart = "v" + escapedPart; // Prefix leading number
 		}
 		return escapedPart;
 	}

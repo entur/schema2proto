@@ -15,7 +15,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.80-SNAPSHOT</version>
+        <version>1.84-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-xsom</artifactId>
     <name>schema2proto-XSOM</name>
@@ -26,7 +26,7 @@
         <copyright.exclude.file>${project.basedir}/copyright-exclude</copyright.exclude.file>
         <copyright.template.file>${project.basedir}/copyright.txt</copyright.template.file>
         <findbugs.exclude>${project.basedir}/exclude-xsom.xml</findbugs.exclude>
-        <relaxng.version>4.0.1</relaxng.version>
+        <relaxng.version>4.0.2</relaxng.version>
     </properties>
     <dependencies>
         <dependency>
@@ -69,7 +69,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.11.0</version>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -89,7 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>copy-relaxng-to-mp</id>
@@ -103,7 +103,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.1</version>
                 <configuration>
                     <rules>
                         <requireJavaVersion>
