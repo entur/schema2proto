@@ -5,6 +5,7 @@ package com.schemas.domain.person;
 import "com/schemas/domain/address/com_schemas_domain_address.proto";
 import "com/schemas/domain/common/com_schemas_domain_common.proto";
 
+// A person
 message PersonType {
   com.schemas.domain.common.LangType lang = 1;
   string name = 2;
