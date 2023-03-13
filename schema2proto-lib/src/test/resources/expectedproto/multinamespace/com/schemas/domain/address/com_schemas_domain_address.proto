@@ -4,6 +4,7 @@ package com.schemas.domain.address;
 
 import "com/schemas/domain/common/com_schemas_domain_common.proto";
 
+// A physical postal address
 message AddressType {
   // Any lines of the address that are not city, postal code or country. For example region, street name and building name/number.
   AddressLinesType address_lines = 1;
@@ -11,6 +12,7 @@ message AddressType {
   string post_code = 3;
   com.schemas.domain.common.Country country = 4;
 
+  // Any lines of the address that are not city, postal code or country. For example region, street name and building name/number.
   message AddressLinesType {
     repeated string line = 1;
   }
