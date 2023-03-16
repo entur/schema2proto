@@ -47,6 +47,10 @@ newFields:
   - { targetMessageType: existingPackageName.ExistingMessageType, name: field_name,  type: packageName.FieldType, importProto: packageName/file.proto, label: repeated, fieldNumber: 12 }
   - { targetMessageType: existingPackageName.ExistingMessageType, name: field_name_2, type: FieldTypeCommon, importProto: packageName/file2.proto, fieldNumber: 13 }
 
+# Modify an existing field on an existing type. Note: All on same line (snake yaml)
+modifyFields:
+  - { targetMessageType: existingPackageName.ExistingMessageType, name: existing_field_name, documentationPattern: "(.*)", documentation: "Replaces matching regex pattern of the existing documentation with this text" }
+
 # Add new enum value to existing enum. Note: All on same line (snake yaml)
 newEnumConstants:
   - { targetEnumType: existingPackageName.ExistingEnumType, name: ENUM_CONSTANT_TYPE_NEW_VALUE, fieldNumber: 12, documentation: "Enum value documentation" }

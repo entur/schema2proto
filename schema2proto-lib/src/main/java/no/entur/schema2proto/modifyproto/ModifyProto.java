@@ -70,6 +70,7 @@ import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
 import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
+import no.entur.schema2proto.modifyproto.config.ModifyField;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
 import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
 import no.entur.schema2proto.modifyproto.config.NewField;
@@ -87,6 +88,7 @@ public class ModifyProto {
 			Constructor constructor = new Constructor(ModifyProtoConfigFile.class);
 			TypeDescription customTypeDescription = new TypeDescription(ModifyProtoConfigFile.class);
 			customTypeDescription.addPropertyParameters("newFields", NewField.class);
+			customTypeDescription.addPropertyParameters("modifyFields", ModifyField.class);
 			customTypeDescription.addPropertyParameters("mergeFrom", MergeFrom.class);
 			customTypeDescription.addPropertyParameters("valdiationRules", FieldOption.class);
 			constructor.addTypeDescription(customTypeDescription);
@@ -123,6 +125,10 @@ public class ModifyProto {
 
 			if (config.newFields != null) {
 				configuration.newFields = new ArrayList<>(config.newFields);
+			}
+
+			if (config.modifyFields != null) {
+				configuration.modifyFields = new ArrayList<>(config.modifyFields);
 			}
 
 			if (config.newEnumConstants != null) {
@@ -202,6 +208,10 @@ public class ModifyProto {
 
 		for (NewField newField : configuration.newFields) {
 			addField(newField, prunedSchema);
+		}
+
+		for (ModifyField modifyField : configuration.modifyFields) {
+			modifyField(modifyField, prunedSchema);
 		}
 
 		for (NewEnumConstant newEnumValue : configuration.newEnumConstants) {
@@ -434,6 +444,24 @@ public class ModifyProto {
 
 		}
 
+	}
+
+	private void modifyField(ModifyField modifyField, Schema prunedSchema) throws InvalidProtobufException {
+		MessageType type = (MessageType) prunedSchema.getType(modifyField.targetMessageType);
+		if (type == null) {
+			throw new InvalidProtobufException("Did not find existing type " + modifyField.targetMessageType);
+		}
+		Field field = type.field(modifyField.field);
+		if (field == null) {
+			throw new InvalidProtobufException("Did not find existing field " + modifyField.field);
+		}
+		if (modifyField.documentation != null) {
+			if (modifyField.documentationPattern != null) {
+				field.updateDocumentation(field.documentation().replaceAll(modifyField.documentationPattern, modifyField.documentation));
+			} else {
+				field.updateDocumentation(modifyField.documentation);
+			}
+		}
 	}
 
 	public void addFieldOption(FieldOption fieldOption, Schema prunedSchema) throws InvalidProtobufException {
