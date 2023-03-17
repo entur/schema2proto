@@ -35,6 +35,7 @@ import no.entur.schema2proto.AbstractMappingTest;
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
+import no.entur.schema2proto.modifyproto.config.ModifyField;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
 import no.entur.schema2proto.modifyproto.config.NewField;
 
@@ -181,6 +182,31 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
 
+	}
+
+	@Test
+	public void testModifyField() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
+
+		ModifyField modifyField = new ModifyField();
+		modifyField.targetMessageType = "A";
+		modifyField.field = "response_timestamp";
+		modifyField.documentationPattern = "(^.*$)";
+		modifyField.documentation = "[Additional documentation] $1";
+
+		ModifyField modifyField2 = new ModifyField();
+		modifyField2.targetMessageType = "B";
+		modifyField2.field = "value";
+		modifyField2.documentationPattern = null;
+		modifyField2.documentation = "Whole documentation replaced";
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.modifyFields = Arrays.asList(modifyField, modifyField2);
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "modifyfield.proto", generatedRootFolder, "simple.proto");
 	}
 
 	@Test

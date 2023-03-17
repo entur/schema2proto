@@ -54,7 +54,7 @@ public final class Field {
 	private final Location location;
 	private Label label;
 	private String name;
-	private final String documentation;
+	private String documentation;
 	private int tag;
 	private final String defaultValue;
 	private String elementType;
@@ -299,6 +299,10 @@ public final class Field {
 
 	public void updateName(String newFieldName) {
 		name = newFieldName;
+	}
+
+	public void updateDocumentation(String newDocumentation) {
+		documentation = newDocumentation;
 	}
 
 	public String getElementType() {
