@@ -26,6 +26,7 @@ import java.util.List;
 
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
+import no.entur.schema2proto.modifyproto.config.ModifyField;
 import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
 import no.entur.schema2proto.modifyproto.config.NewField;
 
@@ -35,6 +36,7 @@ public class ModifyProtoConfigFile {
 	public List<String> includes;
 	public List<String> excludes;
 	public List<NewField> newFields;
+	public List<ModifyField> modifyFields;
 	public List<MergeFrom> mergeFrom;
 	public List<String> customImportLocations;
 	public List<NewEnumConstant> newEnumConstants;
