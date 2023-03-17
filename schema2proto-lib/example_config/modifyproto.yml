@@ -49,7 +49,8 @@ newFields:
 
 # Modify an existing field on an existing type. Note: All on same line (snake yaml)
 modifyFields:
-  - { targetMessageType: existingPackageName.ExistingMessageType, name: existing_field_name, documentationPattern: "(.*)", documentation: "Replaces matching regex pattern of the existing documentation with this text" }
+  - { targetMessageType: existingPackageName.ExistingMessageType, name: existing_field_name, documentation: "This documentation completely replaces existing documentation on the field." }
+  - { targetMessageType: existingPackageName.ExistingMessageType, name: existing_field_name2, documentationPattern: "(.*)", documentation: "Replaces matching regex pattern of the existing documentation with this text - matching groups supported $1" }
 
 # Add new enum value to existing enum. Note: All on same line (snake yaml)
 newEnumConstants:
