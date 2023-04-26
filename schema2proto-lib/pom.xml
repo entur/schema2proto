@@ -9,7 +9,7 @@
     <artifactId>schema2proto-lib</artifactId>
     <packaging>jar</packaging>
     <properties>
-        <junit.jupiter.version>5.9.2</junit.jupiter.version>
+        <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <protobuf.version>3.22.3</protobuf.version>
     </properties>
     <dependencies>
