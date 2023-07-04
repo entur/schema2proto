@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.entur</groupId>
     <artifactId>schema2proto-parent</artifactId>
-    <version>1.85</version>
+    <version>1.86</version>
     <packaging>pom</packaging>
     <name>Schema 2 proto parent pom</name>
     <description>Schema2proto - XSD schema to protobuf.</description>
@@ -15,16 +15,36 @@
         <module>schema2proto-xsom</module>
     </modules>
     <properties>
-        <kotlin.version>1.8.10</kotlin.version>
+        <assertj.version>3.24.2</assertj.version>
+        <commons-cli.version>1.5.0</commons-cli.version>
+        <commons-io.version>2.13.0</commons-io.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-text.version>1.10.0</commons-text.version>
+        <gson.version>2.10.1</gson.version>
+        <guava.version>32.1.1-jre</guava.version>
+        <java-diff-utils.version>4.12</java-diff-utils.version>
+        <jimfs.version>1.2</jimfs.version>
+        <junit.jupiter.version>5.9.3</junit.jupiter.version>
+        <junit.version>4.13.2</junit.version>
+        <kotlin.version>1.8.22</kotlin.version>
         <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
-        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+        <maven-plugin-annotations.version>3.9.0</maven-plugin-annotations.version>
+        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.version>3.9.0</maven.version>
-        <owasp-dependency-check.version>8.1.2</owasp-dependency-check.version>
+        <maven.version>3.9.2</maven.version>
+        <okio.version>3.3.0</okio.version>
+        <owasp-dependency-check.version>8.3.1</owasp-dependency-check.version>
+        <pgv-java-stub.version>0.10.1</pgv-java-stub.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spotless.version>2.35.0</spotless.version>
+        <protobuf.version>3.23.3</protobuf.version>
+        <relaxng.version>4.0.3</relaxng.version>
+        <slf4j.version>2.0.7</slf4j.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
+        <spotless.version>2.37.0</spotless.version>
+        <urnlib.version>2.0.1</urnlib.version>
+        <wire.version>3.7.1</wire.version>
     </properties>
     <build>
         <pluginManagement>
@@ -32,7 +52,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>2.0.0</version>
+                    <version>2.1.0</version>
                     <configuration>
                         <organizationName>Entur</organizationName>
                         <inceptionYear>2019</inceptionYear>
@@ -65,15 +85,15 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.9.0</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -85,18 +105,18 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.1.1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.1.1</version>
                     <configuration>
                         <deployAtEnd>true</deployAtEnd>
                     </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-invoker-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.6.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -146,7 +166,7 @@
             <plugin>
                 <groupId>com.amashchenko.maven.plugin</groupId>
                 <artifactId>gitflow-maven-plugin</artifactId>
-                <version>1.19.0</version>
+                <version>1.20.0</version>
                 <configuration>
                     <allowSnapshots>false</allowSnapshots>
                     <verbose>true</verbose>
@@ -252,7 +272,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.1.0</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
