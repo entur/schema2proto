@@ -26,7 +26,6 @@
         <copyright.exclude.file>${project.basedir}/copyright-exclude</copyright.exclude.file>
         <copyright.template.file>${project.basedir}/copyright.txt</copyright.template.file>
         <findbugs.exclude>${project.basedir}/exclude-xsom.xml</findbugs.exclude>
-        <relaxng.version>4.0.3</relaxng.version>
     </properties>
     <dependencies>
         <dependency>
@@ -37,7 +36,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

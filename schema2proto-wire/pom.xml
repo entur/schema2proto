@@ -8,11 +8,6 @@
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
-    <properties>
-        <junit.jupiter.version>5.9.3</junit.jupiter.version>
-        <kotlin.version>1.8.22</kotlin.version>
-        <wire.version>3.7.1</wire.version>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -22,12 +17,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>31.1-jre</version>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
+            <version>${commons-lang3.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -38,18 +33,18 @@
         <dependency>
             <groupId>com.squareup.okio</groupId>
             <artifactId>okio</artifactId>
-            <version>3.3.0</version>
+            <version>${okio.version}</version>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.24.2</version>
+            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.java-diff-utils</groupId>
             <artifactId>java-diff-utils</artifactId>
-            <version>4.12</version>
+            <version>${java-diff-utils.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -61,7 +56,7 @@
         <dependency>
             <groupId>com.google.jimfs</groupId>
             <artifactId>jimfs</artifactId>
-            <version>1.2</version>
+            <version>${jimfs.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
