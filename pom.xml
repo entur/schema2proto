@@ -26,7 +26,7 @@
         <jimfs.version>1.2</jimfs.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <junit.version>4.13.2</junit.version>
-        <kotlin.version>1.8.22</kotlin.version>
+        <kotlin.version>1.9.0</kotlin.version>
         <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
         <maven-plugin-annotations.version>3.9.0</maven-plugin-annotations.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
