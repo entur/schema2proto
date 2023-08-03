@@ -32,7 +32,7 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.version>3.9.3</maven.version>
+        <maven.version>3.9.4</maven.version>
         <okio.version>3.5.0</okio.version>
         <owasp-dependency-check.version>8.3.1</owasp-dependency-check.version>
         <pgv-java-stub.version>0.10.1</pgv-java-stub.version>
