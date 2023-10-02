@@ -7,12 +7,12 @@
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- *
+ * 
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- *
+ * 
  * http://ec.europa.eu/idabc/eupl5
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -215,7 +215,7 @@ public class ProtoSerializer {
 				ProtoFile protoFile = packageToProtoFileMap.entrySet().iterator().next().getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
 
-				File outputFile = new File(destFolder, configuration.outputFilename.toLowerCase());
+				File outputFile = new File(destFolder, configuration.outputFilename.lowercase());
 				try (Writer writer = new FileWriter(outputFile)) {
 					writer.write(protoFile.toSchema());
 
@@ -227,7 +227,7 @@ public class ProtoSerializer {
 			for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
 				ProtoFile protoFile = entry.getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
-				File outputFile = new File(destFolder, protoFile.location().getPath().toLowerCase());
+				File outputFile = new File(destFolder, protoFile.location().getPath().lowercase());
 
 				try (Writer writer = new FileWriter(outputFile)) {
 					writer.write(protoFile.toSchema());
@@ -560,7 +560,7 @@ public class ProtoSerializer {
 				return CaseFormat.UPPER_UNDERSCORE;
 			}
 		} else if (s.contains("-")) {
-			if (s.toLowerCase().equals(s)) {
+			if (s.lowercase().equals(s)) {
 				return CaseFormat.LOWER_HYPHEN;
 			}
 		} else {
@@ -877,7 +877,7 @@ public class ProtoSerializer {
 				// Add import
 				ProtoFile fileToImport = packageToProtoFileMap.get(packageName);
 				if (fileToImport != null) {
-					imports.add(getPathFromPackageNameAndType(packageName, messageType) + "/" + fileToImport.location().getPath());
+					imports.add(getPathFromPackageNameAndType(packageName, messageType) + File.separator + fileToImport.location().getPath());
 				} else {
 					LOGGER.error("Tried to create import for field packageName {}, but no such protofile exist", packageName);
 				}
