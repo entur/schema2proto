@@ -33,9 +33,9 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.version>3.9.4</maven.version>
+        <maven.version>3.9.6</maven.version>
         <okio.version>3.6.0</okio.version>
-        <owasp-dependency-check.version>8.4.0</owasp-dependency-check.version>
+        <owasp-dependency-check.version>9.0.10</owasp-dependency-check.version>
         <pgv-java-stub.version>0.10.1</pgv-java-stub.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -387,6 +387,7 @@
                 <configuration>
                     <failBuildOnCVSS>7</failBuildOnCVSS>
                     <failOnError>true</failOnError>
+                    <nvdApiKey>${NVD_API_KEY}</nvdApiKey>
                     <skipTestScope>true</skipTestScope>
                     <!-- suppressionFiles: see https://jeremylong.github.io/DependencyCheck/general/suppression.html -->
                     <suppressionFiles>
