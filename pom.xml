@@ -40,7 +40,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <protobuf.version>3.24.3</protobuf.version>
-        <relaxng.version>4.0.3</relaxng.version>
+        <relaxng.version>4.0.5</relaxng.version>
         <slf4j.version>2.0.9</slf4j.version>
         <snakeyaml.version>1.33</snakeyaml.version>
         <spotless.version>2.40.0</spotless.version>
