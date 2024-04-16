@@ -161,10 +161,14 @@ workflows:
       not:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
-      - checkout-verify-deploy:
-          context: global
-          filters:
-            branches:
-              ignore:
-                - develop
-                - main
+      checkout-and-verify:
+        executor: java
+        environment:
+          MAVEN_OPTS: -Xmx1024m
+        steps:
+          - checkout
+          - generate-maven-settings-file:
+              settings-file: *maven-settings-file
+          - maven/with_cache:
+              steps:
+                - run: mvn clean verify -U -T 1C
