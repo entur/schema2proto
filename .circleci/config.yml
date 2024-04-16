@@ -161,7 +161,7 @@ workflows:
       not:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
-      - checkout-and-verify:
+      - checkout-verify-deploy:
           context: global
           filters:
             branches:
