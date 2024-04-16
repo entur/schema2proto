@@ -64,6 +64,18 @@ commands:
             echo -e << parameters.settings-file >> > ~/.m2/settings.xml
 
 jobs:
+  checkout-and-verify:
+    executor: java
+    environment:
+      MAVEN_OPTS: -Xmx1024m
+    steps:
+      - checkout
+      - generate-maven-settings-file:
+          settings-file: *maven-settings-file
+      - maven/with_cache:
+          steps:
+            - run: mvn clean verify -U -T 1C
+
   checkout-verify-deploy:
     executor: java
     environment:
@@ -161,14 +173,10 @@ workflows:
       not:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
-      checkout-and-verify:
-        executor: java
-        environment:
-          MAVEN_OPTS: -Xmx1024m
-        steps:
-          - checkout
-          - generate-maven-settings-file:
-              settings-file: *maven-settings-file
-          - maven/with_cache:
-              steps:
-                - run: mvn clean verify -U -T 1C
+      - checkout-and-verify:
+          context: global
+          filters:
+            branches:
+              ignore:
+                - develop
+                - main
