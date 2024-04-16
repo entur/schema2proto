@@ -155,3 +155,16 @@ workflows:
             branches:
               only:
                 - develop
+
+  feature-flow:
+    when:
+      not:
+        equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
+    jobs:
+      - checkout-and-verify:
+          context: global
+          filters:
+            branches:
+              ignore:
+                - develop
+                - main
