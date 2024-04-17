@@ -41,7 +41,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <protobuf.version>4.26.1</protobuf.version>
         <relaxng.version>4.0.5</relaxng.version>
-        <slf4j.version>2.0.9</slf4j.version>
+        <slf4j.version>2.0.13</slf4j.version>
         <snakeyaml.version>1.33</snakeyaml.version>
         <spotless.version>2.43.0</spotless.version>
         <urnlib.version>2.0.1</urnlib.version>
