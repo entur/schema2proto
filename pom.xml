@@ -36,7 +36,7 @@
         <maven.version>3.9.6</maven.version>
         <okio.version>3.6.0</okio.version>
         <owasp-dependency-check.version>9.1.0</owasp-dependency-check.version>
-        <pgv-java-stub.version>0.10.1</pgv-java-stub.version>
+        <pgv-java-stub.version>1.0.4</pgv-java-stub.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <protobuf.version>3.24.3</protobuf.version>
