@@ -29,7 +29,7 @@ You can use the tool [protolock](https://github.com/nilslice/protolock) to verif
 or id.
 
 If you are using the Maven there is a plugin as well: https://github.com/salesforce/proto-backwards-compat-maven-plugin
- 
+
 Only automatic resolving of field name/id conflicts have been implemented so far.
 
 ## Contribution
