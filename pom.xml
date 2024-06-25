@@ -39,7 +39,7 @@
         <pgv-java-stub.version>1.0.4</pgv-java-stub.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <protobuf.version>4.27.1</protobuf.version>
+        <protobuf.version>4.27.2</protobuf.version>
         <relaxng.version>4.0.5</relaxng.version>
         <slf4j.version>2.0.13</slf4j.version>
         <snakeyaml.version>1.33</snakeyaml.version>
