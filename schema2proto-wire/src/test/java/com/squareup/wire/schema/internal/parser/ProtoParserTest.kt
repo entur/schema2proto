@@ -59,153 +59,60 @@ class ProtoParserTest {
         """.trimMargin()
 
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "Types",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = REQUIRED,
-                                                type = "any",
-                                                name = "f1",
-                                                tag = 1
-                                        ),
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                label = REQUIRED,
-                                                type = "bool",
-                                                name = "f2",
-                                                tag = 2
-                                        ),
-                                        FieldElement(
-                                                location = location.at(4, 3),
-                                                label = REQUIRED,
-                                                type = "bytes",
-                                                name = "f3",
-                                                tag = 3
-                                        ),
-                                        FieldElement(
-                                                location = location.at(5, 3),
-                                                label = REQUIRED,
-                                                type = "double",
-                                                name = "f4",
-                                                tag = 4
-                                        ),
-                                        FieldElement(
-                                                location = location.at(6, 3),
-                                                label = REQUIRED,
-                                                type = "float",
-                                                name = "f5",
-                                                tag = 5
-                                        ),
-                                        FieldElement(
-                                                location = location.at(7, 3),
-                                                label = REQUIRED,
-                                                type = "fixed32",
-                                                name = "f6",
-                                                tag = 6
-                                        ),
-                                        FieldElement(
-                                                location = location.at(8, 3),
-                                                label = REQUIRED,
-                                                type = "fixed64",
-                                                name = "f7",
-                                                tag = 7
-                                        ),
-                                        FieldElement(
-                                                location = location.at(9, 3),
-                                                label = REQUIRED,
-                                                type = "int32",
-                                                name = "f8",
-                                                tag = 8
-                                        ),
-                                        FieldElement(
-                                                location = location.at(10, 3),
-                                                label = REQUIRED,
-                                                type = "int64",
-                                                name = "f9",
-                                                tag = 9
-                                        ),
-                                        FieldElement(
-                                                location = location.at(11, 3),
-                                                label = REQUIRED,
-                                                type = "sfixed32",
-                                                name = "f10",
-                                                tag = 10
-                                        ),
-                                        FieldElement(
-                                                location = location.at(12, 3),
-                                                label = REQUIRED,
-                                                type = "sfixed64",
-                                                name = "f11",
-                                                tag = 11
-                                        ),
-                                        FieldElement(
-                                                location = location.at(13, 3),
-                                                label = REQUIRED,
-                                                type = "sint32",
-                                                name = "f12",
-                                                tag = 12
-                                        ),
-                                        FieldElement(
-                                                location = location.at(14, 3),
-                                                label = REQUIRED,
-                                                type = "sint64",
-                                                name = "f13",
-                                                tag = 13
-                                        ),
-                                        FieldElement(
-                                                location = location.at(15, 3),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "f14",
-                                                tag = 14
-                                        ),
-                                        FieldElement(
-                                                location = location.at(16, 3),
-                                                label = REQUIRED,
-                                                type = "uint32",
-                                                name = "f15",
-                                                tag = 15
-                                        ),
-                                        FieldElement(
-                                                location = location.at(17, 3),
-                                                label = REQUIRED,
-                                                type = "uint64",
-                                                name = "f16",
-                                                tag = 16
-                                        ),
-                                        FieldElement(
-                                                location = location.at(18, 3),
-                                                type = "map<string, bool>",
-                                                name = "f17",
-                                                tag = 17
-                                        ),
-                                        FieldElement(
-                                                location = location.at(19, 3),
-                                                type = "map<arbitrary, nested.nested>",
-                                                name = "f18",
-                                                tag = 18
-                                        ),
-                                        FieldElement(
-                                                location = location.at(20, 3),
-                                                label = REQUIRED,
-                                                type = "arbitrary",
-                                                name = "f19",
-                                                tag = 19
-                                        ),
-                                        FieldElement(
-                                                location = location.at(21, 3),
-                                                label = REQUIRED,
-                                                type = "nested.nested",
-                                                name = "f20",
-                                                tag = 20
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "Types", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3), label = REQUIRED, type = "any", name = "f1", tag = 1
+                        ), FieldElement(
+                            location = location.at(3, 3), label = REQUIRED, type = "bool", name = "f2", tag = 2
+                        ), FieldElement(
+                            location = location.at(4, 3), label = REQUIRED, type = "bytes", name = "f3", tag = 3
+                        ), FieldElement(
+                            location = location.at(5, 3), label = REQUIRED, type = "double", name = "f4", tag = 4
+                        ), FieldElement(
+                            location = location.at(6, 3), label = REQUIRED, type = "float", name = "f5", tag = 5
+                        ), FieldElement(
+                            location = location.at(7, 3), label = REQUIRED, type = "fixed32", name = "f6", tag = 6
+                        ), FieldElement(
+                            location = location.at(8, 3), label = REQUIRED, type = "fixed64", name = "f7", tag = 7
+                        ), FieldElement(
+                            location = location.at(9, 3), label = REQUIRED, type = "int32", name = "f8", tag = 8
+                        ), FieldElement(
+                            location = location.at(10, 3), label = REQUIRED, type = "int64", name = "f9", tag = 9
+                        ), FieldElement(
+                            location = location.at(11, 3), label = REQUIRED, type = "sfixed32", name = "f10", tag = 10
+                        ), FieldElement(
+                            location = location.at(12, 3), label = REQUIRED, type = "sfixed64", name = "f11", tag = 11
+                        ), FieldElement(
+                            location = location.at(13, 3), label = REQUIRED, type = "sint32", name = "f12", tag = 12
+                        ), FieldElement(
+                            location = location.at(14, 3), label = REQUIRED, type = "sint64", name = "f13", tag = 13
+                        ), FieldElement(
+                            location = location.at(15, 3), label = REQUIRED, type = "string", name = "f14", tag = 14
+                        ), FieldElement(
+                            location = location.at(16, 3), label = REQUIRED, type = "uint32", name = "f15", tag = 15
+                        ), FieldElement(
+                            location = location.at(17, 3), label = REQUIRED, type = "uint64", name = "f16", tag = 16
+                        ), FieldElement(
+                            location = location.at(18, 3), type = "map<string, bool>", name = "f17", tag = 17
+                        ), FieldElement(
+                            location = location.at(19, 3),
+                            type = "map<arbitrary, nested.nested>",
+                            name = "f18",
+                            tag = 18
+                        ), FieldElement(
+                            location = location.at(20, 3), label = REQUIRED, type = "arbitrary", name = "f19", tag = 19
+                        ), FieldElement(
+                            location = location.at(21, 3),
+                            label = REQUIRED,
+                            type = "nested.nested",
+                            name = "f20",
+                            tag = 20
                         )
+                    )
                 )
+            )
         )
 
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
@@ -218,7 +125,7 @@ class ProtoParserTest {
             Assertions.assertTrue(false)
         } catch (e: IllegalStateException) {
             assertThat(e).hasMessage(
-                    "Syntax error in file.proto at 1:15: 'map' type cannot have label"
+                "Syntax error in file.proto at 1:15: 'map' type cannot have label"
             )
         }
 
@@ -227,7 +134,7 @@ class ProtoParserTest {
             Assertions.assertTrue(false)
         } catch (e: IllegalStateException) {
             assertThat(e).hasMessage(
-                    "Syntax error in file.proto at 1:15: 'map' type cannot have label"
+                "Syntax error in file.proto at 1:15: 'map' type cannot have label"
             )
         }
 
@@ -236,7 +143,7 @@ class ProtoParserTest {
             Assertions.assertTrue(false)
         } catch (e: IllegalStateException) {
             assertThat(e).hasMessage(
-                    "Syntax error in file.proto at 1:15: 'map' type cannot have label"
+                "Syntax error in file.proto at 1:15: 'map' type cannot have label"
             )
         }
     }
@@ -251,24 +158,21 @@ class ProtoParserTest {
         |""".trimMargin()
 
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "Message",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "a",
-                                                defaultValue = "b",
-                                                options = listOf(OptionElement.create("faulted", Kind.STRING, "c")),
-                                                tag = 1
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "Message", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3),
+                            label = REQUIRED,
+                            type = "string",
+                            name = "a",
+                            defaultValue = "b",
+                            options = listOf(OptionElement.create("faulted", Kind.STRING, "c")),
+                            tag = 1
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -495,7 +399,7 @@ class ProtoParserTest {
             ProtoParser.parse(location, proto)
         } catch (e: IllegalStateException) {
             assertThat(e).hasMessage(
-                    "Syntax error in file.proto at 2:40: no syntax may follow trailing comment"
+                "Syntax error in file.proto at 2:40: no syntax may follow trailing comment"
             )
         }
     }
@@ -511,7 +415,7 @@ class ProtoParserTest {
             ProtoParser.parse(location, proto)
         } catch (e: IllegalStateException) {
             assertThat(e).hasMessage(
-                    "Syntax error in file.proto at 2:12: expected '//' or '/*'"
+                "Syntax error in file.proto at 2:12: expected '//' or '/*'"
             )
         }
     }
@@ -533,10 +437,7 @@ class ProtoParserTest {
     @Test
     fun trailingCommentNotCombinedWhenEmpty() {
         // Can't use raw strings here; otherwise, the formatter removes the trailing whitespace on line 3.
-        val proto = "enum Test {\n" +
-                "  // Test all...\n" +
-                "  FOO = 1; //       \n" +
-                "}"
+        val proto = "enum Test {\n" + "  // Test all...\n" + "  FOO = 1; //       \n" + "}"
         val parsed = ProtoParser.parse(location, proto)
         val enumElement = parsed.types[0] as EnumElement
         val value = enumElement.constants[0]
@@ -557,14 +458,11 @@ class ProtoParserTest {
         |message Foo {}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                syntax = ProtoFile.Syntax.PROTO_3,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(2, 1),
-                                name = "Foo"
-                        )
+            location = location, syntax = ProtoFile.Syntax.PROTO_3, types = listOf(
+                MessageElement(
+                    location = location.at(2, 1), name = "Foo"
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -607,7 +505,7 @@ class ProtoParserTest {
             Assertions.assertTrue(false)
         } catch (expected: IllegalStateException) {
             assertThat(expected).hasMessage(
-                    "Syntax error in file.proto at 2:1: 'syntax' element must be the first declaration in a file"
+                "Syntax error in file.proto at 2:1: 'syntax' element must be the first declaration in a file"
             )
         }
     }
@@ -622,14 +520,11 @@ class ProtoParserTest {
         |message Foo {}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                syntax = ProtoFile.Syntax.PROTO_3,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(5, 1),
-                                name = "Foo"
-                        )
+            location = location, syntax = ProtoFile.Syntax.PROTO_3, types = listOf(
+                MessageElement(
+                    location = location.at(5, 1), name = "Foo"
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -644,28 +539,17 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                syntax = ProtoFile.Syntax.PROTO_3,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(2, 1),
-                                name = "Message",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                type = "string",
-                                                name = "a",
-                                                tag = 1
-                                        ),
-                                        FieldElement(
-                                                location = location.at(4, 3),
-                                                type = "int32",
-                                                name = "b",
-                                                tag = 2
-                                        )
-                                )
+            location = location, syntax = ProtoFile.Syntax.PROTO_3, types = listOf(
+                MessageElement(
+                    location = location.at(2, 1), name = "Message", fields = listOf(
+                        FieldElement(
+                            location = location.at(3, 3), type = "string", name = "a", tag = 1
+                        ), FieldElement(
+                            location = location.at(4, 3), type = "int32", name = "b", tag = 2
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -682,54 +566,23 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                syntax = ProtoFile.Syntax.PROTO_3,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(2, 1),
-                                name = "Message"
-                        )
-                ),
-                extendDeclarations = listOf(
-                        ExtendElement(
-                                location = location.at(4, 1),
-                                name = "Message",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(5, 3),
-                                                type = "string",
-                                                name = "a",
-                                                tag = 1
-                                        ),
-                                        FieldElement(
-                                                location = location.at(6, 3),
-                                                type = "int32",
-                                                name = "b",
-                                                tag = 2
-                                        )
-                                )
-                        )
+            location = location, syntax = ProtoFile.Syntax.PROTO_3, types = listOf(
+                MessageElement(
+                    location = location.at(2, 1), name = "Message"
                 )
+            ), extendDeclarations = listOf(
+                ExtendElement(
+                    location = location.at(4, 1), name = "Message", fields = listOf(
+                        FieldElement(
+                            location = location.at(5, 3), type = "string", name = "a", tag = 1
+                        ), FieldElement(
+                            location = location.at(6, 3), type = "int32", name = "b", tag = 2
+                        )
+                    )
+                )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
-    }
-
-    @Test
-    fun proto3MessageFieldsForbidOptional() {
-        val proto = """
-        |syntax = "proto3";
-        |message Message {
-        |  optional string a = 1;
-        |}
-        """.trimMargin()
-        try {
-            ProtoParser.parse(location, proto)
-            Assertions.assertTrue(false)
-        } catch (expected: IllegalStateException) {
-            assertThat(expected).hasMessage(
-                    "Syntax error in file.proto at 3:3: 'optional' label forbidden in proto3 field declarations"
-            )
-        }
     }
 
     @Test
@@ -745,27 +598,7 @@ class ProtoParserTest {
             Assertions.assertTrue(false)
         } catch (expected: IllegalStateException) {
             assertThat(expected).hasMessage(
-                    "Syntax error in file.proto at 3:3: 'required' label forbidden in proto3 field declarations"
-            )
-        }
-    }
-
-    @Test
-    fun proto3ExtensionFieldsForbidsOptional() {
-        val proto = """
-        |syntax = "proto3";
-        |message Message {
-        |}
-        |extend Message {
-        |  optional string a = 1;
-        |}
-        """.trimMargin()
-        try {
-            ProtoParser.parse(location, proto)
-            Assertions.assertTrue(false)
-        } catch (expected: IllegalStateException) {
-            assertThat(expected).hasMessage(
-                    "Syntax error in file.proto at 5:3: 'optional' label forbidden in proto3 field declarations"
+                "Syntax error in file.proto at 3:3: 'required' label forbidden in proto3 field declarations"
             )
         }
     }
@@ -785,7 +618,7 @@ class ProtoParserTest {
             Assertions.assertTrue(false)
         } catch (expected: IllegalStateException) {
             assertThat(expected).hasMessage(
-                    "Syntax error in file.proto at 5:3: 'required' label forbidden in proto3 field declarations"
+                "Syntax error in file.proto at 5:3: 'required' label forbidden in proto3 field declarations"
             )
         }
     }
@@ -800,23 +633,15 @@ class ProtoParserTest {
         """.trimMargin()
 
         val expected = ProtoFileElement(
-                location = location,
-                syntax = ProtoFile.Syntax.PROTO_3,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(2, 1),
-                                name = "Message",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                label = REPEATED,
-                                                type = "string",
-                                                name = "a",
-                                                tag = 1
-                                        )
-                                )
+            location = location, syntax = ProtoFile.Syntax.PROTO_3, types = listOf(
+                MessageElement(
+                    location = location.at(2, 1), name = "Message", fields = listOf(
+                        FieldElement(
+                            location = location.at(3, 3), label = REPEATED, type = "string", name = "a", tag = 1
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -832,29 +657,19 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                syntax = ProtoFile.Syntax.PROTO_3,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(2, 1),
-                                name = "Message"
-                        )
-                ),
-                extendDeclarations = listOf(
-                        ExtendElement(
-                                location = location.at(4, 1),
-                                name = "Message",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(5, 3),
-                                                label = REPEATED,
-                                                type = "string",
-                                                name = "a",
-                                                tag = 1
-                                        )
-                                )
-                        )
+            location = location, syntax = ProtoFile.Syntax.PROTO_3, types = listOf(
+                MessageElement(
+                    location = location.at(2, 1), name = "Message"
                 )
+            ), extendDeclarations = listOf(
+                ExtendElement(
+                    location = location.at(4, 1), name = "Message", fields = listOf(
+                        FieldElement(
+                            location = location.at(5, 3), label = REPEATED, type = "string", name = "a", tag = 1
+                        )
+                    )
+                )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -869,36 +684,27 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "SearchRequest",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "query",
-                                                tag = 1
-                                        ),
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                label = OPTIONAL,
-                                                type = "int32",
-                                                name = "page_number",
-                                                tag = 2
-                                        ),
-                                        FieldElement(
-                                                location = location.at(4, 3),
-                                                label = OPTIONAL,
-                                                type = "int32",
-                                                name = "result_per_page",
-                                                tag = 3
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "SearchRequest", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3), label = REQUIRED, type = "string", name = "query", tag = 1
+                        ), FieldElement(
+                            location = location.at(3, 3),
+                            label = OPTIONAL,
+                            type = "int32",
+                            name = "page_number",
+                            tag = 2
+                        ), FieldElement(
+                            location = location.at(4, 3),
+                            label = OPTIONAL,
+                            type = "int32",
+                            name = "result_per_page",
+                            tag = 3
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -915,43 +721,22 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val message = MessageElement(
-                location = location.at(1, 1),
-                name = "SearchResponse",
-                groups = listOf(
-                        GroupElement(
-                                location = location.at(2, 3),
-                                label = REPEATED,
-                                name = "Result",
-                                tag = 1,
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(3, 5),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "url",
-                                                tag = 2
-                                        ),
-                                        FieldElement(
-                                                location = location.at(4, 5),
-                                                label = OPTIONAL,
-                                                type = "string",
-                                                name = "title",
-                                                tag = 3
-                                        ),
-                                        FieldElement(
-                                                location = location.at(5, 5),
-                                                label = REPEATED,
-                                                type = "string",
-                                                name = "snippets",
-                                                tag = 4
-                                        )
-                                )
+            location = location.at(1, 1), name = "SearchResponse", groups = listOf(
+                GroupElement(
+                    location = location.at(2, 3), label = REPEATED, name = "Result", tag = 1, fields = listOf(
+                        FieldElement(
+                            location = location.at(3, 5), label = REQUIRED, type = "string", name = "url", tag = 2
+                        ), FieldElement(
+                            location = location.at(4, 5), label = OPTIONAL, type = "string", name = "title", tag = 3
+                        ), FieldElement(
+                            location = location.at(5, 5), label = REPEATED, type = "string", name = "snippets", tag = 4
                         )
+                    )
                 )
+            )
         )
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(message)
+            location = location, types = listOf(message)
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -968,41 +753,25 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "SearchRequest",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "query",
-                                                tag = 1
-                                        )
-                                ),
-                                oneOfs = listOf(
-                                        OneOfElement(
-                                                name = "page_info",
-                                                fields = listOf(
-                                                        FieldElement(
-                                                                location = location.at(4, 5),
-                                                                type = "int32",
-                                                                name = "page_number",
-                                                                tag = 2
-                                                        ),
-                                                        FieldElement(
-                                                                location = location.at(5, 5),
-                                                                type = "int32",
-                                                                name = "result_per_page",
-                                                                tag = 3
-                                                        )
-                                                )
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "SearchRequest", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3), label = REQUIRED, type = "string", name = "query", tag = 1
                         )
+                    ), oneOfs = listOf(
+                        OneOfElement(
+                            name = "page_info", fields = listOf(
+                                FieldElement(
+                                    location = location.at(4, 5), type = "int32", name = "page_number", tag = 2
+                                ), FieldElement(
+                                    location = location.at(5, 5), type = "int32", name = "result_per_page", tag = 3
+                                )
+                            )
+                        )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1022,58 +791,41 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "SearchRequest",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "query",
-                                                tag = 1
-                                        )
-                                ),
-                                oneOfs = listOf(
-                                        OneOfElement(
-                                                name = "page_info",
-                                                fields = listOf(
-                                                        FieldElement(
-                                                                location = location.at(4, 5),
-                                                                type = "int32",
-                                                                name = "page_number",
-                                                                tag = 2
-                                                        )
-                                                ),
-                                                groups = listOf(
-                                                        GroupElement(
-                                                                location = location.at(5, 5),
-                                                                name = "Stuff",
-                                                                tag = 3,
-                                                                fields = listOf(
-                                                                        FieldElement(
-                                                                                location = location.at(6, 7),
-                                                                                label = OPTIONAL,
-                                                                                type = "int32",
-                                                                                name = "result_per_page",
-                                                                                tag = 4
-                                                                        ),
-                                                                        FieldElement(
-                                                                                location = location.at(7, 7),
-                                                                                label = OPTIONAL,
-                                                                                type = "int32",
-                                                                                name = "page_count",
-                                                                                tag = 5
-                                                                        )
-                                                                )
-                                                        )
-                                                )
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "SearchRequest", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3), label = REQUIRED, type = "string", name = "query", tag = 1
                         )
+                    ), oneOfs = listOf(
+                        OneOfElement(
+                            name = "page_info", fields = listOf(
+                                FieldElement(
+                                    location = location.at(4, 5), type = "int32", name = "page_number", tag = 2
+                                )
+                            ), groups = listOf(
+                                GroupElement(
+                                    location = location.at(5, 5), name = "Stuff", tag = 3, fields = listOf(
+                                        FieldElement(
+                                            location = location.at(6, 7),
+                                            label = OPTIONAL,
+                                            type = "int32",
+                                            name = "result_per_page",
+                                            tag = 4
+                                        ), FieldElement(
+                                            location = location.at(7, 7),
+                                            label = OPTIONAL,
+                                            type = "int32",
+                                            name = "page_count",
+                                            tag = 5
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1095,33 +847,22 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        EnumElement(
-                                location = location.at(5, 1),
-                                name = "Topping",
-                                documentation = "What's on my waffles.\nAlso works on pancakes.",
-                                constants = listOf(
-                                        EnumConstantElement(
-                                                location = location.at(6, 3),
-                                                name = "FRUIT",
-                                                tag = 1
-                                        ),
-                                        EnumConstantElement(
-                                                location = location.at(8, 3),
-                                                name = "CREAM",
-                                                tag = 2,
-                                                documentation = "Yummy, yummy cream."
-                                        ),
-                                        EnumConstantElement(
-                                                location = location.at(11, 3),
-                                                name = "SYRUP",
-                                                tag = 3,
-                                                documentation = "Quebec Maple syrup"
-                                        )
-                                )
+            location = location, types = listOf(
+                EnumElement(
+                    location = location.at(5, 1),
+                    name = "Topping",
+                    documentation = "What's on my waffles.\nAlso works on pancakes.",
+                    constants = listOf(
+                        EnumConstantElement(
+                            location = location.at(6, 3), name = "FRUIT", tag = 1
+                        ), EnumConstantElement(
+                            location = location.at(8, 3), name = "CREAM", tag = 2, documentation = "Yummy, yummy cream."
+                        ), EnumConstantElement(
+                            location = location.at(11, 3), name = "SYRUP", tag = 3, documentation = "Quebec Maple syrup"
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1145,37 +886,28 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        EnumElement(
-                                location = location.at(5, 1),
-                                name = "Topping",
-                                documentation = "What's on my waffles.\nAlso works on pancakes.",
-                                options = listOf(OptionElement.create("max_choices", Kind.NUMBER, "2".toBigDecimal(), true)),
-                                constants = listOf(
-                                        EnumConstantElement(
-                                                location = location.at(8, 3),
-                                                name = "FRUIT",
-                                                tag = 1,
-                                                options = listOf(
-                                                        OptionElement.create("healthy", Kind.BOOLEAN, true, true)
-                                                )
-                                        ),
-                                        EnumConstantElement(
-                                                location = location.at(10, 3),
-                                                name = "CREAM",
-                                                tag = 2,
-                                                documentation = "Yummy, yummy cream."
-                                        ),
-                                        EnumConstantElement(
-                                                location = location.at(13, 3),
-                                                name = "SYRUP",
-                                                tag = 3,
-                                                documentation = "Quebec Maple syrup"
-                                        )
-                                )
+            location = location, types = listOf(
+                EnumElement(
+                    location = location.at(5, 1),
+                    name = "Topping",
+                    documentation = "What's on my waffles.\nAlso works on pancakes.",
+                    options = listOf(OptionElement.create("max_choices", Kind.NUMBER, "2".toBigDecimal(), true)),
+                    constants = listOf(
+                        EnumConstantElement(
+                            location = location.at(8, 3), name = "FRUIT", tag = 1, options = listOf(
+                                OptionElement.create("healthy", Kind.BOOLEAN, true, true)
+                            )
+                        ), EnumConstantElement(
+                            location = location.at(10, 3),
+                            name = "CREAM",
+                            tag = 2,
+                            documentation = "Yummy, yummy cream."
+                        ), EnumConstantElement(
+                            location = location.at(13, 3), name = "SYRUP", tag = 3, documentation = "Quebec Maple syrup"
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1192,16 +924,13 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                packageName = "google.protobuf",
-                types = listOf(
-                        MessageElement(
-                                location = location.at(6, 1),
-                                name = "FileDescriptorSet",
-                                documentation = "The protocol compiler can output a FileDescriptorSet containing the .proto\nfiles it parses."
-                        )
-                ),
-                options = listOf(OptionElement.create("java_package", Kind.STRING, "com.google.protobuf"))
+            location = location, packageName = "google.protobuf", types = listOf(
+                MessageElement(
+                    location = location.at(6, 1),
+                    name = "FileDescriptorSet",
+                    documentation = "The protocol compiler can output a FileDescriptorSet containing the .proto\nfiles it parses."
+                )
+            ), options = listOf(OptionElement.create("java_package", Kind.STRING, "com.google.protobuf"))
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1220,55 +949,42 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val enumElement = EnumElement(
-                location = location.at(3, 3),
-                name = "CType",
-                constants = listOf(
-                        EnumConstantElement(
-                                location = location.at(4, 5),
-                                name = "STRING",
-                                tag = 0,
-                                options = listOf(
-                                        OptionElement.create("opt_a", Kind.NUMBER, "1".toBigDecimal(), true),
-                                        OptionElement.create("opt_b", Kind.NUMBER, "2".toBigDecimal(), true)
-                                )
-                        )
+            location = location.at(3, 3), name = "CType", constants = listOf(
+                EnumConstantElement(
+                    location = location.at(4, 5), name = "STRING", tag = 0, options = listOf(
+                        OptionElement.create("opt_a", Kind.NUMBER, "1".toBigDecimal(), true),
+                        OptionElement.create("opt_b", Kind.NUMBER, "2".toBigDecimal(), true)
+                    )
                 )
+            )
         )
         val field = FieldElement(
-                location = location.at(2, 3),
-                label = OPTIONAL,
-                type = "CType",
-                name = "ctype",
-                tag = 1,
-                options = listOf(
-                        OptionElement.create("old_default", Kind.ENUM, "STRING"),
-                        OptionElement.create("deprecated", Kind.BOOLEAN, true)
-                )
+            location = location.at(2, 3), label = OPTIONAL, type = "CType", name = "ctype", tag = 1, options = listOf(
+                OptionElement.create("old_default", Kind.ENUM, "STRING"),
+                OptionElement.create("deprecated", Kind.BOOLEAN, true)
+            )
         )
-        assertThat(field.options)
-                .containsOnly(
-                        OptionElement.create("old_default", Kind.ENUM, "STRING"),
-                        OptionElement.create("deprecated", Kind.BOOLEAN, true)
-                )
+        assertThat(field.options).containsOnly(
+                OptionElement.create("old_default", Kind.ENUM, "STRING"),
+                OptionElement.create("deprecated", Kind.BOOLEAN, true)
+            )
 
         val messageElement = MessageElement(
-                location = location.at(1, 1),
-                name = "FieldOptions",
-                fields = listOf(field),
-                nestedTypes = listOf(enumElement),
-                extensions = listOf(
-                        ExtensionsElement(
-                                location = location.at(7, 3),
-                                documentation = "Clients can define custom options in extensions of this message. See above.",
-                                start = 500,
-                                end = 500
-                        ),
-                        ExtensionsElement(location.at(8, 3), "", 1000, Util.MAX_TAG_VALUE)
-                )
+            location = location.at(1, 1),
+            name = "FieldOptions",
+            fields = listOf(field),
+            nestedTypes = listOf(enumElement),
+            extensions = listOf(
+                ExtensionsElement(
+                    location = location.at(7, 3),
+                    documentation = "Clients can define custom options in extensions of this message. See above.",
+                    start = 500,
+                    end = 500
+                ), ExtensionsElement(location.at(8, 3), "", 1000, Util.MAX_TAG_VALUE)
+            )
         )
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(messageElement)
+            location = location, types = listOf(messageElement)
         )
         val actual = ProtoParser.parse(location, proto)
         assertThat(actual).isEqualTo(expected)
@@ -1286,54 +1002,48 @@ class ProtoParserTest {
         """.trimMargin()
 
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "Chickens",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = OPTIONAL,
-                                                type = "bool",
-                                                name = "koka_ko_koka_ko",
-                                                tag = 1,
-                                                options = listOf(
-                                                        OptionElement.create("old_default", Kind.BOOLEAN, true)
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                label = OPTIONAL,
-                                                type = "bool",
-                                                name = "coodle_doodle_do",
-                                                tag = 2,
-                                                options = listOf(
-                                                        OptionElement.create("delay", Kind.NUMBER, "100".toBigDecimal(), true),
-                                                        OptionElement.create("old_default", Kind.BOOLEAN, false)
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(4, 3),
-                                                label = OPTIONAL,
-                                                type = "bool",
-                                                name = "coo_coo_ca_cha",
-                                                tag = 3,
-                                                options = listOf(
-                                                        OptionElement.create("old_default", Kind.BOOLEAN, true),
-                                                        OptionElement.create("delay", Kind.NUMBER, "200".toBigDecimal(), true)
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(5, 3),
-                                                label = OPTIONAL,
-                                                type = "bool",
-                                                name = "cha_chee_cha",
-                                                tag = 4
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "Chickens", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3),
+                            label = OPTIONAL,
+                            type = "bool",
+                            name = "koka_ko_koka_ko",
+                            tag = 1,
+                            options = listOf(
+                                OptionElement.create("old_default", Kind.BOOLEAN, true)
+                            )
+                        ), FieldElement(
+                            location = location.at(3, 3),
+                            label = OPTIONAL,
+                            type = "bool",
+                            name = "coodle_doodle_do",
+                            tag = 2,
+                            options = listOf(
+                                OptionElement.create("delay", Kind.NUMBER, "100".toBigDecimal(), true),
+                                OptionElement.create("old_default", Kind.BOOLEAN, false)
+                            )
+                        ), FieldElement(
+                            location = location.at(4, 3),
+                            label = OPTIONAL,
+                            type = "bool",
+                            name = "coo_coo_ca_cha",
+                            tag = 3,
+                            options = listOf(
+                                OptionElement.create("old_default", Kind.BOOLEAN, true),
+                                OptionElement.create("delay", Kind.NUMBER, "200".toBigDecimal(), true)
+                            )
+                        ), FieldElement(
+                            location = location.at(5, 3),
+                            label = OPTIONAL,
+                            type = "bool",
+                            name = "cha_chee_cha",
+                            tag = 4
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1342,8 +1052,7 @@ class ProtoParserTest {
     fun imports() {
         val proto = "import \"src/test/resources/unittest_import.proto\";\n"
         val expected = ProtoFileElement(
-                location = location,
-                imports = listOf("src/test/resources/unittest_import.proto")
+            location = location, imports = listOf("src/test/resources/unittest_import.proto")
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1352,8 +1061,7 @@ class ProtoParserTest {
     fun publicImports() {
         val proto = "import public \"src/test/resources/unittest_import.proto\";\n"
         val expected = ProtoFileElement(
-                location = location,
-                publicImports = listOf("src/test/resources/unittest_import.proto")
+            location = location, publicImports = listOf("src/test/resources/unittest_import.proto")
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1367,23 +1075,15 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                extendDeclarations = listOf(
-                        ExtendElement(
-                                location = location.at(2, 1),
-                                name = "Foo",
-                                documentation = "Extends Foo",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                label = OPTIONAL,
-                                                type = "int32",
-                                                name = "bar",
-                                                tag = 126
-                                        )
-                                )
+            location = location, extendDeclarations = listOf(
+                ExtendElement(
+                    location = location.at(2, 1), name = "Foo", documentation = "Extends Foo", fields = listOf(
+                        FieldElement(
+                            location = location.at(3, 3), label = OPTIONAL, type = "int32", name = "bar", tag = 126
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1398,23 +1098,17 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(MessageElement(location = location.at(1, 1), name = "Bar")),
-                extendDeclarations = listOf(
-                        ExtendElement(
-                                location = location.at(2, 3),
-                                name = "Foo",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(3, 5),
-                                                label = OPTIONAL,
-                                                type = "Bar",
-                                                name = "bar",
-                                                tag = 126
-                                        )
-                                )
+            location = location,
+            types = listOf(MessageElement(location = location.at(1, 1), name = "Bar")),
+            extendDeclarations = listOf(
+                ExtendElement(
+                    location = location.at(2, 3), name = "Foo", fields = listOf(
+                        FieldElement(
+                            location = location.at(3, 5), label = OPTIONAL, type = "Bar", name = "bar", tag = 126
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1431,27 +1125,18 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                packageName = "kit.kat",
-                types = listOf(
-                        MessageElement(location = location.at(3, 1), name = "Bar")
+            location = location, packageName = "kit.kat", types = listOf(
+                MessageElement(location = location.at(3, 1), name = "Bar")
 
-                ),
-                extendDeclarations = listOf(
-                        ExtendElement(
-                                location = location.at(4, 3),
-                                name = "Foo",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(5, 5),
-                                                label = OPTIONAL,
-                                                type = "Bar",
-                                                name = "bar",
-                                                tag = 126
-                                        )
-                                )
+            ), extendDeclarations = listOf(
+                ExtendElement(
+                    location = location.at(4, 3), name = "Foo", fields = listOf(
+                        FieldElement(
+                            location = location.at(5, 5), label = OPTIONAL, type = "Bar", name = "bar", tag = 126
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1466,23 +1151,17 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(MessageElement(location = location.at(1, 1), name = "Bar")),
-                extendDeclarations = listOf(
-                        ExtendElement(
-                                location = location.at(2, 3),
-                                name = "example.Foo",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(3, 5),
-                                                label = OPTIONAL,
-                                                type = "Bar",
-                                                name = "bar",
-                                                tag = 126
-                                        )
-                                )
+            location = location,
+            types = listOf(MessageElement(location = location.at(1, 1), name = "Bar")),
+            extendDeclarations = listOf(
+                ExtendElement(
+                    location = location.at(2, 3), name = "example.Foo", fields = listOf(
+                        FieldElement(
+                            location = location.at(3, 5), label = OPTIONAL, type = "Bar", name = "bar", tag = 126
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1499,27 +1178,18 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                packageName = "kit.kat",
-                types = listOf(
-                        MessageElement(location = location.at(3, 1), name = "Bar")
+            location = location, packageName = "kit.kat", types = listOf(
+                MessageElement(location = location.at(3, 1), name = "Bar")
 
-                ),
-                extendDeclarations = listOf(
-                        ExtendElement(
-                                location = location.at(4, 3),
-                                name = "example.Foo",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(5, 5),
-                                                label = OPTIONAL,
-                                                type = "Bar",
-                                                name = "bar",
-                                                tag = 126
-                                        )
-                                )
+            ), extendDeclarations = listOf(
+                ExtendElement(
+                    location = location.at(4, 3), name = "example.Foo", fields = listOf(
+                        FieldElement(
+                            location = location.at(5, 5), label = OPTIONAL, type = "Bar", name = "bar", tag = 126
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1532,27 +1202,22 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val field = FieldElement(
-                location = location.at(2, 3),
-                label = OPTIONAL,
-                type = "string",
-                name = "claim_token",
-                tag = 2,
-                options = listOf(OptionElement.create("squareup.redacted", Kind.BOOLEAN, true, true))
+            location = location.at(2, 3),
+            label = OPTIONAL,
+            type = "string",
+            name = "claim_token",
+            tag = 2,
+            options = listOf(OptionElement.create("squareup.redacted", Kind.BOOLEAN, true, true))
         )
-        assertThat(field.options)
-                .containsOnly(OptionElement.create("squareup.redacted", Kind.BOOLEAN, true, true))
+        assertThat(field.options).containsOnly(OptionElement.create("squareup.redacted", Kind.BOOLEAN, true, true))
 
         val messageElement = MessageElement(
-                location = location.at(1, 1),
-                name = "Foo",
-                fields = listOf(field)
+            location = location.at(1, 1), name = "Foo", fields = listOf(field)
         )
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(messageElement)
+            location = location, types = listOf(messageElement)
         )
-        assertThat(ProtoParser.parse(location, proto))
-                .isEqualTo(expected)
+        assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
 
     // Parse \a, \b, \f, \n, \r, \t, \v, \[0-7]{1-3}, and \[xX]{0-9a-fA-F]{1,2}
@@ -1566,37 +1231,29 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val field = FieldElement(
-                location = location.at(2, 3),
-                label = OPTIONAL,
-                type = "string",
-                name = "name",
-                tag = 1,
-                options = listOf(
-                        OptionElement.create(
-                                "x", Kind.STRING,
-                                "\u0007\b\u000C\n\r\t\u000b\u0001f\u0001\u0001\u0009\u0009I\u000e\u000e\u000e\u000eAA"
-                        )
+            location = location.at(2, 3), label = OPTIONAL, type = "string", name = "name", tag = 1, options = listOf(
+                OptionElement.create(
+                    "x",
+                    Kind.STRING,
+                    "\u0007\b\u000C\n\r\t\u000b\u0001f\u0001\u0001\u0009\u0009I\u000e\u000e\u000e\u000eAA"
                 )
+            )
         )
-        assertThat(field.options)
-                .containsOnly(
-                        OptionElement.create(
-                                "x", Kind.STRING,
-                                "\u0007\b\u000C\n\r\t\u000b\u0001f\u0001\u0001\u0009\u0009I\u000e\u000e\u000e\u000eAA"
-                        )
+        assertThat(field.options).containsOnly(
+                OptionElement.create(
+                    "x",
+                    Kind.STRING,
+                    "\u0007\b\u000C\n\r\t\u000b\u0001f\u0001\u0001\u0009\u0009I\u000e\u000e\u000e\u000eAA"
                 )
+            )
 
         val messageElement = MessageElement(
-                location = location.at(1, 1),
-                name = "Foo",
-                fields = listOf(field)
+            location = location.at(1, 1), name = "Foo", fields = listOf(field)
         )
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(messageElement)
+            location = location, types = listOf(messageElement)
         )
-        assertThat(ProtoParser.parse(location, proto))
-                .isEqualTo(expected)
+        assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
 
     @Test
@@ -1608,21 +1265,18 @@ class ProtoParserTest {
         """.trimMargin()
 
         val field = FieldElement(
-                location = location.at(2, 3),
-                label = OPTIONAL,
-                type = "string",
-                name = "name",
-                tag = 1,
-                defaultValue = "single\"quotes"
+            location = location.at(2, 3),
+            label = OPTIONAL,
+            type = "string",
+            name = "name",
+            tag = 1,
+            defaultValue = "single\"quotes"
         )
         val messageElement = MessageElement(
-                location = location.at(1, 1),
-                name = "Foo",
-                fields = listOf(field)
+            location = location.at(1, 1), name = "Foo", fields = listOf(field)
         )
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(messageElement)
+            location = location, types = listOf(messageElement)
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1640,21 +1294,18 @@ class ProtoParserTest {
         """.trimMargin()
 
         val field = FieldElement(
-                location = location.at(2, 3),
-                label = OPTIONAL,
-                type = "string",
-                name = "name",
-                tag = 1,
-                defaultValue = "concat these please"
+            location = location.at(2, 3),
+            label = OPTIONAL,
+            type = "string",
+            name = "name",
+            tag = 1,
+            defaultValue = "concat these please"
         )
         val messageElement = MessageElement(
-                location = location.at(1, 1),
-                name = "Foo",
-                fields = listOf(field)
+            location = location.at(1, 1), name = "Foo", fields = listOf(field)
         )
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(messageElement)
+            location = location, types = listOf(messageElement)
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1693,39 +1344,31 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                services = listOf(
-                        ServiceElement(
-                                location = location.at(1, 1),
-                                name = "SearchService",
-                                options = listOf(
-                                        OptionElement.create("default_timeout", Kind.NUMBER, "30".toBigDecimal(), true)
-                                ),
-                                rpcs = listOf(
-                                        RpcElement(
-                                                location = location.at(4, 3),
-                                                name = "Search",
-                                                requestType = "SearchRequest",
-                                                responseType = "SearchResponse"
-                                        ),
-                                        RpcElement(
-                                                location = location.at(5, 3),
-                                                name = "Purchase",
-                                                requestType = "PurchaseRequest",
-                                                responseType = "PurchaseResponse",
-                                                options = listOf(
-                                                        OptionElement.create("squareup.sake.timeout", Kind.NUMBER, "15".toBigDecimal(), true),
-                                                        OptionElement.create(
-                                                                "squareup.a.b",
-                                                                Kind.MAP,
-                                                                mapOf("value" to listOf("FOO", "BAR")),
-                                                                true
-                                                        )
-                                                )
-                                        )
+            location = location, services = listOf(
+                ServiceElement(
+                    location = location.at(1, 1), name = "SearchService", options = listOf(
+                        OptionElement.create("default_timeout", Kind.NUMBER, "30".toBigDecimal(), true)
+                    ), rpcs = listOf(
+                        RpcElement(
+                            location = location.at(4, 3),
+                            name = "Search",
+                            requestType = "SearchRequest",
+                            responseType = "SearchResponse"
+                        ), RpcElement(
+                            location = location.at(5, 3),
+                            name = "Purchase",
+                            requestType = "PurchaseRequest",
+                            responseType = "PurchaseResponse",
+                            options = listOf(
+                                OptionElement.create("squareup.sake.timeout", Kind.NUMBER, "15".toBigDecimal(), true),
+                                OptionElement.create(
+                                    "squareup.a.b", Kind.MAP, mapOf("value" to listOf("FOO", "BAR")), true
                                 )
+                            )
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1741,43 +1384,37 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                services = listOf(
-                        ServiceElement(
-                                location = location.at(1, 1),
-                                name = "RouteGuide",
-                                rpcs = listOf(
-                                        RpcElement(
-                                                location = location.at(2, 3),
-                                                name = "GetFeature",
-                                                requestType = "Point",
-                                                responseType = "Feature"
-                                        ),
-                                        RpcElement(
-                                                location = location.at(3, 3),
-                                                name = "ListFeatures",
-                                                requestType = "Rectangle",
-                                                responseType = "Feature",
-                                                responseStreaming = true
-                                        ),
-                                        RpcElement(
-                                                location = location.at(4, 3),
-                                                name = "RecordRoute",
-                                                requestType = "Point",
-                                                responseType = "RouteSummary",
-                                                requestStreaming = true
-                                        ),
-                                        RpcElement(
-                                                location = location.at(5, 3),
-                                                name = "RouteChat",
-                                                requestType = "RouteNote",
-                                                responseType = "RouteNote",
-                                                requestStreaming = true,
-                                                responseStreaming = true
-                                        )
-                                )
+            location = location, services = listOf(
+                ServiceElement(
+                    location = location.at(1, 1), name = "RouteGuide", rpcs = listOf(
+                        RpcElement(
+                            location = location.at(2, 3),
+                            name = "GetFeature",
+                            requestType = "Point",
+                            responseType = "Feature"
+                        ), RpcElement(
+                            location = location.at(3, 3),
+                            name = "ListFeatures",
+                            requestType = "Rectangle",
+                            responseType = "Feature",
+                            responseStreaming = true
+                        ), RpcElement(
+                            location = location.at(4, 3),
+                            name = "RecordRoute",
+                            requestType = "Point",
+                            responseType = "RouteSummary",
+                            requestStreaming = true
+                        ), RpcElement(
+                            location = location.at(5, 3),
+                            name = "RouteChat",
+                            requestType = "RouteNote",
+                            responseType = "RouteNote",
+                            requestStreaming = true,
+                            responseStreaming = true
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1791,29 +1428,21 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "HexTag",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "hex",
-                                                tag = 16
-                                        ),
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                label = REQUIRED,
-                                                type = "string",
-                                                name = "uppercase_x_hex",
-                                                tag = 17
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "HexTag", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3), label = REQUIRED, type = "string", name = "hex", tag = 16
+                        ), FieldElement(
+                            location = location.at(3, 3),
+                            label = REQUIRED,
+                            type = "string",
+                            name = "uppercase_x_hex",
+                            tag = 17
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1852,26 +1481,19 @@ class ProtoParserTest {
         option_four_map["x"] = option_four_map_1
 
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "ExoticOptions",
-                                options = listOf(
-                                        OptionElement.create("squareup.one", Kind.MAP, option_one_map, true),
-                                        OptionElement.create(
-                                                "squareup.two.a", Kind.MAP, option_two_a_map, true
-                                        ),
-                                        OptionElement.create(
-                                                "squareup.two.b", Kind.MAP, option_two_b_map, true
-                                        ),
-                                        OptionElement.create(
-                                                "squareup.three", Kind.MAP, option_three_map, true
-                                        ),
-                                        OptionElement.create("squareup.four", Kind.MAP, option_four_map, true)
-                                )
-                        )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "ExoticOptions", options = listOf(
+                        OptionElement.create("squareup.one", Kind.MAP, option_one_map, true), OptionElement.create(
+                            "squareup.two.a", Kind.MAP, option_two_a_map, true
+                        ), OptionElement.create(
+                            "squareup.two.b", Kind.MAP, option_two_b_map, true
+                        ), OptionElement.create(
+                            "squareup.three", Kind.MAP, option_three_map, true
+                        ), OptionElement.create("squareup.four", Kind.MAP, option_four_map, true)
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -1889,47 +1511,34 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val field = FieldElement(
-                location = location.at(2, 5),
-                label = OPTIONAL,
-                type = "field.type",
-                name = "has_options",
-                tag = 3,
-                options = listOf(
-                        OptionElement.create(
-                                "option_map",
-                                Kind.MAP,
-                                mapOf(
-                                        "nested_map" to mapOf("key" to "value", "key2" to listOf("value2a", "value2b"))
-                                ),
-                                true
-                        ),
-                        OptionElement.create("option_string", Kind.LIST, listOf("string1", "string2"), true)
-                )
+            location = location.at(2, 5),
+            label = OPTIONAL,
+            type = "field.type",
+            name = "has_options",
+            tag = 3,
+            options = listOf(
+                OptionElement.create(
+                    "option_map", Kind.MAP, mapOf(
+                        "nested_map" to mapOf("key" to "value", "key2" to listOf("value2a", "value2b"))
+                    ), true
+                ), OptionElement.create("option_string", Kind.LIST, listOf("string1", "string2"), true)
+            )
         )
-        assertThat(field.options)
-                .containsOnly(
-                        OptionElement.create(
-                                "option_map",
-                                Kind.MAP,
-                                mapOf(
-                                        "nested_map" to mapOf("key" to "value", "key2" to listOf("value2a", "value2b"))
-                                ),
-                                true
-                        ),
-                        OptionElement.create("option_string", Kind.LIST, listOf("string1", "string2"), true)
-                )
+        assertThat(field.options).containsOnly(
+                OptionElement.create(
+                    "option_map", Kind.MAP, mapOf(
+                        "nested_map" to mapOf("key" to "value", "key2" to listOf("value2a", "value2b"))
+                    ), true
+                ), OptionElement.create("option_string", Kind.LIST, listOf("string1", "string2"), true)
+            )
 
         val expected = MessageElement(
-                location = location.at(1, 1),
-                name = "StructuredOption",
-                fields = listOf(field)
+            location = location.at(1, 1), name = "StructuredOption", fields = listOf(field)
         )
         val protoFile = ProtoFileElement(
-                location = location,
-                types = listOf(expected)
+            location = location, types = listOf(expected)
         )
-        assertThat(ProtoParser.parse(location, proto))
-                .isEqualTo(protoFile)
+        assertThat(ProtoParser.parse(location, proto)).isEqualTo(protoFile)
     }
 
     @Test
@@ -1954,165 +1563,147 @@ class ProtoParserTest {
         |  optional NestedEnum default_nested_enum = 416 [x = A ];
         |}""".trimMargin()
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "Test",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(2, 3),
-                                                label = OPTIONAL,
-                                                type = "int32",
-                                                name = "default_int32",
-                                                tag = 401,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "2147483647".toBigDecimal()))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(3, 3),
-                                                label = OPTIONAL,
-                                                type = "uint32",
-                                                name = "default_uint32",
-                                                tag = 402,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295".toBigDecimal()))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(4, 3),
-                                                label = OPTIONAL,
-                                                type = "sint32",
-                                                name = "default_sint32",
-                                                tag = 403,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648".toBigDecimal()))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(5, 3),
-                                                label = OPTIONAL,
-                                                type = "fixed32",
-                                                name = "default_fixed32",
-                                                tag = 404,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295".toBigDecimal()))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(6, 3),
-                                                label = OPTIONAL,
-                                                type = "sfixed32",
-                                                name = "default_sfixed32",
-                                                tag = 405,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648".toBigDecimal()))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(7, 3),
-                                                label = OPTIONAL,
-                                                type = "int64",
-                                                name = "default_int64",
-                                                tag = 406,
-                                                options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "9223372036854775807".toBigDecimal())
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(8, 3),
-                                                label = OPTIONAL,
-                                                type = "uint64",
-                                                name = "default_uint64",
-                                                tag = 407,
-                                                options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "18446744073709551615".toBigDecimal())
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(9, 3),
-                                                label = OPTIONAL,
-                                                type = "sint64",
-                                                name = "default_sint64",
-                                                tag = 408,
-                                                options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "-9223372036854775808".toBigDecimal())
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(10, 3),
-                                                label = OPTIONAL,
-                                                type = "fixed64",
-                                                name = "default_fixed64",
-                                                tag = 409,
-                                                options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "18446744073709551615".toBigDecimal())
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(11, 3),
-                                                label = OPTIONAL,
-                                                type = "sfixed64",
-                                                name = "default_sfixed64",
-                                                tag = 410,
-                                                options = listOf(
-                                                        OptionElement.create("x", Kind.NUMBER, "-9223372036854775808".toBigDecimal())
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(12, 3),
-                                                label = OPTIONAL,
-                                                type = "bool",
-                                                name = "default_bool",
-                                                tag = 411,
-                                                options = listOf(OptionElement.create("x", Kind.BOOLEAN, true))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(13, 3),
-                                                label = OPTIONAL,
-                                                type = "float",
-                                                name = "default_float",
-                                                tag = 412,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e7".toBigDecimal()))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(14, 3),
-                                                label = OPTIONAL,
-                                                type = "double",
-                                                name = "default_double",
-                                                tag = 413,
-                                                options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e78".toBigDecimal()))
-                                        ),
-                                        FieldElement(
-                                                location = location.at(15, 3),
-                                                label = OPTIONAL,
-                                                type = "string",
-                                                name = "default_string",
-                                                tag = 414,
-                                                options = listOf(
-                                                        OptionElement.create(
-                                                                "x",
-                                                                Kind.STRING,
-                                                                "çok\u0007\b\u000C\n\r\t\u000b\u0001\u0001\u0001\u000f\u000f~\u0001\u0001\u0011\u0001\u0001\u0011güzel"
-                                                        )
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(17, 3),
-                                                label = OPTIONAL,
-                                                type = "bytes",
-                                                name = "default_bytes",
-                                                tag = 415,
-                                                options = listOf(
-                                                        OptionElement.create(
-                                                                "x",
-                                                                Kind.STRING,
-                                                                "çok\u0007\b\u000C\n\r\t\u000b\u0001\u0001\u0001\u000f\u000f~\u0001\u0001\u0011\u0001\u0001\u0011güzel"
-                                                        )
-                                                )
-                                        ),
-                                        FieldElement(
-                                                location = location.at(19, 3),
-                                                label = OPTIONAL,
-                                                type = "NestedEnum",
-                                                name = "default_nested_enum",
-                                                tag = 416,
-                                                options = listOf(OptionElement.create("x", Kind.ENUM, "A"))
-                                        )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "Test", fields = listOf(
+                        FieldElement(
+                            location = location.at(2, 3),
+                            label = OPTIONAL,
+                            type = "int32",
+                            name = "default_int32",
+                            tag = 401,
+                            options = listOf(OptionElement.create("x", Kind.NUMBER, "2147483647".toBigDecimal()))
+                        ), FieldElement(
+                            location = location.at(3, 3),
+                            label = OPTIONAL,
+                            type = "uint32",
+                            name = "default_uint32",
+                            tag = 402,
+                            options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295".toBigDecimal()))
+                        ), FieldElement(
+                            location = location.at(4, 3),
+                            label = OPTIONAL,
+                            type = "sint32",
+                            name = "default_sint32",
+                            tag = 403,
+                            options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648".toBigDecimal()))
+                        ), FieldElement(
+                            location = location.at(5, 3),
+                            label = OPTIONAL,
+                            type = "fixed32",
+                            name = "default_fixed32",
+                            tag = 404,
+                            options = listOf(OptionElement.create("x", Kind.NUMBER, "4294967295".toBigDecimal()))
+                        ), FieldElement(
+                            location = location.at(6, 3),
+                            label = OPTIONAL,
+                            type = "sfixed32",
+                            name = "default_sfixed32",
+                            tag = 405,
+                            options = listOf(OptionElement.create("x", Kind.NUMBER, "-2147483648".toBigDecimal()))
+                        ), FieldElement(
+                            location = location.at(7, 3),
+                            label = OPTIONAL,
+                            type = "int64",
+                            name = "default_int64",
+                            tag = 406,
+                            options = listOf(
+                                OptionElement.create("x", Kind.NUMBER, "9223372036854775807".toBigDecimal())
+                            )
+                        ), FieldElement(
+                            location = location.at(8, 3),
+                            label = OPTIONAL,
+                            type = "uint64",
+                            name = "default_uint64",
+                            tag = 407,
+                            options = listOf(
+                                OptionElement.create("x", Kind.NUMBER, "18446744073709551615".toBigDecimal())
+                            )
+                        ), FieldElement(
+                            location = location.at(9, 3),
+                            label = OPTIONAL,
+                            type = "sint64",
+                            name = "default_sint64",
+                            tag = 408,
+                            options = listOf(
+                                OptionElement.create("x", Kind.NUMBER, "-9223372036854775808".toBigDecimal())
+                            )
+                        ), FieldElement(
+                            location = location.at(10, 3),
+                            label = OPTIONAL,
+                            type = "fixed64",
+                            name = "default_fixed64",
+                            tag = 409,
+                            options = listOf(
+                                OptionElement.create("x", Kind.NUMBER, "18446744073709551615".toBigDecimal())
+                            )
+                        ), FieldElement(
+                            location = location.at(11, 3),
+                            label = OPTIONAL,
+                            type = "sfixed64",
+                            name = "default_sfixed64",
+                            tag = 410,
+                            options = listOf(
+                                OptionElement.create("x", Kind.NUMBER, "-9223372036854775808".toBigDecimal())
+                            )
+                        ), FieldElement(
+                            location = location.at(12, 3),
+                            label = OPTIONAL,
+                            type = "bool",
+                            name = "default_bool",
+                            tag = 411,
+                            options = listOf(OptionElement.create("x", Kind.BOOLEAN, true))
+                        ), FieldElement(
+                            location = location.at(13, 3),
+                            label = OPTIONAL,
+                            type = "float",
+                            name = "default_float",
+                            tag = 412,
+                            options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e7".toBigDecimal()))
+                        ), FieldElement(
+                            location = location.at(14, 3),
+                            label = OPTIONAL,
+                            type = "double",
+                            name = "default_double",
+                            tag = 413,
+                            options = listOf(OptionElement.create("x", Kind.NUMBER, "123.456e78".toBigDecimal()))
+                        ), FieldElement(
+                            location = location.at(15, 3),
+                            label = OPTIONAL,
+                            type = "string",
+                            name = "default_string",
+                            tag = 414,
+                            options = listOf(
+                                OptionElement.create(
+                                    "x",
+                                    Kind.STRING,
+                                    "çok\u0007\b\u000C\n\r\t\u000b\u0001\u0001\u0001\u000f\u000f~\u0001\u0001\u0011\u0001\u0001\u0011güzel"
                                 )
+                            )
+                        ), FieldElement(
+                            location = location.at(17, 3),
+                            label = OPTIONAL,
+                            type = "bytes",
+                            name = "default_bytes",
+                            tag = 415,
+                            options = listOf(
+                                OptionElement.create(
+                                    "x",
+                                    Kind.STRING,
+                                    "çok\u0007\b\u000C\n\r\t\u000b\u0001\u0001\u0001\u000f\u000f~\u0001\u0001\u0011\u0001\u0001\u0011güzel"
+                                )
+                            )
+                        ), FieldElement(
+                            location = location.at(19, 3),
+                            label = OPTIONAL,
+                            type = "NestedEnum",
+                            name = "default_nested_enum",
+                            tag = 416,
+                            options = listOf(OptionElement.create("x", Kind.ENUM, "A"))
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -2129,52 +1720,33 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val field = FieldElement(
-                location = location.at(2, 3),
-                label = OPTIONAL,
-                type = "int32",
-                name = "bar",
-                tag = 1,
-                options = listOf(
-                        OptionElement.create(
-                                "validation.range",
-                                Kind.OPTION,
-                                OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()),
-                                true
-                        ),
-                        OptionElement.create(
-                                "validation.range",
-                                Kind.OPTION,
-                                OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
-                                true
-                        ),
-                        OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
-                )
+            location = location.at(2, 3), label = OPTIONAL, type = "int32", name = "bar", tag = 1, options = listOf(
+                OptionElement.create(
+                    "validation.range", Kind.OPTION, OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()), true
+                ), OptionElement.create(
+                    "validation.range",
+                    Kind.OPTION,
+                    OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
+                    true
+                ), OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
+            )
         )
-        assertThat(field.options)
-                .containsOnly(
-                        OptionElement.create(
-                                "validation.range",
-                                Kind.OPTION,
-                                OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()),
-                                true
-                        ),
-                        OptionElement.create(
-                                "validation.range",
-                                Kind.OPTION,
-                                OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
-                                true
-                        ),
-                        OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
-                )
+        assertThat(field.options).containsOnly(
+                OptionElement.create(
+                    "validation.range", Kind.OPTION, OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()), true
+                ), OptionElement.create(
+                    "validation.range",
+                    Kind.OPTION,
+                    OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
+                    true
+                ), OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
+            )
 
         val expected = MessageElement(
-                location = location.at(1, 1),
-                name = "Foo",
-                fields = listOf(field)
+            location = location.at(1, 1), name = "Foo", fields = listOf(field)
         )
         val protoFile = ProtoFileElement(
-                location = location,
-                types = listOf(expected)
+            location = location, types = listOf(expected)
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(protoFile)
     }
@@ -2187,18 +1759,14 @@ class ProtoParserTest {
         |}
         """.trimMargin()
         val message = MessageElement(
-                location = location.at(1, 1),
-                name = "Foo",
-                reserveds = listOf(
-                        ReservedElement(
-                                location = location.at(2, 3),
-                                values = listOf(10, Range.closed(12, 14), "foo")
-                        )
+            location = location.at(1, 1), name = "Foo", reserveds = listOf(
+                ReservedElement(
+                    location = location.at(2, 3), values = listOf(10, Range.closed(12, 14), "foo")
                 )
+            )
         )
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(message)
+            location = location, types = listOf(message)
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
@@ -2207,22 +1775,15 @@ class ProtoParserTest {
     fun noWhitespace() {
         val proto = "message C {optional A.B ab = 1;}"
         val expected = ProtoFileElement(
-                location = location,
-                types = listOf(
-                        MessageElement(
-                                location = location.at(1, 1),
-                                name = "C",
-                                fields = listOf(
-                                        FieldElement(
-                                                location = location.at(1, 12),
-                                                label = OPTIONAL,
-                                                type = "A.B",
-                                                name = "ab",
-                                                tag = 1
-                                        )
-                                )
+            location = location, types = listOf(
+                MessageElement(
+                    location = location.at(1, 1), name = "C", fields = listOf(
+                        FieldElement(
+                            location = location.at(1, 12), label = OPTIONAL, type = "A.B", name = "ab", tag = 1
                         )
+                    )
                 )
+            )
         )
         assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
     }
