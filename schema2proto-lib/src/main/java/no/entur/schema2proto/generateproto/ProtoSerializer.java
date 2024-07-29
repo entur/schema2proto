@@ -82,7 +82,7 @@ import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecke
 
 public class ProtoSerializer {
 
-	private static final String VALIDATION_PROTO_IMPORT = "buf/validate.proto";
+	private static final String VALIDATION_PROTO_IMPORT = "buf/validate/validate.proto";
 	private static final String XSDOPTIONS_PROTO_IMPORT = "xsd/xsd.proto";
 	private static final String UNDERSCORE = "_";
 	private static final String DASH = "-";
