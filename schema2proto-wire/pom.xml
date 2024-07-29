@@ -24,7 +24,7 @@
         </dependency>
         <dependency>
             <groupId>com.squareup.wire</groupId>
-            <artifactId>wire-runtime</artifactId>
+            <artifactId>wire-runtime-jvm</artifactId>
         </dependency>
         <dependency>
             <groupId>com.squareup.okio</groupId>

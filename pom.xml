@@ -181,7 +181,7 @@
             </dependency>
             <dependency>
                 <groupId>com.squareup.wire</groupId>
-                <artifactId>wire-runtime</artifactId>
+                <artifactId>wire-runtime-jvm</artifactId>
                 <version>${wire.version}</version>
             </dependency>
             <dependency>
