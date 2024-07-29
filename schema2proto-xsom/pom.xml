@@ -15,7 +15,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.93</version>
+        <version>1.94-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-xsom</artifactId>
     <name>schema2proto-XSOM</name>
