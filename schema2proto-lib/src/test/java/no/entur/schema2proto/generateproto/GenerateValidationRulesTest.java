@@ -43,7 +43,7 @@ public class GenerateValidationRulesTest extends AbstractMappingTest {
 		generateProtobuf("test-message-required.xsd", validationOptions());
 		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
 		Assertions.assertEquals(generated,
-				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"validate/validate.proto\";\n" + "\n"
+				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"buf/validate/validate.proto\";\n" + "\n"
 						+ "message TestRangeInt {\n" + "  int32 value = 1 [\n" + "    (validate.rules).message.required = true\n" + "  ];\n" + "}\n");
 	}
 
@@ -53,7 +53,7 @@ public class GenerateValidationRulesTest extends AbstractMappingTest {
 		generateProtobuf("test-min-max-occurs-range.xsd", validationOptions());
 		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
 		Assertions.assertEquals(generated,
-				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"validate/validate.proto\";\n" + "\n"
+				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"buf/validate/validate.proto\";\n" + "\n"
 						+ "message TestRangeDecimal {\n" + "  repeated double value = 1 [\n" + "    (validate.rules).repeated = {\n" + "      min_items: 1,\n"
 						+ "      max_items: 7\n" + "    }\n" + "  ];\n" + "}\n");
 	}
@@ -64,7 +64,7 @@ public class GenerateValidationRulesTest extends AbstractMappingTest {
 		generateProtobuf("test-min-max-occurs-unbounded.xsd", validationOptions());
 		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
 		Assertions.assertEquals(generated,
-				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"validate/validate.proto\";\n" + "\n"
+				"// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n" + "import \"buf/validate/validate.proto\";\n" + "\n"
 						+ "message TestRangeDecimal {\n" + "  repeated double value = 1 [\n" + "    (validate.rules).repeated = {\n" + "      min_items: 1\n"
 						+ "    }\n" + "  ];\n" + "}\n");
 	}

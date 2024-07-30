@@ -328,8 +328,6 @@ public class ProtoComparator {
 
 	private static ProtoFile load(File rootFolder, File protoFilename) throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
-//		schemaLoader.addProto(ProtoComparator.class.getResource("/validate/validate.proto").getFile());
-//		schemaLoader.addProto(ProtoComparator.class.getResource("/xsd/xsd.proto").getFile());
 		schemaLoader.addSource(rootFolder);
 		schemaLoader.addProto(protoFilename.getPath());
 		Schema schema = schemaLoader.load();
