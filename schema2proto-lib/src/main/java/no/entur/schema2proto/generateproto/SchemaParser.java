@@ -108,12 +108,12 @@ public class SchemaParser implements ErrorHandler {
 
 	private final Schema2ProtoConfiguration configuration;
 
-	private PGVRuleFactory ruleFactory;
+	private ValidationRuleFactory ruleFactory;
 
 	private void init() {
 		basicTypes = new TreeSet<>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
-		ruleFactory = new PGVRuleFactory(configuration, this);
+		ruleFactory = new ValidationRuleFactory(configuration, this);
 
 	}
 

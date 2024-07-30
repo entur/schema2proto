@@ -1,19 +1,19 @@
 syntax = "proto3";
 
-import "validate/validate.proto";
+import "buf/validate/validate.proto";
 
 package packagename;
 
 message PriceUnit {
-    SubMessage with_options_map_style = 1 [(validate.rules).message  = {
-        required: true
-    }];
-    SubMessage with_options_nested_style = 2 [(validate.rules).message.required = true];
+  SubMessage with_options_map_style = 1 [(validate.rules).message = {
+    required: true
+  }];
+  SubMessage with_options_nested_style = 2 [(validate.rules).message.required = true];
 }
 
 message SubMessage {
-    string x = 1;
+  string x = 1;
 }
 message PruneMessage {
-    string x = 1;
+  string x = 1;
 }

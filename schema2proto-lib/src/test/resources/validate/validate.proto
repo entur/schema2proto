@@ -1,6 +1,0 @@
-syntax = "proto2";
-package validate;
-
-message SomeMessage{
-
-}
