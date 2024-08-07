@@ -22,5 +22,8 @@
         <!-- parsing untrusted yaml -->
         <cve>CVE-2022-1471</cve>
     </suppress>
-    
+    <suppress>
+        <!-- Applies to older wire versions (2018). -->
+        <cve>CVE-2018-8909</cve>
+    </suppress>
 </suppressions>
