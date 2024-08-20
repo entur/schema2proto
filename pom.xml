@@ -41,7 +41,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <proto-google-common-protos.version>2.42.0</proto-google-common-protos.version>
         <protobuf.version>4.27.3</protobuf.version>
-        <protovalidate.version>0.2.1</protovalidate.version>
+        <protovalidate.version>0.3.0</protovalidate.version>
         <relaxng.version>4.0.5</relaxng.version>
         <slf4j.version>2.0.16</slf4j.version>
         <snakeyaml.version>1.33</snakeyaml.version>
