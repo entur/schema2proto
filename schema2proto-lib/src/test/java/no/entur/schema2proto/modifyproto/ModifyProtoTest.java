@@ -220,7 +220,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		FieldOption fieldOption = new FieldOption();
 		fieldOption.targetMessageType = "A";
 		fieldOption.field = "response_timestamp";
-		fieldOption.option = "[(validate.rules).uint64.gte = 20]";
+		fieldOption.option = "[(buf.validate.field).uint64.gte = 20]";
 		fieldOptions.add(fieldOption);
 
 		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
