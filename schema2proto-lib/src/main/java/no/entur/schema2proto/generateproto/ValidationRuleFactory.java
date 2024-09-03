@@ -43,7 +43,6 @@ import com.sun.xml.xsom.XSSimpleType;
 public class ValidationRuleFactory {
 
 	public static final String PROTOVALIDATE_FIELD_NAME = "buf.validate.field";
-	public static final String LEGACY_PGV_VALIDATE_RULES_NAME = "validate.rules";
 	private static final String RULE_STRING_PATTERN = "string.pattern";
 	private final SchemaParser schemaParser;
 	private Schema2ProtoConfiguration configuration;
@@ -72,7 +71,6 @@ public class ValidationRuleFactory {
 
 			if (minOccurs == 1 && maxOccurs == 1) {
 				validationRules.add(new OptionElement("(buf.validate.field).required", OptionElement.Kind.BOOLEAN, true, false));
-				validationRules.add(new OptionElement("(validate.rules).message.required", OptionElement.Kind.BOOLEAN, true, false));
 
 			} else if (parentParticle.isRepeated()) {
 				Map<String, Integer> minMaxParams = new HashMap<>();
@@ -81,7 +79,6 @@ public class ValidationRuleFactory {
 					minMaxParams.put("max_items", maxOccurs);
 				}
 				validationRules.add(new OptionElement("(buf.validate.field).repeated", OptionElement.Kind.MAP, minMaxParams, false));
-				validationRules.add(new OptionElement("(validate.rules).repeated", OptionElement.Kind.MAP, minMaxParams, false));
 			}
 
 		}
@@ -160,8 +157,6 @@ public class ValidationRuleFactory {
 		OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
 		OptionElement e = new OptionElement(PROTOVALIDATE_FIELD_NAME, OptionElement.Kind.OPTION, option, true);
 		validationRules.add(e);
-		OptionElement legacyPGVOptionElement = new OptionElement(LEGACY_PGV_VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true);
-		validationRules.add(legacyPGVOptionElement);
 	}
 
 	private List<OptionElement> getValidationRuleForBasicType(String name) {
@@ -242,7 +237,6 @@ public class ValidationRuleFactory {
 		List<OptionElement> elements = new ArrayList<>();
 		OptionElement option = new OptionElement(name, kind, value, false);
 		elements.add(new OptionElement(PROTOVALIDATE_FIELD_NAME, OptionElement.Kind.OPTION, option, true));
-		elements.add(new OptionElement(LEGACY_PGV_VALIDATE_RULES_NAME, OptionElement.Kind.OPTION, option, true));
 		return elements;
 	}
 
