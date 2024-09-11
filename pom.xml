@@ -39,7 +39,7 @@
         <pgv-java-stub.version>1.1.0</pgv-java-stub.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <proto-google-common-protos.version>2.43.0</proto-google-common-protos.version>
+        <proto-google-common-protos.version>2.44.0</proto-google-common-protos.version>
         <protobuf.version>4.28.0</protobuf.version>
         <protovalidate.version>0.3.0</protovalidate.version>
         <relaxng.version>4.0.5</relaxng.version>
