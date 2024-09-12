@@ -4,7 +4,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.96</version>
+        <version>1.97</version>
     </parent>
     <artifactId>schema2proto-lib</artifactId>
     <packaging>jar</packaging>
@@ -57,10 +57,6 @@
         <dependency>
             <groupId>build.buf</groupId>
             <artifactId>protovalidate</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>build.buf.protoc-gen-validate</groupId>
-            <artifactId>pgv-java-stub</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

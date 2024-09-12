@@ -5,10 +5,7 @@ import "buf/validate/validate.proto";
 package packagename;
 
 message PriceUnit {
-  SubMessage with_options_map_style = 1 [(validate.rules).message = {
-    required: true
-  }];
-  SubMessage with_options_nested_style = 2 [(validate.rules).message.required = true];
+  SubMessage with_options_nested_style = 1 [(buf.validate.field).required = true];
 }
 
 message SubMessage {
