@@ -59,10 +59,6 @@
             <artifactId>protovalidate</artifactId>
         </dependency>
         <dependency>
-            <groupId>build.buf.protoc-gen-validate</groupId>
-            <artifactId>pgv-java-stub</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
         </dependency>

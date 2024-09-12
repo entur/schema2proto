@@ -83,7 +83,6 @@ import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecke
 public class ProtoSerializer {
 
 	private static final String VALIDATION_PROTO_IMPORT = "buf/validate/validate.proto";
-	private static final String LEGACY_PGV_VALIDATION_PROTO_IMPORT = "validate/validate.proto";
 	private static final String XSDOPTIONS_PROTO_IMPORT = "xsd/xsd.proto";
 	private static final String UNDERSCORE = "_";
 	private static final String DASH = "-";
@@ -674,7 +673,6 @@ public class ProtoSerializer {
 		try {
 			if (configuration.includeValidationRules) {
 				schemaLoader.addProto(VALIDATION_PROTO_IMPORT);
-				schemaLoader.addProto(LEGACY_PGV_VALIDATION_PROTO_IMPORT);
 			}
 			if (configuration.includeXsdOptions) {
 				schemaLoader.addProto(XSDOPTIONS_PROTO_IMPORT);
@@ -819,7 +817,6 @@ public class ProtoSerializer {
 			}
 
 			if (configuration.includeValidationRules) {
-				file.imports().add(LEGACY_PGV_VALIDATION_PROTO_IMPORT);
 				file.imports().add(VALIDATION_PROTO_IMPORT);
 			}
 			if (configuration.includeXsdOptions) {

@@ -36,7 +36,6 @@
         <maven.version>3.9.9</maven.version>
         <okio.version>3.9.0</okio.version>
         <owasp-dependency-check.version>10.0.4</owasp-dependency-check.version>
-        <pgv-java-stub.version>1.1.0</pgv-java-stub.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <proto-google-common-protos.version>2.44.0</proto-google-common-protos.version>
@@ -135,11 +134,6 @@
                 <groupId>build.buf</groupId>
                 <artifactId>protovalidate</artifactId>
                 <version>${protovalidate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>build.buf.protoc-gen-validate</groupId>
-                <artifactId>pgv-java-stub</artifactId>
-                <version>${pgv-java-stub.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
