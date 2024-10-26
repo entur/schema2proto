@@ -38,7 +38,7 @@
         <owasp-dependency-check.version>10.0.4</owasp-dependency-check.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <proto-google-common-protos.version>2.47.0</proto-google-common-protos.version>
+        <proto-google-common-protos.version>2.48.0</proto-google-common-protos.version>
         <protobuf.version>4.28.3</protobuf.version>
         <protovalidate.version>0.4.2</protovalidate.version>
         <relaxng.version>4.0.5</relaxng.version>
