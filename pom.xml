@@ -22,7 +22,7 @@
         <commons-text.version>1.12.0</commons-text.version>
         <gson.version>2.11.0</gson.version>
         <guava.version>33.3.1-jre</guava.version>
-        <java-diff-utils.version>4.12</java-diff-utils.version>
+        <java-diff-utils.version>4.15</java-diff-utils.version>
         <jimfs.version>1.3.0</jimfs.version>
         <junit.jupiter.version>5.11.3</junit.jupiter.version>
         <junit.version>4.13.2</junit.version>
