@@ -15,7 +15,7 @@
         <module>schema2proto-xsom</module>
     </modules>
     <properties>
-        <assertj.version>3.27.2</assertj.version>
+        <assertj.version>3.27.3</assertj.version>
         <commons-cli.version>1.9.0</commons-cli.version>
         <commons-io.version>2.18.0</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
