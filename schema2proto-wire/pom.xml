@@ -4,10 +4,11 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.98-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
+    <version>0.1-SNAPSHOT</version>
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
