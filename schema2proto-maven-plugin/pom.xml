@@ -7,9 +7,9 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-maven-plugin</artifactId>
+    <version>0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>schema2proto Maven Plugin</name>
-    <version>0.1-SNAPSHOT</version>
     <dependencies>
         <dependency>
             <groupId>no.entur</groupId>
