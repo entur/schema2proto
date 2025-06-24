@@ -11,7 +11,6 @@
     <packaging>jar</packaging>
     <name>schema2proto Maven Plugin</name>
     <description>schema2proto Maven Plugin</description>
-    <url>https://github.com/entur/schema2proto</url>
     <dependencies>
         <dependency>
             <groupId>commons-io</groupId>
@@ -164,4 +163,5 @@
             </plugin>
         </plugins>
     </build>
+    <url>https://github.com/entur/schema2proto</url>
 </project>

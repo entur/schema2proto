@@ -11,7 +11,6 @@
     <packaging>maven-plugin</packaging>
     <name>schema2proto Maven Plugin</name>
     <description>schema2proto Maven Plugin</description>
-    <url>https://github.com/entur/schema2proto</url>
     <dependencies>
         <dependency>
             <groupId>no.entur</groupId>
@@ -101,6 +100,7 @@
             </plugin>
         </plugins>
     </build>
+    <url>https://github.com/entur/schema2proto</url>
     <profiles>
         <profile>
             <id>run-its</id>
