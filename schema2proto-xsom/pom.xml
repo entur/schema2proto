@@ -15,7 +15,7 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.84-SNAPSHOT</version>
+        <version>1.98-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-xsom</artifactId>
     <name>schema2proto-XSOM</name>
@@ -26,18 +26,15 @@
         <copyright.exclude.file>${project.basedir}/copyright-exclude</copyright.exclude.file>
         <copyright.template.file>${project.basedir}/copyright.txt</copyright.template.file>
         <findbugs.exclude>${project.basedir}/exclude-xsom.xml</findbugs.exclude>
-        <relaxng.version>4.0.2</relaxng.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>com.sun.xml.bind.external</groupId>
             <artifactId>relaxng-datatype</artifactId>
-            <version>${relaxng.version}</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -61,7 +58,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>3.5.2</version>
                 <configuration>
                     <argLine>${proxyArgLine}</argLine>
                 </configuration>
@@ -69,7 +66,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -89,7 +86,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
                         <id>copy-relaxng-to-mp</id>
@@ -103,7 +100,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.5.0</version>
                 <configuration>
                     <rules>
                         <requireJavaVersion>

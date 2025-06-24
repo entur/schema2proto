@@ -3,13 +3,13 @@ syntax = "proto3";
 
 // Type for Status of termination response.
 message A {
-  // Time individual response element was created.
+  // [Additional documentation] Time individual response element was created.
   uint64 response_timestamp = 1 [(buf.validate.field).uint64.gte = 20];
 }
 
 message B {
   LangType lang = 1;
-  // SimpleContent value of element
+  // Whole documentation replaced
   string value = 2;
 
 }

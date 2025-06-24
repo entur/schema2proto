@@ -4,64 +4,50 @@
     <parent>
         <groupId>no.entur</groupId>
         <artifactId>schema2proto-parent</artifactId>
-        <version>1.84-SNAPSHOT</version>
+        <version>1.98-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
     <packaging>jar</packaging>
-    <properties>
-        <junit.jupiter.version>5.9.2</junit.jupiter.version>
-        <kotlin.version>1.8.10</kotlin.version>
-        <wire.version>3.7.1</wire.version>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-            <version>${kotlin.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>31.1-jre</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.squareup.wire</groupId>
-            <artifactId>wire-runtime</artifactId>
-            <version>${wire.version}</version>
+            <artifactId>wire-runtime-jvm</artifactId>
         </dependency>
         <dependency>
             <groupId>com.squareup.okio</groupId>
             <artifactId>okio</artifactId>
-            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.24.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.java-diff-utils</groupId>
             <artifactId>java-diff-utils</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.google.jimfs</groupId>
             <artifactId>jimfs</artifactId>
-            <version>1.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

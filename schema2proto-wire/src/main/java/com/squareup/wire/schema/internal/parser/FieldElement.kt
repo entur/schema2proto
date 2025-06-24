@@ -19,17 +19,17 @@ import com.squareup.wire.schema.Field
 import com.squareup.wire.schema.Location
 import com.squareup.wire.schema.internal.Util
 import com.squareup.wire.schema.internal.Util.appendDocumentation
-import java.util.Locale
+import java.util.*
 
 data class FieldElement(
-        val location: Location,
-        val label: Field.Label? = null,
-        val type: String,
-        val name: String,
-        val defaultValue: String? = null,
-        val tag: Int = 0,
-        val documentation: String = "",
-        val options: List<OptionElement> = emptyList()
+    val location: Location,
+    val label: Field.Label? = null,
+    val type: String,
+    val name: String,
+    val defaultValue: String? = null,
+    val tag: Int = 0,
+    val documentation: String = "",
+    val options: List<OptionElement> = emptyList()
 ) {
     fun toSchema() = buildString {
         appendDocumentation(this, documentation)

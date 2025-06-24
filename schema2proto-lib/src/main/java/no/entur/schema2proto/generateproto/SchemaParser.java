@@ -108,12 +108,12 @@ public class SchemaParser implements ErrorHandler {
 
 	private final Schema2ProtoConfiguration configuration;
 
-	private PGVRuleFactory ruleFactory;
+	private ValidationRuleFactory ruleFactory;
 
 	private void init() {
 		basicTypes = new TreeSet<>();
 		basicTypes.addAll(TypeRegistry.getBasicTypes());
-		ruleFactory = new PGVRuleFactory(configuration, this);
+		ruleFactory = new ValidationRuleFactory(configuration, this);
 
 	}
 
@@ -594,7 +594,11 @@ public class SchemaParser implements ErrorHandler {
 
 			if (messageType == null && !basicTypes.contains(typeName)) {
 
-				String doc = resolveDocumentationAnnotation(complexType, true);
+				// Resolve annotation using complex type if it has annotation, otherwise resolve annotation using the element declaration from complex type
+				// scope
+				XSComponent componentForAnnotationResolution = complexType.getAnnotation() != null || complexType.getScope() == null ? complexType
+						: complexType.getScope();
+				String doc = resolveDocumentationAnnotation(componentForAnnotationResolution, true);
 				Location location = getLocation(complexType);
 
 				List<OptionElement> messageOptions = new ArrayList<>();

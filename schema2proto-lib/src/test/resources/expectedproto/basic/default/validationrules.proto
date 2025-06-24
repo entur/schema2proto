@@ -2,20 +2,20 @@
 syntax = "proto3";
 package default;
 
-import "validate/validate.proto";
+import "buf/validate/validate.proto";
 
 message RulesRepeated {
-    string optional_attribute = 1;
-    string required_attribute = 2 [(validate.rules).string.min_len = 1];
-    string string_length = 3 [(validate.rules).string = {min_len: 2, max_len: 5}];
-    string string_pattern = 4 [(validate.rules).repeated.items.string.pattern = "[A-Z]{3}"];
-    uint32 positive_integer = 5 [(validate.rules).uint32.gt = 0];
-    string simple_type_redefined = 6 [(validate.rules).string = {min_len: 2, max_len: 10}];
+  string optional_attribute = 1;
+  string required_attribute = 2 [(buf.validate.field).string.min_len = 1];
+  string string_length = 3 [(buf.validate.field).string = {min_len: 2, max_len: 5}];
+  string string_pattern = 4 [(buf.validate.field).repeated.items.string.pattern = "[A-Z]{3}"];
+  uint32 positive_integer = 5 [(buf.validate.field).uint32.gt = 0];
+  string simple_type_redefined = 6 [(buf.validate.field).string = {min_len: 2, max_len: 10}];
 
-    string optional_element = 7;
-    string mandatory_element = 8 [(validate.rules).string.min_len = 1];
-    repeated string zero_to_three_element = 9 [(validate.rules).repeated = {min_items: 0, max_items: 3}];
-    repeated string nested_rules_element_with_pattern = 10 [(validate.rules).repeated.items.string.pattern = "[A-Z]{3}"];
+  string optional_element = 7;
+  string mandatory_element = 8 [(buf.validate.field).string.min_len = 1];
+  repeated string zero_to_three_element = 9 [(buf.validate.field).repeated = {min_items: 0, max_items: 3}];
+  repeated string nested_rules_element_with_pattern = 10 [(buf.validate.field).repeated.items.string.pattern = "[A-Z]{3}"];
 
 }
 

@@ -312,9 +312,6 @@ public final class ProtoParser {
 			break;
 
 		case "optional":
-			if (syntax == ProtoFile.Syntax.PROTO_3) {
-				throw reader.unexpected(location, "'optional' label forbidden in proto3 field declarations");
-			}
 			label = Field.Label.OPTIONAL;
 			type = reader.readDataType();
 			break;

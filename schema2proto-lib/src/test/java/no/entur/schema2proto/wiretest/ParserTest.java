@@ -40,7 +40,7 @@ public class ParserTest {
 	public void testParseWithFieldRules() throws IOException {
 		SchemaLoader schemaLoader = new SchemaLoader();
 		schemaLoader.addSource(new File("src/test/resources/wiretest/source"));
-		schemaLoader.addSource(new File("src/test/resources/wiretest/include"));
+		schemaLoader.addSource(new File("target/proto_deps"));
 		schemaLoader.addProto("packagename/fieldrulesloading.proto");
 		Schema schema = schemaLoader.load();
 
@@ -51,11 +51,11 @@ public class ParserTest {
 		ProtoFile protoFile = prunedSchema.protoFile("packagename/fieldrulesloading.proto");
 		String prunedFile = protoFile.toSchema();
 
-		Assertions.assertEquals("// src/test/resources/wiretest/source/packagename/fieldrulesloading.proto\n" + "syntax = \"proto3\";\n"
-				+ "package packagename;\n" + "\n" + "import \"validate/validate.proto\";\n" + "\n" + "message PriceUnit {\n"
-				+ "  SubMessage with_options_map_style = 1 [\n" + "    (validate.rules).message = {\n" + "      required: true\n" + "    }\n" + "  ];\n"
-				+ "  SubMessage with_options_nested_style = 2 [\n" + "    (validate.rules).message.required = true\n" + "  ];\n" + "}\n"
-				+ "message SubMessage {\n" + "  string x = 1;\n" + "}\n", prunedFile);
+		Assertions.assertEquals(
+				"// src/test/resources/wiretest/source/packagename/fieldrulesloading.proto\n" + "syntax = \"proto3\";\n" + "package packagename;\n" + "\n"
+						+ "import \"buf/validate/validate.proto\";\n" + "\n" + "message PriceUnit {\n" + "  SubMessage with_options_nested_style = 1 [\n"
+						+ "    (buf.validate.field).required = true\n" + "  ];\n" + "}\n" + "message SubMessage {\n" + "  string x = 1;\n" + "}\n",
+				prunedFile);
 
 	}
 }

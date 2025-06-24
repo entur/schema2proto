@@ -33,6 +33,7 @@ public class ModifyProtoConfiguration {
 	public List<String> includes = new ArrayList<>();
 	public List<String> excludes = new ArrayList<>();
 	public List<NewField> newFields = new ArrayList<>();
+	public List<ModifyField> modifyFields = new ArrayList<>();
 	public List<MergeFrom> mergeFrom = new ArrayList<>();
 	public List<String> customImportLocations = new ArrayList<>();
 	public List<NewEnumConstant> newEnumConstants = new ArrayList<>();

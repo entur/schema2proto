@@ -19,15 +19,15 @@ import com.squareup.wire.schema.Field
 import com.squareup.wire.schema.Location
 import com.squareup.wire.schema.internal.Util.appendDocumentation
 import com.squareup.wire.schema.internal.Util.appendIndented
-import java.util.Locale
+import java.util.*
 
 data class GroupElement(
-        val label: Field.Label? = null,
-        val location: Location,
-        val name: String,
-        val tag: Int,
-        val documentation: String = "",
-        val fields: List<FieldElement> = emptyList()
+    val label: Field.Label? = null,
+    val location: Location,
+    val name: String,
+    val tag: Int,
+    val documentation: String = "",
+    val fields: List<FieldElement> = emptyList()
 ) {
     fun toSchema() = buildString {
         appendDocumentation(this, documentation)
