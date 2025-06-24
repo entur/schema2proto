@@ -9,4 +9,6 @@
     <artifactId>schema2proto-xsdproto</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>schema2proto-xsdproto</name>
+    <description>schema2proto-xsdproto</description>
 </project>

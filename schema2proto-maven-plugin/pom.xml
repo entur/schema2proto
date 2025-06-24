@@ -10,6 +10,7 @@
     <version>0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <name>schema2proto Maven Plugin</name>
+    <description>schema2proto Maven Plugin</description>
     <dependencies>
         <dependency>
             <groupId>no.entur</groupId>
