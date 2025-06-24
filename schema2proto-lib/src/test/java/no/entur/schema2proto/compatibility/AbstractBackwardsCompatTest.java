@@ -51,7 +51,7 @@ public abstract class AbstractBackwardsCompatTest {
 
 	protected void verify(String testname, boolean failOnRemovedFields, String protoFile) throws IOException {
 		ProtolockBackwardsCompatibilityChecker checker = new ProtolockBackwardsCompatibilityChecker();
-		checker.init(new File(String.join(File.pathSeparator, new[] { testdataBaseDirectory, testname, source, lockFile })));
+		checker.init(new File(String.join(File.pathSeparator, new[] { testdataBaseDirectory, testname, sourceFolder, lockFile })));
 
 		Schema sourceSchema = loadSchema(new File(String.join(File.pathSeparator, new[] { testdataBaseDirectory, testname, sourceFolder })));
 		link(sourceSchema, false, testname);
