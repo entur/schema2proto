@@ -11,4 +11,5 @@
     <packaging>jar</packaging>
     <name>schema2proto-xsdproto</name>
     <description>schema2proto-xsdproto</description>
+    <url>https://github.com/entur/schema2proto</url>
 </project>
