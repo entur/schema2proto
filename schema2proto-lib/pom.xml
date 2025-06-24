@@ -7,8 +7,10 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-lib</artifactId>
-    <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>schema2proto Maven Plugin</name>
+    <description>schema2proto Maven Plugin</description>
     <dependencies>
         <dependency>
             <groupId>commons-io</groupId>

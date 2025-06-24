@@ -52,9 +52,8 @@ import java.util.Set;
  */
 public class XSOMParserTest extends TestCase {
 
-    private static String docURLStr = "http://docs.oasis-open.org/regrep/v3.0/schema/lcm.xsd";
+    //private static String docURLStr = "http://docs.oasis-open.org/regrep/v3.0/schema/lcm.xsd";
     //private static String docURLStr = "http://ebxmlrr.sourceforge.net/private/sun/irs/ContactMechanism/IRS-ContactMechanismCommonAggregateComponents-1.0.xsd";
-    private static URL docURL = null;
     private static XSOMParser instance = null;
 
     public XSOMParserTest(String testName) {
@@ -62,11 +61,7 @@ public class XSOMParserTest extends TestCase {
     }
 
     protected void setUp() throws Exception {
-        if (docURL == null) {
-            docURL = new URL(docURLStr);
-
-            instance = new XSOMParser();
-        }
+        instance = new XSOMParser();
     }
 
     protected void tearDown() throws Exception {
@@ -84,13 +79,7 @@ public class XSOMParserTest extends TestCase {
     public void testParse() throws Exception {
         System.out.println("parse");
 
-        //Following works.
-        instance.parse(docURL);
-
-        //Follwoing does not work
-        InputSource inputSource = new InputSource(docURL.openStream());
-
-        instance.parse(inputSource);
+        instance.parse(getClass().getResource("/lcm.xsd"));
     }
 
     /**

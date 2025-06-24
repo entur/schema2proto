@@ -7,8 +7,10 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
     <artifactId>schema2proto-wire</artifactId>
-    <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>schema2proto-wire</name>
+    <description>schema2proto-wire</description>
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
