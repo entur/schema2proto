@@ -439,7 +439,15 @@ public final class ProtoParser {
 					if (!reader.readWord().equals("to")) {
 						throw reader.unexpected("expected ',', ';', or 'to'");
 					}
-					int tagEnd = reader.readInt();
+					int tagEnd;
+					if (reader.peekChar() == 'm') {
+						if (!reader.readWord().equals("max")) {
+							throw reader.unexpected("expected numeric identifier or 'max' keyword");
+						}
+						tagEnd = Util.MAX_TAG_VALUE;
+					} else {
+						tagEnd = reader.readInt();
+					}
 					valuesBuilder.add(Range.closed(tagStart, tagEnd));
 				} else {
 					valuesBuilder.add(tagStart);
