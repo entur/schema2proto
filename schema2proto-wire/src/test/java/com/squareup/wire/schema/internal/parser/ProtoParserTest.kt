@@ -16,9 +16,7 @@
 package com.squareup.wire.schema.internal.parser
 
 import com.google.common.collect.Range
-import com.squareup.wire.schema.Field.Label.OPTIONAL
-import com.squareup.wire.schema.Field.Label.REPEATED
-import com.squareup.wire.schema.Field.Label.REQUIRED
+import com.squareup.wire.schema.Field.Label.*
 import com.squareup.wire.schema.Location
 import com.squareup.wire.schema.ProtoFile
 import com.squareup.wire.schema.internal.Util
@@ -965,9 +963,9 @@ class ProtoParserTest {
             )
         )
         assertThat(field.options).containsOnly(
-                OptionElement.create("old_default", Kind.ENUM, "STRING"),
-                OptionElement.create("deprecated", Kind.BOOLEAN, true)
-            )
+            OptionElement.create("old_default", Kind.ENUM, "STRING"),
+            OptionElement.create("deprecated", Kind.BOOLEAN, true)
+        )
 
         val messageElement = MessageElement(
             location = location.at(1, 1),
@@ -1240,12 +1238,12 @@ class ProtoParserTest {
             )
         )
         assertThat(field.options).containsOnly(
-                OptionElement.create(
-                    "x",
-                    Kind.STRING,
-                    "\u0007\b\u000C\n\r\t\u000b\u0001f\u0001\u0001\u0009\u0009I\u000e\u000e\u000e\u000eAA"
-                )
+            OptionElement.create(
+                "x",
+                Kind.STRING,
+                "\u0007\b\u000C\n\r\t\u000b\u0001f\u0001\u0001\u0009\u0009I\u000e\u000e\u000e\u000eAA"
             )
+        )
 
         val messageElement = MessageElement(
             location = location.at(1, 1), name = "Foo", fields = listOf(field)
@@ -1525,12 +1523,12 @@ class ProtoParserTest {
             )
         )
         assertThat(field.options).containsOnly(
-                OptionElement.create(
-                    "option_map", Kind.MAP, mapOf(
-                        "nested_map" to mapOf("key" to "value", "key2" to listOf("value2a", "value2b"))
-                    ), true
-                ), OptionElement.create("option_string", Kind.LIST, listOf("string1", "string2"), true)
-            )
+            OptionElement.create(
+                "option_map", Kind.MAP, mapOf(
+                    "nested_map" to mapOf("key" to "value", "key2" to listOf("value2a", "value2b"))
+                ), true
+            ), OptionElement.create("option_string", Kind.LIST, listOf("string1", "string2"), true)
+        )
 
         val expected = MessageElement(
             location = location.at(1, 1), name = "StructuredOption", fields = listOf(field)
@@ -1732,15 +1730,15 @@ class ProtoParserTest {
             )
         )
         assertThat(field.options).containsOnly(
-                OptionElement.create(
-                    "validation.range", Kind.OPTION, OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()), true
-                ), OptionElement.create(
-                    "validation.range",
-                    Kind.OPTION,
-                    OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
-                    true
-                ), OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
-            )
+            OptionElement.create(
+                "validation.range", Kind.OPTION, OptionElement.create("min", Kind.NUMBER, "1".toBigDecimal()), true
+            ), OptionElement.create(
+                "validation.range",
+                Kind.OPTION,
+                OptionElement.create("max", Kind.NUMBER, "100".toBigDecimal()),
+                true
+            ), OptionElement.create("old_default", Kind.NUMBER, "20".toBigDecimal())
+        )
 
         val expected = MessageElement(
             location = location.at(1, 1), name = "Foo", fields = listOf(field)
@@ -1762,6 +1760,26 @@ class ProtoParserTest {
             location = location.at(1, 1), name = "Foo", reserveds = listOf(
                 ReservedElement(
                     location = location.at(2, 3), values = listOf(10, Range.closed(12, 14), "foo")
+                )
+            )
+        )
+        val expected = ProtoFileElement(
+            location = location, types = listOf(message)
+        )
+        assertThat(ProtoParser.parse(location, proto)).isEqualTo(expected)
+    }
+
+    @Test
+    fun reservedWithMaxKeyword() {
+        val proto = """
+        |message Foo {
+        |  reserved 10 to max;   
+        |}
+        """.trimMargin()
+        val message = MessageElement(
+            location = location.at(1, 1), name = "Foo", reserveds = listOf(
+                ReservedElement(
+                    location = location.at(2, 3), values = listOf(Range.closed(10, Util.MAX_TAG_VALUE))
                 )
             )
         )
