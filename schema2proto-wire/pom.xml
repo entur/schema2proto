@@ -133,4 +133,5 @@
             </plugin>
         </plugins>
     </build>
+    <url>https://github.com/entur/schema2proto</url>
 </project>
