@@ -45,6 +45,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -85,7 +86,7 @@ public class ModifyProto {
 		try (InputStream in = Files.newInputStream(configFile.toPath())) {
 
 			// Parse config file
-			Constructor constructor = new Constructor(ModifyProtoConfigFile.class);
+			Constructor constructor = new Constructor(ModifyProtoConfigFile.class, new LoaderOptions());
 			TypeDescription customTypeDescription = new TypeDescription(ModifyProtoConfigFile.class);
 			customTypeDescription.addPropertyParameters("newFields", NewField.class);
 			customTypeDescription.addPropertyParameters("modifyFields", ModifyField.class);
