@@ -461,17 +461,19 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	@NotNull
-	private Options getFieldOptions(XSAttributeDecl attributeDecl) {
+	private Options getFieldOptions(XSAttributeDecl attributeDecl, boolean required) {
 		List<OptionElement> optionElements = new ArrayList<>();
 
-		// First see if there are rules associated with attribute declaration
-		List<OptionElement> validationRule = ruleFactory.getValidationRule(attributeDecl);
-		if (!validationRule.isEmpty()) {
-			optionElements.addAll(validationRule);
-		} else {
-			// Check attribute TYPE rules
-			List<OptionElement> typeRule = ruleFactory.getValidationRule(attributeDecl.getType());
-			optionElements.addAll(typeRule);
+		if (required) {
+			// First see if there are rules associated with attribute declaration
+			List<OptionElement> validationRule = ruleFactory.getValidationRule(attributeDecl);
+			if (!validationRule.isEmpty()) {
+				optionElements.addAll(validationRule);
+			} else {
+				// Check attribute TYPE rules
+				List<OptionElement> typeRule = ruleFactory.getValidationRule(attributeDecl.getType());
+				optionElements.addAll(typeRule);
+			}
 		}
 		return new Options(Options.FIELD_OPTIONS, optionElements);
 	}
@@ -845,7 +847,7 @@ public class SchemaParser implements ErrorHandler {
 				String doc = resolveDocumentationAnnotation(decl, false);
 				int tag = messageType.getNextFieldNum();
 				Location fieldLocation = getLocation(decl);
-				Options fieldOptions = getFieldOptions(decl);
+				Options fieldOptions = getFieldOptions(decl, attr.isRequired());
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
 				Label label = type.isList() ? Label.REPEATED : null;
 

@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
@@ -69,11 +69,20 @@ public class GenerateValidationRulesTest extends AbstractMappingTest {
 						+ "      min_items: 1\n" + "    }\n" + "  ];\n" + "}\n");
 	}
 
+	@Test
+	public void attributeOptionalPositiveInteger_shouldAllow0() throws IOException {
+		generateProtobuf("test-attribute-positiveInteger.xsd", validationOptions());
+		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
+		Assertions.assertEquals("// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n"
+				+ "import \"buf/validate/validate.proto\";\n" + "\n" + "message TestOptionalPositiveIntegerAttribute {\n" + "  uint32 optional_attribute = 1;\n"
+				+ "  uint32 required_attribute = 2 [\n" + "    (buf.validate.field).uint32.gt = 0\n" + "  ];\n" + "}\n", generated);
+	}
+
 	private Schema2ProtoConfiguration validationOptions() {
 		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
 		configuration.forceProtoPackage = "default";
 		configuration.includeValidationRules = true;
-		configuration.customImportLocations = Collections.singletonList("src/test/resources");
+		configuration.customImportLocations = Arrays.asList("src/test/resources", "target/proto_deps");
 		return configuration;
 	}
 }
