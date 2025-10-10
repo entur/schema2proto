@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+    <xsd:complexType name="TestOptionalPositiveIntegerAttribute">
+        <xsd:attribute name="optionalAttribute" use="optional" type="xsd:positiveInteger"/>
+        <xsd:attribute name="requiredAttribute" use="required" type="xsd:positiveInteger"/>
+    </xsd:complexType>
+</xsd:schema>
