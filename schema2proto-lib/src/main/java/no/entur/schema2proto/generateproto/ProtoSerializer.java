@@ -432,6 +432,9 @@ public class ProtoSerializer {
 					File fileToImport = new File(path, pathName);
 					if (fileToImport.exists()) {
 						SchemaLoader schemaLoader = new SchemaLoader();
+						for (String importRootFolder : configuration.customImportLocations) {
+							schemaLoader.addSource(new File(importRootFolder).toPath());
+						}
 						schemaLoader.addSource(path);
 						schemaLoader.addProto(pathName);
 						Schema schema = schemaLoader.load();
