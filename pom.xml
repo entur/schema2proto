@@ -45,7 +45,7 @@
         <protovalidate.version>0.13.0</protovalidate.version>
         <relaxng.version>4.0.5</relaxng.version>
         <slf4j.version>2.0.17</slf4j.version>
-        <snakeyaml.version>2.0</snakeyaml.version>
+        <snakeyaml.version>2.5</snakeyaml.version>
         <spotless.version>2.46.1</spotless.version>
         <urnlib.version>3.0.0</urnlib.version>
         <wire.version>5.4.0</wire.version>
