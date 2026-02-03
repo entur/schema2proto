@@ -64,17 +64,21 @@ public class GenerateValidationRulesTest extends AbstractMappingTest {
 		generateProtobuf("test-min-max-occurs-unbounded.xsd", validationOptions());
 		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
 		Assertions.assertEquals("// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n"
-				+ "import \"buf/validate/validate.proto\";\n" + "\n" + "message TestRangeDecimal {\n" + "  repeated double value = 1 [\n"
-				+ "    (buf.validate.field).repeated = {\n" + "      min_items: 1\n" + "    }\n" + "  ];\n" + "}\n", generated);
+				+ "import \"buf/validate/validate.proto\";\n" + "\n" + "enum EnumType {\n" + "  // Default\n" + "  ENUM_TYPE_UNSPECIFIED = 0;\n"
+				+ "  ENUM_TYPE_VALUE_1 = 1;\n" + "  ENUM_TYPE_VALUE_2 = 2;\n" + "}\n" + "message TypeWithEnum {\n" + "  EnumType enum_attribute = 1;\n"
+				+ "  string min_length_attribute = 2 [\n" + "    (buf.validate.field).string = {\n" + "      min_len: 2\n" + "    }\n" + "  ];\n" + "}\n",
+				generated);
 	}
 
 	@Test
-	public void whenEnumerationRestriction_doesNotProduceStringValidationOption() throws IOException {
-		generateProtobuf("test-enumeration.xsd", validationOptions());
+	public void generateProtobuf_whenAttributeRestrictions_thenOnlyAddStringOptionsForRecognizedFacets() throws IOException {
+		// Test that only recognized facets (like minLength, but not enumeration) generate validation options in the protobuf output.
+		generateProtobuf("test-attribute-restrictions.xsd", validationOptions());
 		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
 		Assertions.assertEquals("// default.proto at 0:0\n" + "syntax = \"proto3\";\n" + "package default;\n" + "\n"
 				+ "import \"buf/validate/validate.proto\";\n" + "\n" + "enum EnumType {\n" + "  // Default\n" + "  ENUM_TYPE_UNSPECIFIED = 0;\n"
-				+ "  ENUM_TYPE_VALUE_1 = 1;\n" + "  ENUM_TYPE_VALUE_2 = 2;\n" + "}\n" + "message TypeWithEnum {\n" + "  EnumType enum_attribute = 1;\n" + "}\n",
+				+ "  ENUM_TYPE_VALUE_1 = 1;\n" + "  ENUM_TYPE_VALUE_2 = 2;\n" + "}\n" + "message TypeWithEnum {\n" + "  EnumType enum_attribute = 1;\n"
+				+ "  string min_length_attribute = 2 [\n" + "    (buf.validate.field).string = {\n" + "      min_len: 2\n" + "    }\n" + "  ];\n" + "}\n",
 				generated);
 	}
 

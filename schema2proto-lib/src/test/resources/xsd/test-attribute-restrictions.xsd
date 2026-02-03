@@ -6,7 +6,13 @@
             <xsd:enumeration value="value2"/>
         </xsd:restriction>
     </xsd:simpleType>
+    <xsd:simpleType name="MinLengthType">
+        <xsd:restriction base="xsd:string">
+            <xsd:minLength value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
     <xsd:complexType name="TypeWithEnum">
         <xsd:attribute name="enumAttribute" type="EnumType"/>
+        <xsd:attribute name="minLengthAttribute" type="MinLengthType"/>
     </xsd:complexType>
 </xsd:schema>
