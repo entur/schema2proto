@@ -154,9 +154,12 @@ public class ValidationRuleFactory {
 				LOGGER.warn("Unhandled facet {}", facet.getName());
 			}
 		}
-		OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
-		OptionElement e = new OptionElement(PROTOVALIDATE_FIELD_NAME, OptionElement.Kind.OPTION, option, true);
-		validationRules.add(e);
+		// Only add if recognized facets
+		if (!parameters.isEmpty()) {
+			OptionElement option = new OptionElement("string", OptionElement.Kind.MAP, parameters, false);
+			OptionElement e = new OptionElement(PROTOVALIDATE_FIELD_NAME, OptionElement.Kind.OPTION, option, true);
+			validationRules.add(e);
+		}
 	}
 
 	private List<OptionElement> getValidationRuleForBasicType(String name) {
