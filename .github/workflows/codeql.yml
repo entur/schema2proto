@@ -1,0 +1,20 @@
+# Reusable Workflows see: https://github.com/entur/gha-security/blob/main/README-code-scan.md
+name: "CodeQL"
+
+on:
+    pull_request:
+        branches:
+            - main
+    push:
+        branches:
+            - main
+        paths-ignore:
+            - '**/README.md'
+    schedule:
+        - cron: "0 4 * * TUE"
+  
+jobs:
+    code-scan:
+        name: Code Scan
+        uses: entur/gha-security/.github/workflows/code-scan.yml@v2
+        secrets: inherit
