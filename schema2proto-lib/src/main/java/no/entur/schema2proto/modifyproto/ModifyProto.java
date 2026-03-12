@@ -419,8 +419,20 @@ public class ModifyProto {
 					throw new InvalidProtobufException("Field name '" + newField.name + "' and/or fieldNumber " + newField.fieldNumber + " is reserved in type "
 							+ newField.targetMessageType + ". Use allowIfReserved to override.");
 				}
-				// Remove reservation for field name and tag if they exist, since we're going to add a field with that name and/or tag
-				reservedFields.removeIf(r -> r.matchesName(newField.name) || (newField.fieldNumber != -1 && r.matchesTag(newField.fieldNumber)));
+				// Remove only the matching name/tag values from each Reserved entry, keeping other values intact
+				List<Reserved> updatedReservedFields = new ArrayList<>();
+				for (Reserved reserved : reservedFields) {
+					List<Object> filteredValues = reserved.getValues()
+							.stream()
+							.filter(v -> !Objects.equals(v, newField.name) && !Objects.equals(v, newField.fieldNumber))
+							.collect(Collectors.toList());
+
+					if (!filteredValues.isEmpty()) {
+						updatedReservedFields.add(new Reserved(reserved.getLocation(), reserved.getDocumentation(), filteredValues));
+					}
+				}
+				reservedFields.clear();
+				reservedFields.addAll(updatedReservedFields);
 			}
 
 			List<OptionElement> optionElements = new ArrayList<>();
