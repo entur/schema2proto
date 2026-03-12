@@ -22,6 +22,8 @@
  */
 package no.entur.schema2proto.modifyproto;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -256,6 +258,112 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
+
+	}
+
+	@Test
+	public void testAddFieldAllowIfReserved() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Add a field with same name/number as a reserved field. Should allow and remove reserved declarations.
+		File expected = new File("src/test/resources/modify/expected/reserved").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		newField.fieldNumber = 100;
+		newField.name = "reserved_field";
+		newField.type = "string";
+		newField.allowIfReserved = true;
+
+		configuration.newFields = Collections.singletonList(newField);
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addreservedfield.proto", generatedRootFolder, "addreservedfield.proto");
+	}
+
+	@Test
+	public void testAddFieldAllowIfReserved_whenMultipleFieldsPerReservationDeclaration_thenRemoveOnlyReappearing()
+			throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Add a field with same name/number as a reserved field. Should allow remove field number and name from reserved declarations, but keep other reserved
+		// fields in the same declaration.
+		File expected = new File("src/test/resources/modify/expected/reserved_multiple").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved_multiple").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		newField.fieldNumber = 100;
+		newField.name = "reserved_field";
+		newField.type = "string";
+		newField.allowIfReserved = true;
+
+		configuration.newFields = Collections.singletonList(newField);
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addreservedfield_multiple.proto", generatedRootFolder, "addreservedfield_multiple.proto");
+	}
+
+	@Test
+	public void testAddFieldAllowIfReservedNameOnly() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Add a field with same name as a reserved field.
+		File expected = new File("src/test/resources/modify/expected/reserved").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved").getCanonicalFile();
+
+		NewField reappearedReservedField = new NewField();
+		reappearedReservedField.targetMessageType = "A";
+		reappearedReservedField.fieldNumber = 200;
+		reappearedReservedField.name = "reserved_field";
+		reappearedReservedField.type = "string";
+		reappearedReservedField.allowIfReserved = true;
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(reappearedReservedField);
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addreservedfield_name_only.proto", generatedRootFolder, "addreservedfield.proto");
+	}
+
+	@Test
+	public void testAddFieldAllowIfReservedIdOnly() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Add a field with same number as a reserved field, but a new name
+		File expected = new File("src/test/resources/modify/expected/reserved").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved").getCanonicalFile();
+
+		NewField reappearedReservedField = new NewField();
+		reappearedReservedField.targetMessageType = "A";
+		reappearedReservedField.fieldNumber = 100;
+		reappearedReservedField.name = "new_name";
+		reappearedReservedField.type = "string";
+		reappearedReservedField.allowIfReserved = true;
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(reappearedReservedField);
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addreservedfield_id_only.proto", generatedRootFolder, "addreservedfield.proto");
+	}
+
+	@Test
+	public void testAddFieldReservedThrowsException() throws IOException {
+		// Add a field with both the same name and number as a reserved field
+		File source = new File("src/test/resources/modify/input/reserved").getCanonicalFile();
+
+		NewField reappearedReservedField = new NewField();
+		reappearedReservedField.targetMessageType = "A";
+		reappearedReservedField.fieldNumber = 100;
+		reappearedReservedField.name = "reserved_field";
+		reappearedReservedField.type = "string";
+		// allowIfReserved defaults to false
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(reappearedReservedField);
+
+		assertThrows(InvalidProtobufException.class, () -> modifyProto(configuration));
 
 	}
 

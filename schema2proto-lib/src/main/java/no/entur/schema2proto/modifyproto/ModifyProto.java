@@ -59,6 +59,7 @@ import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
+import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
@@ -407,6 +408,32 @@ public class ModifyProto {
 		if (type == null) {
 			throw new InvalidProtobufException("Did not find existing type " + newField.targetMessageType);
 		} else {
+
+			// Check if field name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
+			List<Reserved> reservedFields = type.getReserveds();
+			boolean nameReserved = reservedFields.stream().anyMatch(r -> r.matchesName(newField.name));
+			boolean tagReserved = newField.fieldNumber != -1 && reservedFields.stream().anyMatch(r -> r.matchesTag(newField.fieldNumber));
+
+			if (nameReserved || tagReserved) {
+				if (!newField.allowIfReserved) {
+					throw new InvalidProtobufException("Field name '" + newField.name + "' and/or fieldNumber " + newField.fieldNumber + " is reserved in type "
+							+ newField.targetMessageType + ". Use allowIfReserved to override.");
+				}
+				// Remove only the matching name/tag values from each Reserved entry, keeping other values intact
+				List<Reserved> updatedReservedFields = new ArrayList<>();
+				for (Reserved reserved : reservedFields) {
+					List<Object> filteredValues = reserved.getValues()
+							.stream()
+							.filter(v -> !Objects.equals(v, newField.name) && !Objects.equals(v, newField.fieldNumber))
+							.collect(Collectors.toList());
+
+					if (!filteredValues.isEmpty()) {
+						updatedReservedFields.add(new Reserved(reserved.getLocation(), reserved.getDocumentation(), filteredValues));
+					}
+				}
+				reservedFields.clear();
+				reservedFields.addAll(updatedReservedFields);
+			}
 
 			List<OptionElement> optionElements = new ArrayList<>();
 			Options options = new Options(Options.FIELD_OPTIONS, optionElements);
