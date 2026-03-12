@@ -409,16 +409,18 @@ public class ModifyProto {
 			throw new InvalidProtobufException("Did not find existing type " + newField.targetMessageType);
 		} else {
 
-			List<Reserved> reserveds = type.getReserveds();
-			boolean nameReserved = reserveds.stream().anyMatch(r -> r.matchesName(newField.name));
-			boolean tagReserved = newField.fieldNumber != -1 && reserveds.stream().anyMatch(r -> r.matchesTag(newField.fieldNumber));
+			// Check if field name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
+			List<Reserved> reservedFields = type.getReserveds();
+			boolean nameReserved = reservedFields.stream().anyMatch(r -> r.matchesName(newField.name));
+			boolean tagReserved = newField.fieldNumber != -1 && reservedFields.stream().anyMatch(r -> r.matchesTag(newField.fieldNumber));
 
 			if (nameReserved || tagReserved) {
 				if (!newField.allowIfReserved) {
-					throw new InvalidProtobufException("Field name '" + newField.name + "' or tag " + newField.fieldNumber + " is reserved in type "
+					throw new InvalidProtobufException("Field name '" + newField.name + "' and/or fieldNumber " + newField.fieldNumber + " is reserved in type "
 							+ newField.targetMessageType + ". Use allowIfReserved to override.");
 				}
-				reserveds.removeIf(r -> r.matchesName(newField.name) || (newField.fieldNumber != -1 && r.matchesTag(newField.fieldNumber)));
+				// Remove reservation for field name and tag if they exist, since we're going to add a field with that name and/or tag
+				reservedFields.removeIf(r -> r.matchesName(newField.name) || (newField.fieldNumber != -1 && r.matchesTag(newField.fieldNumber)));
 			}
 
 			List<OptionElement> optionElements = new ArrayList<>();
