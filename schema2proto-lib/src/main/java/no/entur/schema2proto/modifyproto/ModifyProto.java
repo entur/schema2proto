@@ -59,6 +59,7 @@ import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
+import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
@@ -407,6 +408,18 @@ public class ModifyProto {
 		if (type == null) {
 			throw new InvalidProtobufException("Did not find existing type " + newField.targetMessageType);
 		} else {
+
+			List<Reserved> reserveds = type.getReserveds();
+			boolean nameReserved = reserveds.stream().anyMatch(r -> r.matchesName(newField.name));
+			boolean tagReserved = newField.fieldNumber != -1 && reserveds.stream().anyMatch(r -> r.matchesTag(newField.fieldNumber));
+
+			if (nameReserved || tagReserved) {
+				if (!newField.allowIfReserved) {
+					throw new InvalidProtobufException("Field name '" + newField.name + "' or tag " + newField.fieldNumber + " is reserved in type "
+							+ newField.targetMessageType + ". Use allowIfReserved to override.");
+				}
+				reserveds.removeIf(r -> r.matchesName(newField.name) || (newField.fieldNumber != -1 && r.matchesTag(newField.fieldNumber)));
+			}
 
 			List<OptionElement> optionElements = new ArrayList<>();
 			Options options = new Options(Options.FIELD_OPTIONS, optionElements);

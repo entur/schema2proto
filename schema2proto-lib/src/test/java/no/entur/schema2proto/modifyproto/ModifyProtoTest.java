@@ -22,6 +22,8 @@
  */
 package no.entur.schema2proto.modifyproto;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -256,6 +258,46 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "extrafield.proto", generatedRootFolder, "simple.proto");
+
+	}
+
+	@Test
+	public void testAddFieldAllowIfReserved() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		File expected = new File("src/test/resources/modify/expected/reserved").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		newField.fieldNumber = 100;
+		newField.name = "new_field";
+		newField.type = "string";
+		newField.allowIfReserved = true;
+
+		configuration.newFields = Collections.singletonList(newField);
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addreservedfield.proto", generatedRootFolder, "addreservedfield.proto");
+	}
+
+	@Test
+	public void testAddFieldReservedThrowsException() throws IOException {
+
+		File source = new File("src/test/resources/modify/input/reserved").getCanonicalFile();
+
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		newField.fieldNumber = 100;
+		newField.name = "new_field";
+		newField.type = "string";
+		// allowIfReserved defaults to false
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(newField);
+
+		assertThrows(InvalidProtobufException.class, () -> modifyProto(configuration));
 
 	}
 

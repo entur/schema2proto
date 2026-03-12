@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message A {
+  uint64 response_timestamp = 1;
+  string new_field = 100;
+}
