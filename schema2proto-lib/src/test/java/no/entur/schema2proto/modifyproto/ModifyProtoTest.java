@@ -326,7 +326,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 	@Test
 	public void testAddFieldReservedThrowsException() throws IOException {
-		// Add a field with same name as a reserved field, but a new fieldNumber
+		// Add a field with both the same name and number as a reserved field
 		File source = new File("src/test/resources/modify/input/reserved").getCanonicalFile();
 
 		NewField reappearedReservedField = new NewField();
