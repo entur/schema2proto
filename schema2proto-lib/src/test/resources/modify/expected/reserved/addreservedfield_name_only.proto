@@ -2,5 +2,6 @@ syntax = "proto3";
 
 message A {
   uint64 response_timestamp = 1;
-  string reserved_field = 100;
+  string reserved_field = 200;
+  reserved 100;
 }
