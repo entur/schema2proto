@@ -30,4 +30,6 @@ public class NewField {
 	public String label;
 	public int fieldNumber = -1;
 	public String documentation;
+	// Allow even if field number and/or name is reserved
+	public boolean allowIfReserved;
 }
