@@ -155,7 +155,7 @@ public class EnumConflictChecker {
 			Optional<EnumConstant> existingField, Integer idFromLockFile) {
 		intrudingField.ifPresent(intruding -> {
 			if (idFromLockFile != null) {
-				// Evict any constant already occupying the target slot (other than the two being swapped)
+				// Assign next free tag to new enum values reusing an already existing tag. This can happen if new enum values are introduced out of order
 				getConstant(enumType, idFromLockFile).ifPresent(blocker -> {
 					boolean isIntruding = intrudingField.map(f -> f.getName().equals(blocker.getName())).orElse(false);
 					boolean isExisting = existingField.map(f -> f.getName().equals(blocker.getName())).orElse(false);
