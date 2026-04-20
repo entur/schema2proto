@@ -117,7 +117,7 @@ public class EnumConflictChecker {
 						Optional<EnumConstant> existingConstant = getConstant(enumType, originalFieldNameUsingThisId);
 
 						Integer idFromLockFile = newConstantsInLockMapNameToId.get(intrudingFieldName);
-						updateEnumConstantId(nextAvailableConstantId, overlappingId, intrudingConstant, existingConstant, idFromLockFile);
+						updateEnumConstantId(enumType, nextAvailableConstantId, overlappingId, intrudingConstant, existingConstant, idFromLockFile);
 					}
 
 				} else if (!overlappingNames.isEmpty()) {
@@ -133,7 +133,7 @@ public class EnumConflictChecker {
 						Optional<EnumConstant> existingConstant = getConstant(enumType, originalFieldIdForNewName);
 
 						Integer idFromLockFile = newConstantsInLockMapNameToId.get(overlappingName);
-						updateEnumConstantId(nextAvailableConstantId, originalFieldIdForNewName, intrudingConstant, existingConstant, idFromLockFile);
+						updateEnumConstantId(enumType, nextAvailableConstantId, originalFieldIdForNewName, intrudingConstant, existingConstant, idFromLockFile);
 					}
 				}
 				tryResolveEnumConflicts(file, enumType, protolockEnum);
@@ -151,13 +151,21 @@ public class EnumConflictChecker {
 		return failIfRemovedFieldsTriggered;
 	}
 
-	private void updateEnumConstantId(AtomicInteger nextAvailableFieldNum, int overlappingId, Optional<EnumConstant> intrudingField,
+	private void updateEnumConstantId(EnumType enumType, AtomicInteger nextAvailableFieldNum, int overlappingId, Optional<EnumConstant> intrudingField,
 			Optional<EnumConstant> existingField, Integer idFromLockFile) {
-		intrudingField.ifPresent(x -> {
+		intrudingField.ifPresent(intruding -> {
 			if (idFromLockFile != null) {
-				x.updateTag(idFromLockFile);
+				// Evict any constant already occupying the target slot (other than the two being swapped)
+				getConstant(enumType, idFromLockFile).ifPresent(blocker -> {
+					boolean isIntruding = intrudingField.map(f -> f.getName().equals(blocker.getName())).orElse(false);
+					boolean isExisting = existingField.map(f -> f.getName().equals(blocker.getName())).orElse(false);
+					if (!isIntruding && !isExisting) {
+						blocker.updateTag(nextAvailableFieldNum.getAndIncrement());
+					}
+				});
+				intruding.updateTag(idFromLockFile);
 			} else {
-				x.updateTag(nextAvailableFieldNum.get());
+				intruding.updateTag(nextAvailableFieldNum.get());
 			}
 		});
 

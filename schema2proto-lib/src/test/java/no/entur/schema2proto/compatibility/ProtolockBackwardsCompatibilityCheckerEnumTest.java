@@ -50,6 +50,11 @@ public class ProtolockBackwardsCompatibilityCheckerEnumTest extends AbstractBack
 	}
 
 	@Test
+	public void testChangedEnumOrderWithNewValue() throws IOException {
+		verify("changedenumorderwithnewvalue", true, "default/default.proto");
+	}
+
+	@Test
 	public void testChangedEnumConstantTag() throws IOException {
 		verify("changedenumconstanttag", true, "default/default.proto");
 	}
