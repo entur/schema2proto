@@ -1,0 +1,26 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+enum Enum1 {
+  // Default
+  ENUM1_UNSPECIFIED = 0;
+  ENUM1_E_1_VAL_1 = 1;
+  ENUM1_E_1_VAL_2 = 2;
+}
+
+enum Enum2 {
+  // Default
+  ENUM2_UNSPECIFIED = 0;
+  ENUM2_E_2_VAL_1 = 1;
+  ENUM2_E_2_VAL_2 = 2;
+}
+
+enum UnionEnumeration {
+  // Default
+  UNION_ENUMERATION_UNSPECIFIED = 0;
+  UNION_ENUMERATION_E_1_VAL_1 = 1;
+  UNION_ENUMERATION_E_1_VAL_2 = 2;
+  UNION_ENUMERATION_E_2_VAL_1 = 3;
+  UNION_ENUMERATION_E_2_VAL_2 = 4;
+}
