@@ -247,23 +247,33 @@ public class SchemaParser implements ErrorHandler {
 		} else if (xs.isList()) {
 			nestingLevel--;
 			return processSimpleType(xs.asList().getItemType(), null);
-		} else if (xs.isUnion()) {
-			XSUnionSimpleType unionType = xs.asUnion();
-			boolean allMembersAreEnums = true;
-			for (int i = 0; i < unionType.getMemberSize(); i++) {
-				XSSimpleType member = unionType.getMember(i);
-				if (!member.isRestriction() || member.getFacet(XSFacet.FACET_ENUMERATION) == null) {
-					allMembersAreEnums = false;
-					break;
-				}
-			}
-			if (allMembersAreEnums) {
-				createEnumFromUnion(typeName, unionType);
-			}
+		} else if (isEnumUnion(xs)) {
+			createEnumFromUnion(typeName, xs.asUnion());
 		}
 
 		nestingLevel--;
 		return typeName;
+	}
+
+	private boolean isNonEnumUnion(XSSimpleType xs) {
+		return xs.isUnion() && !isEnumUnion(xs);
+	}
+
+	private boolean isEnumUnion(XSSimpleType xs) {
+		if (!xs.isUnion()) {
+			return false;
+		}
+		XSUnionSimpleType unionType = xs.asUnion();
+		boolean allMembersAreEnums = true;
+
+		for (int i = 0; i < unionType.getMemberSize(); i++) {
+			XSSimpleType member = unionType.getMember(i);
+			if (!member.isRestriction() || member.getFacet(XSFacet.FACET_ENUMERATION) == null) {
+				allMembersAreEnums = false;
+				break;
+			}
+		}
+		return allMembersAreEnums;
 	}
 
 	private void createEnumFromUnion(String typeName, XSUnionSimpleType unionType) {
@@ -546,8 +556,8 @@ public class SchemaParser implements ErrorHandler {
 				XSListSimpleType asList = type.asSimpleType().asList();
 				XSSimpleType itemType = asList.getItemType();
 				typeName = itemType.getName();
-			} else if (type.asSimpleType().isUnion()) {
-				typeName = DEFAULT_PROTO_PRIMITIVE; // Union always resolves to string
+			} else if (isNonEnumUnion(type.asSimpleType())) {
+				typeName = DEFAULT_PROTO_PRIMITIVE; // Non enum union always resolves to string
 			} else {
 				typeName = type.asSimpleType().getBaseType().getName();
 			}
@@ -755,7 +765,7 @@ public class SchemaParser implements ErrorHandler {
 				}
 
 				String name;
-				if (xsSimpleType.isUnion()) {
+				if (isNonEnumUnion(xsSimpleType)) {
 					name = DEFAULT_PROTO_PRIMITIVE;
 				} else {
 					name = xsSimpleType.getName();
@@ -884,7 +894,7 @@ public class SchemaParser implements ErrorHandler {
 			XSAttributeDecl decl = attr.getDecl();
 			XSSimpleType type = decl.getType();
 
-			if (type.getPrimitiveType() != null || type.isList() || type.isUnion()) {
+			if (type.getPrimitiveType() != null || type.isList() || isNonEnumUnion(type)) {
 				String fieldName = decl.getName();
 				String doc = resolveDocumentationAnnotation(decl, false);
 				int tag = messageType.getNextFieldNum();
