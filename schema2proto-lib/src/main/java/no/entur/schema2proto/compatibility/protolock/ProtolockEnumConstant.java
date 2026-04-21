@@ -28,7 +28,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class ProtolockEnumConstant extends AbstractNameIDPair {
 
-	private final String name;
+	private String name;
 	@SerializedName("integer")
 	private int id;
 
