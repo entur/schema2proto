@@ -108,7 +108,6 @@ public class EnumConflictChecker {
 		return failIfRemovedFieldsTriggered;
 	}
 
-
 	private void reserveEnumConstant(ProtoFile file, EnumType e, ProtolockEnumConstant newEnumConstant) {
 
 		String reservationDoc = "Reservation added by schema2proto";
@@ -123,7 +122,6 @@ public class EnumConflictChecker {
 				file.name(), e.name(), newEnumConstant);
 		failIfRemovedFieldsTriggered = true;
 	}
-
 
 	private static Optional<EnumConstant> getConstant(EnumType e, String intrudingConstantName) {
 		return e.constants().stream().filter(z -> z.getName().equals(intrudingConstantName)).findFirst();
