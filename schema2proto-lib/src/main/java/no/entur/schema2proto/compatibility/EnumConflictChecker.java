@@ -23,12 +23,9 @@ package no.entur.schema2proto.compatibility;
  * #L%
  */
 
-import static no.entur.schema2proto.compatibility.ConflictResolverHelper.createBiMap;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -36,11 +33,9 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.BiMap;
 import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Location;
@@ -80,92 +75,37 @@ public class EnumConflictChecker {
 			// Only new enum constants from xsd
 			newEnumConstantsInXsd.stream().forEach(newField -> LOGGER.debug("Added field in proto {} {} : {}", file.name(), enumType.name(), newField));
 		} else {
-
-			// Compute helper maps
-			BiMap<String, Integer> xsdConstantsNameToId = createBiMap(newEnumConstantsInXsd);
-			Map<Integer, String> xsdConstantsIdToName = xsdConstantsNameToId.inverse();
-
-			BiMap<String, Integer> newConstantsInLockMapNameToId = createBiMap(surplusLockEnumConstants);
-			Map<Integer, String> newConstantsInLockMapIdToName = newConstantsInLockMapNameToId.inverse();
-
-			TreeSet<String> overlappingNames = new TreeSet<>(xsdConstantsNameToId.keySet());
-			overlappingNames.retainAll(newConstantsInLockMapNameToId.keySet());
-
-			TreeSet<Integer> overlappingIds = new TreeSet<>(xsdConstantsNameToId.values());
-			overlappingIds.retainAll(newConstantsInLockMapNameToId.values());
-
-			if (!(overlappingIds.isEmpty() && overlappingNames.isEmpty())) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Incompatible changes in proto {} {} , overlapping enum constant ids={}, overlapping enum constant names={}", file.name(),
-							enumType.name(), overlappingIds, overlappingNames);
-				}
-
-				// If an existing constant.name (in both proto and protolock) has a new field number, updated constant.id to this number. If this number has
-				// been used
-				// for
-				// another constant, assign this constant to a new id in a "safe" number range
-				AtomicInteger nextAvailableConstantId = findNextAvailableFieldNum(enumType, xsdEnumConstants);
-
-				if (!overlappingIds.isEmpty()) {
-					// Check if the new field is using an already allocated id
-					int overlappingId = overlappingIds.first();
-					String originalFieldNameUsingThisId = newConstantsInLockMapIdToName.get(overlappingId);
-					if (originalFieldNameUsingThisId != null) {
-						// Find field that has take newFields original number
-						String intrudingFieldName = xsdConstantsIdToName.get(overlappingId);
-						Optional<EnumConstant> intrudingConstant = getConstant(enumType, intrudingFieldName);
-						Optional<EnumConstant> existingConstant = getConstant(enumType, originalFieldNameUsingThisId);
-
-						Integer idFromLockFile = newConstantsInLockMapNameToId.get(intrudingFieldName);
-						updateEnumConstantId(nextAvailableConstantId, overlappingId, intrudingConstant, existingConstant, idFromLockFile);
-					}
-
-				} else if (!overlappingNames.isEmpty()) {
-
-					String overlappingName = overlappingNames.first();
-
-					// Check if the new field is using an already allocated name (changed id)
-					Integer originalFieldIdForNewName = newConstantsInLockMapNameToId.get(overlappingName);
-					if (originalFieldIdForNewName != null) {
-						// Find field that has take newFields original number
-						Integer intrudingFieldId = xsdConstantsNameToId.get(overlappingName);
-						Optional<EnumConstant> intrudingConstant = getConstant(enumType, intrudingFieldId);
-						Optional<EnumConstant> existingConstant = getConstant(enumType, originalFieldIdForNewName);
-
-						Integer idFromLockFile = newConstantsInLockMapNameToId.get(overlappingName);
-						updateEnumConstantId(nextAvailableConstantId, originalFieldIdForNewName, intrudingConstant, existingConstant, idFromLockFile);
-					}
-				}
-				tryResolveEnumConflicts(file, enumType, protolockEnum);
-
-			} else {
-				// If neither overlapping constants names nor ids, no problem. Add reserved keyword for removed constants
-				surplusLockEnumConstants.stream().forEach(newConstant -> {
-					reserveEnumConstant(file, enumType, newConstant);
-					LOGGER.debug("Removed constant in proto {}: {}, adding reserved section", file.name(), newConstant);
-				});
+			// Phase 1: Restore lock-file constants to their original IDs
+			for (ProtolockEnumConstant lockConstant : lockEnumConstants) {
+				getConstant(enumType, lockConstant.getName()).ifPresent(c -> c.updateTag(lockConstant.getId()));
 			}
 
+			// Phase 2: Assign new constants (not in lock file) gap-free after max lock ID
+			Set<String> lockNames = lockEnumConstants.stream().map(ProtolockEnumConstant::getName).collect(Collectors.toSet());
+
+			int maxLockId = lockEnumConstants.stream()
+					.max(Comparator.comparing(ProtolockEnumConstant::getId))
+					.orElse(new ProtolockEnumConstant(0, null))
+					.getId();
+
+			AtomicInteger nextId = new AtomicInteger(maxLockId + 1);
+
+			for (EnumConstant constant : enumType.constants()) {
+				if (!lockNames.contains(constant.getName())) {
+					while (enumType.reserveds().stream().anyMatch(s -> s.matchesTag(nextId.get()))) {
+						nextId.incrementAndGet();
+					}
+					constant.updateTag(nextId.getAndIncrement());
+				}
+			}
+
+			// Handle removed constants
+			surplusLockEnumConstants.stream()
+					.filter(lc -> getConstant(enumType, lc.getName()).isEmpty())
+					.forEach(removed -> reserveEnumConstant(file, enumType, removed));
 		}
 
 		return failIfRemovedFieldsTriggered;
-	}
-
-	private void updateEnumConstantId(AtomicInteger nextAvailableFieldNum, int overlappingId, Optional<EnumConstant> intrudingField,
-			Optional<EnumConstant> existingField, Integer idFromLockFile) {
-		intrudingField.ifPresent(x -> {
-			if (idFromLockFile != null) {
-				x.updateTag(idFromLockFile);
-			} else {
-				x.updateTag(nextAvailableFieldNum.get());
-			}
-		});
-
-		existingField.ifPresent(x -> x.updateTag(overlappingId));
-	}
-
-	private Optional<EnumConstant> getConstant(EnumType e, Integer intrudingConstantId) {
-		return e.constants().stream().filter(z -> z.getTag() == intrudingConstantId).findFirst();
 	}
 
 	private void reserveEnumConstant(ProtoFile file, EnumType e, ProtolockEnumConstant newEnumConstant) {
@@ -181,18 +121,6 @@ public class EnumConflictChecker {
 				"Possible backwards incompatibility detected, must be checked manually! Removed enum constant in proto {}, message {}, field {}, blocking enum name and id for future use by adding 'reserved' statement",
 				file.name(), e.name(), newEnumConstant);
 		failIfRemovedFieldsTriggered = true;
-	}
-
-	@NotNull
-	private AtomicInteger findNextAvailableFieldNum(EnumType e, SortedSet<ProtolockEnumConstant> xsdFields) {
-		AtomicInteger nextAvailableFieldNum = new AtomicInteger(
-				xsdFields.stream().max(Comparator.comparing(ProtolockEnumConstant::getId)).orElse(new ProtolockEnumConstant(0, null)).getId() + 1);
-
-		// Check that it is not reserved
-		while (e.reserveds().stream().anyMatch(s -> s.matchesTag(nextAvailableFieldNum.get()))) {
-			nextAvailableFieldNum.incrementAndGet();
-		}
-		return nextAvailableFieldNum;
 	}
 
 	private static Optional<EnumConstant> getConstant(EnumType e, String intrudingConstantName) {

@@ -5,6 +5,6 @@ package default;
 enum Test {
   TEST_UNSPECIFIED = 0;
   TEST_FIRST = 1;
-  TEST_INJECTED_FOURTH = 3;
   TEST_SECOND = 2;
 }
+
