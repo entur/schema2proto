@@ -84,7 +84,6 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
-import com.sun.xml.xsom.XSUnionSimpleType;
 import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
@@ -247,53 +246,10 @@ public class SchemaParser implements ErrorHandler {
 		} else if (xs.isList()) {
 			nestingLevel--;
 			return processSimpleType(xs.asList().getItemType(), null);
-		} else if (xs.isUnion()) {
-			XSUnionSimpleType unionType = xs.asUnion();
-			boolean allMembersAreEnums = true;
-			for (int i = 0; i < unionType.getMemberSize(); i++) {
-				XSSimpleType member = unionType.getMember(i);
-				if (!member.isRestriction() || member.getFacet(XSFacet.FACET_ENUMERATION) == null) {
-					allMembersAreEnums = false;
-					break;
-				}
-			}
-			if (allMembersAreEnums) {
-				createEnumFromUnion(typeName, unionType);
-			}
 		}
 
 		nestingLevel--;
 		return typeName;
-	}
-
-	private void createEnumFromUnion(String typeName, XSUnionSimpleType unionType) {
-		Type protoType = getType(unionType.getTargetNamespace(), typeName);
-		if (protoType == null) {
-			Location location = getLocation(unionType);
-			List<EnumConstant> constants = new ArrayList<>();
-			int counter = 1;
-			Set<String> addedValues = new HashSet<>();
-
-			for (int i = 0; i < unionType.getMemberSize(); i++) {
-				XSRestrictionSimpleType member = unionType.getMember(i).asRestriction();
-				for (XSFacet facet : member.getDeclaredFacets()) {
-					String enumValue = facet.getValue().value;
-					if (addedValues.add(enumValue)) {
-						String doc = resolveDocumentationAnnotation(facet, false);
-						List<OptionElement> optionElements = new ArrayList<>();
-						constants.add(new EnumConstant(location, enumValue, counter++, doc, new Options(Options.ENUM_VALUE_OPTIONS, optionElements)));
-					}
-				}
-			}
-
-			List<OptionElement> enumOptionElements = new ArrayList<>();
-			Options enumOptions = new Options(Options.ENUM_OPTIONS, enumOptionElements);
-			String doc = resolveDocumentationAnnotation(unionType, false);
-
-			ProtoType definedProtoType = ProtoType.get(typeName);
-			EnumType enumType = new EnumType(definedProtoType, location, doc, typeName, constants, new ArrayList<>(), enumOptions);
-			addType(unionType.getTargetNamespace(), enumType);
-		}
 	}
 
 	private void addField(MessageType message, Field newField) {
