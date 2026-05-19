@@ -17,7 +17,7 @@
     <properties>
         <assertj.version>3.27.7</assertj.version>
         <commons-cli.version>1.11.0</commons-cli.version>
-        <commons-io.version>2.21.0</commons-io.version>
+        <commons-io.version>2.22.0</commons-io.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <commons-text.version>1.15.0</commons-text.version>
         <gson.version>2.14.0</gson.version>
