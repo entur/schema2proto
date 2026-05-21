@@ -40,7 +40,7 @@
         <okio.version>3.17.0</okio.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <proto-google-common-protos.version>2.70.0</proto-google-common-protos.version>
+        <proto-google-common-protos.version>2.71.0</proto-google-common-protos.version>
         <protobuf.version>4.34.1</protobuf.version>
         <protovalidate.version>1.2.0</protovalidate.version>
         <relaxng.version>4.0.8</relaxng.version>
