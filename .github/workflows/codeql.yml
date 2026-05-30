@@ -12,10 +12,18 @@ on:
   schedule:
     - cron: "0 4 * * TUE" # Run Tuesday at 4AM UTC
 
+permissions:
+  packages: read
+  security-events: write
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   code-scan:
     name: CodeQL Scan
-    uses: entur/gha-security/.github/workflows/code-scan.yml@v2.12.2
+    uses: entur/gha-security/.github/workflows/code-scan.yml@v2
     # no secrets necessary
     permissions: # some of these only apply when running on the default branch
       actions: read
