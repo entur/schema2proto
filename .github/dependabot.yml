@@ -9,6 +9,10 @@ updates:
         - "no.entur.*"
         - "org.entur.*"
         - "io.entur.*"
+    ignore:
+      # Stay on Kotlin 2.3.x — allow patch updates only, block minor/major bumps beyond 2.3. Required to run codeQL
+      - dependency-name: "org.jetbrains.kotlin:*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     groups:
       entur-dependencies:
         patterns:
