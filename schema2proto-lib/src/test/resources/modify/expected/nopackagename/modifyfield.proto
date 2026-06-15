@@ -1,5 +1,6 @@
 // default.proto at 0:0
 syntax = "proto3";
+import "buf/validate/validate.proto";
 
 // Type for Status of termination response.
 message A {

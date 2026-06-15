@@ -53,9 +53,8 @@ import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
-import com.squareup.wire.schema.ProtoFile;
-
 import no.entur.schema2proto.InvalidConfigurationException;
+import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
 
 public class Schema2Proto {
 	private static final String OPTION_OUTPUT_DIRECTORY = "outputDirectory";
@@ -110,7 +109,7 @@ public class Schema2Proto {
 			SchemaParser xp = new SchemaParser(configuration);
 
 			LOGGER.info("Starting to parse {}", configuration.xsdFile);
-			Map<String, ProtoFile> packageToFiles = xp.parse();
+			Map<String, MutableProtoFile> packageToFiles = xp.parse();
 			List<LocalType> localTypes = xp.getLocalTypes();
 
 			TypeAndNameMapper pbm = new TypeAndNameMapper(configuration);

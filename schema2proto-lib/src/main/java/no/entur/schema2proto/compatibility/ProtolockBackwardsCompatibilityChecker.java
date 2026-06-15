@@ -33,16 +33,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.MessageType;
-import com.squareup.wire.schema.ProtoFile;
 
 import no.entur.schema2proto.compatibility.protolock.ProtolockDefinition;
 import no.entur.schema2proto.compatibility.protolock.ProtolockDefinitions;
 import no.entur.schema2proto.compatibility.protolock.ProtolockEnum;
 import no.entur.schema2proto.compatibility.protolock.ProtolockFile;
 import no.entur.schema2proto.compatibility.protolock.ProtolockMessage;
+import no.entur.schema2proto.generateproto.wire.MutableEnumType;
+import no.entur.schema2proto.generateproto.wire.MutableMessageType;
+import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
 
 public class ProtolockBackwardsCompatibilityChecker {
 
@@ -66,7 +66,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return definitions;
 	}
 
-	private void copyReservations(ProtolockMessage protolockMessage, MessageType protoMessage) {
+	private void copyReservations(ProtolockMessage protolockMessage, MutableMessageType protoMessage) {
 		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
 			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> protoMessage.addReserved(reservationDoc, reservationLocation, reservedId));
 		}
@@ -75,7 +75,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 					.forEach(reservedName -> protoMessage.addReserved(reservationDoc, reservationLocation, reservedName));
 		}
 
-		protoMessage.nestedTypes().stream().filter(z -> z instanceof MessageType).map(k -> (MessageType) k).forEach(nestedType -> {
+		protoMessage.nestedTypes().stream().filter(z -> z instanceof MutableMessageType).map(k -> (MutableMessageType) k).forEach(nestedType -> {
 			if (protolockMessage.getMessages() != null) {
 				Arrays.stream(protolockMessage.getMessages()).forEach(nestedProtolockMessage -> {
 					if (nestedProtolockMessage.getName().equals(nestedType.getName())) {
@@ -87,7 +87,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 	}
 
-	private void copyReservations(ProtolockEnum protolockEnum, EnumType protoEnum) {
+	private void copyReservations(ProtolockEnum protolockEnum, MutableEnumType protoEnum) {
 		LOGGER.debug("Copying reservations for message {} and enum {}", protolockEnum, protoEnum);
 		if (protolockEnum.getReservedIds() != null && protolockEnum.getReservedIds().length > 0) {
 			Arrays.stream(protolockEnum.getReservedIds()).forEach(reservedId -> protoEnum.addReserved(reservationDoc, reservationLocation, reservedId));
@@ -97,7 +97,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 		}
 	}
 
-	public boolean resolveBackwardIncompatibilities(ProtoFile protoFile) {
+	public boolean resolveBackwardIncompatibilities(MutableProtoFile protoFile) {
 		LOGGER.debug("Trying to resolve backward incompabilities in file {}", protoFile);
 
 		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
@@ -107,7 +107,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 		if (protolockFile != null) {
 
 			// For each enum on file level (global enums)
-			protoFile.types().stream().filter(type -> type instanceof EnumType).map(enumType -> (EnumType) enumType).forEach(enumType -> {
+			protoFile.types().stream().filter(type -> type instanceof MutableEnumType).map(enumType -> (MutableEnumType) enumType).forEach(enumType -> {
 				if (protolockFile.getEnums() != null) {
 					Arrays.stream(protolockFile.getEnums()).filter(pe -> pe.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
 						copyReservations(protolockEnum, enumType);
@@ -119,7 +119,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 				}
 			});
 
-			protoFile.types().stream().filter(z -> z instanceof MessageType).map(ke -> (MessageType) ke).forEach(e -> {
+			protoFile.types().stream().filter(z -> z instanceof MutableMessageType).map(ke -> (MutableMessageType) ke).forEach(e -> {
 				// For each root level message in file
 				ProtolockMessage protolockMessage = getProtolockMessage(protolockFile, e);
 				if (protolockMessage != null) {
@@ -134,7 +134,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return failIfRemovedFieldsTriggered.get();
 	}
 
-	private boolean resolveBackwardIncompatibilities(ProtoFile protoFile, ProtolockMessage protolockMessage, MessageType protoMessage) {
+	private boolean resolveBackwardIncompatibilities(MutableProtoFile protoFile, ProtolockMessage protolockMessage, MutableMessageType protoMessage) {
 		LOGGER.debug("Resolving backward compabilities in file {}, message {}", protoFile.name(), protoMessage);
 
 		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
@@ -149,7 +149,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 			failIfRemovedFieldsTriggered.set(true);
 		}
 
-		protoMessage.nestedTypes().stream().filter(type -> type instanceof MessageType).map(r -> (MessageType) r).forEach(nestedProtoMessage -> {
+		protoMessage.nestedTypes().stream().filter(type -> type instanceof MutableMessageType).map(r -> (MutableMessageType) r).forEach(nestedProtoMessage -> {
 			ProtolockMessage nestedProtolockMessage = getNestedProtolockMessage(protolockMessage, nestedProtoMessage);
 			if (nestedProtolockMessage != null) {
 				if (resolveBackwardIncompatibilities(protoFile, nestedProtolockMessage, nestedProtoMessage)) {
@@ -162,11 +162,11 @@ public class ProtolockBackwardsCompatibilityChecker {
 
 	}
 
-	private boolean tryResolveEnumConflicts(ProtoFile protoFile, MessageType protoMessage, ProtolockMessage protolockMessage) {
+	private boolean tryResolveEnumConflicts(MutableProtoFile protoFile, MutableMessageType protoMessage, ProtolockMessage protolockMessage) {
 		LOGGER.debug("Trying to resolve enum conflicts in file {}, message {}", protoFile.name(), protoMessage);
 		AtomicBoolean failIfRemovedFieldsTriggered = new AtomicBoolean(false);
 		// For each enum in proto, try to find mismatching enum values and resolve
-		protoMessage.nestedTypes().stream().filter(type -> type instanceof EnumType).map(type -> (EnumType) type).forEach(enumType -> {
+		protoMessage.nestedTypes().stream().filter(type -> type instanceof MutableEnumType).map(type -> (MutableEnumType) type).forEach(enumType -> {
 			// Find matching in protolockmessage
 			if (protolockMessage.getEnums() != null) {
 				Arrays.stream(protolockMessage.getEnums()).filter(e -> e.getName().equals(enumType.name())).findFirst().ifPresent(protolockEnum -> {
@@ -180,7 +180,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return failIfRemovedFieldsTriggered.get();
 	}
 
-	private ProtolockMessage getProtolockMessage(ProtolockFile protolockFile, MessageType protoMessage) {
+	private ProtolockMessage getProtolockMessage(ProtolockFile protolockFile, MutableMessageType protoMessage) {
 		if (protolockFile != null && protolockFile.getMessages() != null) {
 			return Arrays.stream(protolockFile.getMessages()).filter(message -> message.getName().equals(protoMessage.getName())).findFirst().orElse(null);
 		}
@@ -188,7 +188,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return null;
 	}
 
-	private ProtolockMessage getNestedProtolockMessage(ProtolockMessage protolockMessage, MessageType nestedProtoMessage) {
+	private ProtolockMessage getNestedProtolockMessage(ProtolockMessage protolockMessage, MutableMessageType nestedProtoMessage) {
 		if (protolockMessage != null && protolockMessage.getMessages() != null) {
 			return Arrays.stream(protolockMessage.getMessages())
 					.filter(subMessage -> subMessage.getName().equals(nestedProtoMessage.getName()))
@@ -199,7 +199,7 @@ public class ProtolockBackwardsCompatibilityChecker {
 		}
 	}
 
-	private ProtolockFile getProtolockFile(ProtoFile protoFile) {
+	private ProtolockFile getProtolockFile(MutableProtoFile protoFile) {
 		String fullPath = protoFile.toString();
 		if (!fullPath.contains("/")) {
 			// Assume no package in filename yet

@@ -1,5 +1,6 @@
 // /home/erlend/Projects/abt/schema2proto/schema2proto-lib/src/test/resources/modify/input/xsdbasetype/simple.proto
 syntax = "proto3";
+import "xsd/xsd.proto";
 
 message B {
   option (xsd.base_type) = "A";

@@ -22,21 +22,22 @@
  */
 package no.entur.schema2proto.generateproto;
 
-import com.squareup.wire.schema.Field;
-import com.squareup.wire.schema.MessageType;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSComponent;
 
+import no.entur.schema2proto.generateproto.wire.MutableField;
+import no.entur.schema2proto.generateproto.wire.MutableMessageType;
+
 public class LocalType {
 	XSComponent xsComponent;
-	MessageType localType;
-	MessageType enclosingType;
-	Field referencingField;
+	MutableMessageType localType;
+	MutableMessageType enclosingType;
+	MutableField referencingField;
 	String targetPackage;
 	XSComplexType enclosingComplexType;
 
-	public LocalType(XSComponent xsComponent, MessageType localType, MessageType enclosingType, Field referencingField, String targetPackage,
-			XSComplexType enclosingComplexType) {
+	public LocalType(XSComponent xsComponent, MutableMessageType localType, MutableMessageType enclosingType, MutableField referencingField,
+			String targetPackage, XSComplexType enclosingComplexType) {
 		this.xsComponent = xsComponent;
 		this.localType = localType;
 		this.enclosingType = enclosingType;

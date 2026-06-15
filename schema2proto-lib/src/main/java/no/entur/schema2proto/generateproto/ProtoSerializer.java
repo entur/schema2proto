@@ -60,17 +60,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CaseFormat;
-import com.squareup.wire.schema.EnumConstant;
-import com.squareup.wire.schema.EnumType;
-import com.squareup.wire.schema.Field;
+import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.MessageType;
-import com.squareup.wire.schema.OneOf;
-import com.squareup.wire.schema.Options;
-import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
-import com.squareup.wire.schema.SchemaLoader;
-import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.OptionElement.Kind;
 import com.sun.xml.xsom.XSComplexType;
@@ -79,6 +71,15 @@ import com.sun.xml.xsom.XSComponent;
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
 import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
+import no.entur.schema2proto.generateproto.wire.MutableEnumConstant;
+import no.entur.schema2proto.generateproto.wire.MutableEnumType;
+import no.entur.schema2proto.generateproto.wire.MutableField;
+import no.entur.schema2proto.generateproto.wire.MutableMessageType;
+import no.entur.schema2proto.generateproto.wire.MutableOneOf;
+import no.entur.schema2proto.generateproto.wire.MutableOptions;
+import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
+import no.entur.schema2proto.generateproto.wire.MutableType;
+import no.entur.schema2proto.generateproto.wire.WireSchemaLoader;
 
 public class ProtoSerializer {
 
@@ -124,7 +125,7 @@ public class ProtoSerializer {
 
 	}
 
-	public void serialize(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypes) throws InvalidXSDException, IOException {
+	public void serialize(Map<String, MutableProtoFile> packageToProtoFileMap, List<LocalType> localTypes) throws InvalidXSDException, IOException {
 
 		// Remove temporary generated name suffix
 		replaceGeneratedTypePlaceholder(packageToProtoFileMap, SchemaParser.GENERATED_NAME_PLACEHOLDER, SchemaParser.TYPE_SUFFIX);
@@ -212,7 +213,7 @@ public class ProtoSerializer {
 				LOGGER.error("Source schema contains multiple namespaces but specifies a single output file");
 				throw new InvalidXSDException();
 			} else {
-				ProtoFile protoFile = packageToProtoFileMap.entrySet().iterator().next().getValue();
+				MutableProtoFile protoFile = packageToProtoFileMap.entrySet().iterator().next().getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
 
 				File outputFile = new File(destFolder, configuration.outputFilename.toLowerCase());
@@ -224,8 +225,8 @@ public class ProtoSerializer {
 			}
 		} else {
 
-			for (Entry<String, ProtoFile> entry : packageToProtoFileMap.entrySet()) {
-				ProtoFile protoFile = entry.getValue();
+			for (Entry<String, MutableProtoFile> entry : packageToProtoFileMap.entrySet()) {
+				MutableProtoFile protoFile = entry.getValue();
 				File destFolder = createPackageFolderStructure(configuration.outputDirectory, protoFile.packageName());
 				File outputFile = new File(destFolder, protoFile.location().getPath().toLowerCase());
 
@@ -247,26 +248,26 @@ public class ProtoSerializer {
 
 	}
 
-	private void sortFieldsByTag(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void sortFieldsByTag(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> {
-				mt.nestedTypes().stream().filter(MessageType.class::isInstance).forEach(z -> sortFieldsByTag((MessageType) z));
+				mt.nestedTypes().stream().filter(MutableMessageType.class::isInstance).forEach(z -> sortFieldsByTag((MutableMessageType) z));
 				sortFieldsByTag(mt);
 			});
 		}
 	}
 
-	private void sortFieldsByTag(MessageType mt) {
-		Collections.sort(mt.fields(), Comparator.comparingInt(Field::tag));
-		mt.oneOfs().forEach(oneOf -> Collections.sort(oneOf.fields(), Comparator.comparingInt(Field::tag)));
+	private void sortFieldsByTag(MutableMessageType mt) {
+		Collections.sort(mt.fields(), Comparator.comparingInt(MutableField::tag));
+		mt.oneOfs().forEach(oneOf -> Collections.sort(oneOf.fields(), Comparator.comparingInt(MutableField::tag)));
 	}
 
-	private boolean resolveBackwardIncompatibilities(Map<String, ProtoFile> packageToProtoFileMap) {
+	private boolean resolveBackwardIncompatibilities(Map<String, MutableProtoFile> packageToProtoFileMap) {
 		LOGGER.debug("Checking for backward incompatible changes");
 
 		AtomicBoolean possibleIncompatibilitiesDetected = new AtomicBoolean(false);
 
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			if (backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file)) {
 				possibleIncompatibilitiesDetected.set(true);
 			}
@@ -276,13 +277,13 @@ public class ProtoSerializer {
 		return possibleIncompatibilitiesDetected.get();
 	}
 
-	private void sortTypesInProtofile(Map<String, ProtoFile> packageToProtoFileMap) {
-		packageToProtoFileMap.values().forEach(e -> e.types().sort(Comparator.comparing(x -> x.type().simpleName())));
+	private void sortTypesInProtofile(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		packageToProtoFileMap.values().forEach(e -> e.types().sort(Comparator.comparing(x -> x.type().getSimpleName())));
 
 	}
 
-	private void addPackedOptionToRepeatedFields(Map<String, ProtoFile> packageToProtoFileMap, boolean b) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void addPackedOptionToRepeatedFields(Map<String, MutableProtoFile> packageToProtoFileMap, boolean b) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> {
 				messageTypes(mt.nestedTypes()).forEach(e -> addPackedOptionToRepeatedFields(packageToProtoFileMap, file, e, b));
 				addPackedOptionToRepeatedFields(packageToProtoFileMap, file, mt, b);
@@ -290,38 +291,42 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void addPackedOptionToRepeatedFields(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile protoFile, MessageType mt, boolean packed) {
+	private void addPackedOptionToRepeatedFields(Map<String, MutableProtoFile> packageToProtoFileMap, MutableProtoFile protoFile, MutableMessageType mt,
+			boolean packed) {
 		mt.fields()
 				.stream()
-				.filter(e -> e.label() == Field.Label.REPEATED)
+				.filter(e -> e.label() == Label.REPEATED)
 				.filter(e -> isExposedToPackedBug(packageToProtoFileMap, protoFile, e))
 				.forEach(e -> addPackedOption(e, packed));
 	}
 
-	private void addPackedOption(Field f, boolean packed) {
+	private void addPackedOption(MutableField f, boolean packed) {
 		OptionElement packedOptionElement = new OptionElement("packed", Kind.BOOLEAN, packed, false);
 		f.options().getOptionElements().add(packedOptionElement);
 	}
 
-	private boolean isExposedToPackedBug(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile protoFile, Field elementType) {
+	private boolean isExposedToPackedBug(Map<String, MutableProtoFile> packageToProtoFileMap, MutableProtoFile protoFile, MutableField elementType) {
 		return PACKABLE_SCALAR_TYPES_SET.contains(elementType.getElementType()) || isEnum(elementType, protoFile, packageToProtoFileMap);
 	}
 
-	private boolean isEnum(Field elementType, ProtoFile protoFile, Map<String, ProtoFile> packageToProtoFileMap) {
+	private boolean isEnum(MutableField elementType, MutableProtoFile protoFile, Map<String, MutableProtoFile> packageToProtoFileMap) {
 		String packageName = elementType.packageName();
 		if (packageName != null) {
 			protoFile = packageToProtoFileMap.get(packageName);
 		}
-		return protoFile.types().stream().filter(EnumType.class::isInstance).anyMatch(e -> ((EnumType) e).name().equals(elementType.getElementType()));
+		return protoFile.types()
+				.stream()
+				.filter(MutableEnumType.class::isInstance)
+				.anyMatch(e -> ((MutableEnumType) e).name().equals(elementType.getElementType()));
 	}
 
-	private void removeUnwantedFields(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void removeUnwantedFields(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> removeUnwantedFields(file, "", mt));
 		}
 	}
 
-	private void removeUnwantedFields(ProtoFile file, final String outerMessagePath, MessageType mt) {
+	private void removeUnwantedFields(MutableProtoFile file, final String outerMessagePath, MutableMessageType mt) {
 		// Recursive nested type removal
 		StringBuilder nestedPathBuilder = new StringBuilder();
 		if (!outerMessagePath.equals("")) {
@@ -339,20 +344,20 @@ public class ProtoSerializer {
 			path = outerMessagePath + ".";
 		}
 
-		List<Field> fieldsToRemove = removeUnwantedFields(file.packageName(), path + mt.getName(), mt.fields());
-		for (Field f : fieldsToRemove) {
+		List<MutableField> fieldsToRemove = removeUnwantedFields(file.packageName(), path + mt.getName(), mt.fields());
+		for (MutableField f : fieldsToRemove) {
 			mt.removeDeclaredField(f);
 			String documentation = StringUtils.trimToEmpty(mt.documentation());
 			documentation += " NOTE: Removed field " + f;
 			mt.updateDocumentation(documentation);
 		}
 
-		List<OneOf> oneOfsToRemove = new ArrayList<>();
+		List<MutableOneOf> oneOfsToRemove = new ArrayList<>();
 
-		for (OneOf oneOf : mt.oneOfs()) {
+		for (MutableOneOf oneOf : mt.oneOfs()) {
 
-			List<Field> oneOfFieldsToRemove = removeUnwantedFields(file.packageName(), path + mt.getName(), oneOf.fields());
-			for (Field f : oneOfFieldsToRemove) {
+			List<MutableField> oneOfFieldsToRemove = removeUnwantedFields(file.packageName(), path + mt.getName(), oneOf.fields());
+			for (MutableField f : oneOfFieldsToRemove) {
 				oneOf.fields().remove(f);
 
 				String documentation = StringUtils.trimToEmpty(mt.documentation());
@@ -367,7 +372,7 @@ public class ProtoSerializer {
 		}
 
 		// Remove empty oneOfs
-		for (OneOf oneOfToRemove : oneOfsToRemove) {
+		for (MutableOneOf oneOfToRemove : oneOfsToRemove) {
 
 			mt.removeOneOf(oneOfToRemove);
 			String documentation = StringUtils.trimToEmpty(mt.documentation());
@@ -376,11 +381,11 @@ public class ProtoSerializer {
 		}
 	}
 
-	private List<Field> removeUnwantedFields(String packageName, String messageName, List<Field> fields) {
+	private List<MutableField> removeUnwantedFields(String packageName, String messageName, List<MutableField> fields) {
 
-		List<Field> fieldsToRemove = new ArrayList<>();
+		List<MutableField> fieldsToRemove = new ArrayList<>();
 
-		for (Field field : fields) {
+		for (MutableField field : fields) {
 			if (typeAndFieldNameMapper.ignoreOutputField(packageName, messageName, field.name())) {
 				fieldsToRemove.add(field);
 			}
@@ -400,7 +405,7 @@ public class ProtoSerializer {
 	}
 
 	@NotNull
-	private String getPathFromPackageNameAndType(String packageName, Type type) {
+	private String getPathFromPackageNameAndType(String packageName, MutableType type) {
 
 		String protoFileName = customTypeImportToProtoFile.get(buildFullyQualifiedTypeName(packageName, type));
 		if (protoFileName != null) {
@@ -415,8 +420,8 @@ public class ProtoSerializer {
 		return packageName.replace('.', '/');
 	}
 
-	private String buildFullyQualifiedTypeName(String packageName, Type type) {
-		return packageName + "." + type.type().simpleName();
+	private String buildFullyQualifiedTypeName(String packageName, MutableType type) {
+		return packageName + "." + type.type().getSimpleName();
 	}
 
 	// Loads imported file and reads all qualified types
@@ -431,16 +436,15 @@ public class ProtoSerializer {
 				} else {
 					File fileToImport = new File(path, pathName);
 					if (fileToImport.exists()) {
-						SchemaLoader schemaLoader = new SchemaLoader();
+						List<java.nio.file.Path> sources = new ArrayList<>();
 						for (String importRootFolder : configuration.customImportLocations) {
-							schemaLoader.addSource(new File(importRootFolder).toPath());
+							sources.add(new File(importRootFolder).toPath());
 						}
-						schemaLoader.addProto(pathName);
-						Schema schema = schemaLoader.load();
-						ProtoFile customImportFile = schema.protoFile(pathName);
+						Schema schema = WireSchemaLoader.load(sources, Collections.singletonList(pathName));
+						com.squareup.wire.schema.ProtoFile customImportFile = schema.protoFile(pathName);
 
-						for (Type type : customImportFile.types()) {
-							String qualifiedName = buildFullyQualifiedTypeName(customImportFile.packageName(), type);
+						for (com.squareup.wire.schema.Type type : customImportFile.getTypes()) {
+							String qualifiedName = customImportFile.getPackageName() + "." + type.getType().getSimpleName();
 							typeNames.add(qualifiedName);
 
 							customTypeImportToProtoFile.put(qualifiedName, pathName);
@@ -462,27 +466,27 @@ public class ProtoSerializer {
 
 	}
 
-	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix) {
+	private void replaceGeneratedTypePlaceholder(Map<String, MutableProtoFile> packageToProtoFileMap, String generatedRandomTypeSuffix, String newTypeSuffix) {
 
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+		for (Entry<String, MutableProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
 			replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypeSuffix, newTypeSuffix, protoFile.getValue().types(),
 					protoFile.getValue().packageName());
 		}
 	}
 
-	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder, String newTypeSuffix,
-			List<Type> types, String packageName) {
+	private void replaceGeneratedTypePlaceholder(Map<String, MutableProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder,
+			String newTypeSuffix, List<MutableType> types, String packageName) {
 		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
-		for (Type type : types) {
+		for (MutableType type : types) {
 			// Recurse into nested types
 			replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, type.nestedTypes(), packageName);
 
-			if (type instanceof MessageType) {
-				MessageType mt = (MessageType) type;
+			if (type instanceof MutableMessageType) {
+				MutableMessageType mt = (MutableMessageType) type;
 				replaceGeneratedTypePlaceholder(packageToProtoFileMap, generatedRandomTypePlaceholder, newTypeSuffix, packageName, usedNames, mt);
 
-			} else if (type instanceof EnumType) {
-				EnumType et = (EnumType) type;
+			} else if (type instanceof MutableEnumType) {
+				MutableEnumType et = (MutableEnumType) type;
 				String messageName = et.name();
 				if (messageName.contains(generatedRandomTypePlaceholder)) {
 					String newMessageName = messageName.replaceAll(generatedRandomTypePlaceholder, newTypeSuffix);
@@ -498,8 +502,8 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void replaceGeneratedTypePlaceholder(Map<String, ProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder, String newTypeSuffix,
-			String packageName, Set<String> usedNames, MessageType mt) {
+	private void replaceGeneratedTypePlaceholder(Map<String, MutableProtoFile> packageToProtoFileMap, String generatedRandomTypePlaceholder,
+			String newTypeSuffix, String packageName, Set<String> usedNames, MutableMessageType mt) {
 		String messageName = mt.getName();
 		if (messageName.contains(generatedRandomTypePlaceholder)) {
 			String newMessageName = messageName.replaceAll(generatedRandomTypePlaceholder, newTypeSuffix);
@@ -513,25 +517,25 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void uppercaseMessageNames(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			uppercaseMessageNames(packageToProtoFileMap, file.types(), file.packageName());
 		}
 
 	}
 
-	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap, List<Type> types, String packageName) {
+	private void uppercaseMessageNames(Map<String, MutableProtoFile> packageToProtoFileMap, List<MutableType> types, String packageName) {
 		Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
-		for (Type type : types) {
+		for (MutableType type : types) {
 			// Recurse into nested types
 			uppercaseMessageNames(packageToProtoFileMap, type.nestedTypes(), packageName);
 
-			if (type instanceof MessageType) {
-				MessageType mt = (MessageType) type;
+			if (type instanceof MutableMessageType) {
+				MutableMessageType mt = (MutableMessageType) type;
 
 				uppercaseMessageNames(packageToProtoFileMap, packageName, usedNames, mt);
-			} else if (type instanceof EnumType) {
-				EnumType et = (EnumType) type;
+			} else if (type instanceof MutableEnumType) {
+				MutableEnumType et = (MutableEnumType) type;
 				String messageName = et.name();
 
 				String newMessageName = messageName;
@@ -584,7 +588,7 @@ public class ProtoSerializer {
 		throw new IllegalArgumentException(String.format("Couldn't find the case format of the given string '%s'", s));
 	}
 
-	private void uppercaseMessageNames(Map<String, ProtoFile> packageToProtoFileMap, String packageName, Set<String> usedNames, MessageType mt) {
+	private void uppercaseMessageNames(Map<String, MutableProtoFile> packageToProtoFileMap, String packageName, Set<String> usedNames, MutableMessageType mt) {
 		String messageName = mt.getName();
 		if (!Character.isUpperCase(messageName.charAt(0))) {
 			String newMessageName = StringUtils.capitalize(messageName);
@@ -598,38 +602,38 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void updateEnumValues(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
-			List<Type> types = file.types();
+	private void updateEnumValues(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
+			List<MutableType> types = file.types();
 			updateEnumValues(types);
 		}
 	}
 
-	private void updateEnumValues(List<Type> types) {
-		for (Type t : types) {
-			if (t instanceof EnumType) {
-				EnumType e = (EnumType) t;
+	private void updateEnumValues(List<MutableType> types) {
+		for (MutableType t : types) {
+			if (t instanceof MutableEnumType) {
+				MutableEnumType e = (MutableEnumType) t;
 				updateEnum(e);
 			}
 			updateEnumValues(t.nestedTypes());
 		}
 	}
 
-	private void updateEnum(EnumType e) {
+	private void updateEnum(MutableEnumType e) {
 		// add UNSPECIFIED value first
 		List<OptionElement> optionElementsUnspecified = new ArrayList<>();
 
 		// Prefix with enum type name
 		String enumValuePrefix = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, e.name()) + UNDERSCORE;
-		for (EnumConstant ec : e.constants()) {
+		for (MutableEnumConstant ec : e.constants()) {
 			String enumValue = escapeEnumValue(ec.getName());
 			if (enumValue.equalsIgnoreCase("UNSPECIFIED")) {
 				enumValue = "UNSPECIFIED_ENUM_VALUE"; // Handle collision with UNSPECIFIED special value according to Google style guide
 			}
 			ec.updateName(enumValuePrefix + enumValue);
 		}
-		EnumConstant unspecified = new EnumConstant(new Location("", "", 0, 0), enumValuePrefix + "UNSPECIFIED", 0, "Default",
-				new Options(Options.ENUM_VALUE_OPTIONS, optionElementsUnspecified));
+		MutableEnumConstant unspecified = new MutableEnumConstant(new Location("", "", 0, 0), enumValuePrefix + "UNSPECIFIED", 0, "Default",
+				new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, optionElementsUnspecified));
 		e.constants().add(0, unspecified);
 
 	}
@@ -670,30 +674,29 @@ public class ProtoSerializer {
 	}
 
 	private void parseWrittenFiles() throws IOException {
-		SchemaLoader schemaLoader = new SchemaLoader();
-
 		try {
+			List<Path> sources = new ArrayList<>();
+			for (String importRootFolder : configuration.customImportLocations) {
+				sources.add(new File(importRootFolder).toPath());
+			}
+			sources.add(configuration.outputDirectory.toPath());
+
+			List<String> protos = new ArrayList<>();
 			if (configuration.includeValidationRules) {
-				schemaLoader.addProto(VALIDATION_PROTO_IMPORT);
+				protos.add(VALIDATION_PROTO_IMPORT);
 			}
 			if (configuration.includeXsdOptions) {
-				schemaLoader.addProto(XSDOPTIONS_PROTO_IMPORT);
+				protos.add(XSDOPTIONS_PROTO_IMPORT);
 			}
 
-			for (String importRootFolder : configuration.customImportLocations) {
-				schemaLoader.addSource(new File(importRootFolder).toPath());
-			}
-
-			schemaLoader.addSource(configuration.outputDirectory);
-
-			for (Path s : schemaLoader.sources()) {
+			for (Path s : sources) {
 				LOGGER.debug("Linking proto from path {}", s);
 			}
-			for (String s : schemaLoader.protos()) {
+			for (String s : protos) {
 				LOGGER.debug("Linking proto {}", s);
 			}
 
-			schemaLoader.load();
+			WireSchemaLoader.load(sources, protos);
 		} catch (IOException e) {
 			throw new ConversionException("Parsing of written output failed, the proto files are not valid", e);
 		}
@@ -711,17 +714,17 @@ public class ProtoSerializer {
 	 *
 	 * @Override public Iterator<T> iterator() { return iterator; } }; }
 	 */
-	private void computeFilenames(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
-			ProtoFile file = protoFile.getValue();
+	private void computeFilenames(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (Entry<String, MutableProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+			MutableProtoFile file = protoFile.getValue();
 			String filename = protoFile.getKey().replaceAll("\\.", UNDERSCORE) + ".proto";
 			Location loc = new Location("", filename, 0, 0);
 			file.setLocation(loc);
 		}
 	}
 
-	private void addConfigurationSpecifiedOptions(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (Entry<String, ProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
+	private void addConfigurationSpecifiedOptions(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (Entry<String, MutableProtoFile> protoFile : packageToProtoFileMap.entrySet()) {
 			for (Entry<String, Object> option : configuration.options.entrySet()) {
 
 				Kind kind = null;
@@ -739,8 +742,8 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void includeGoPackageNameOptions(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile protoFile : packageToProtoFileMap.values()) {
+	private void includeGoPackageNameOptions(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile protoFile : packageToProtoFileMap.values()) {
 			String optionName = "go_package";
 			boolean alreadySet = protoFile.options().getOptionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
 			if (!alreadySet) {
@@ -751,10 +754,10 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void resolveRecursiveImports(Map<String, ProtoFile> packageToProtoFileMap) {
+	private void resolveRecursiveImports(Map<String, MutableProtoFile> packageToProtoFileMap) {
 
 		Map<String, List<String>> imports = new HashMap<>();
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 
 			List<String> fileImports = new ArrayList<>();
 			fileImports.addAll(file.imports());
@@ -765,12 +768,12 @@ public class ProtoSerializer {
 			imports.put(file.toString(), fileImports);
 		}
 
-		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
-			ProtoFile protoFile = protoFileEntry.getValue();
+		for (Entry<String, MutableProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
+			MutableProtoFile protoFile = protoFileEntry.getValue();
 			String filename = protoFile.location().getPath();
 			if (hasRecursiveImports(imports, filename, filename)) {
 				LOGGER.error("File {} recursively imports itself.", filename);
-				// TODO: Extract affected types to a separate, common ProtoFile
+				// TODO: Extract affected types to a separate, common MutableProtoFile
 			}
 		}
 
@@ -799,13 +802,13 @@ public class ProtoSerializer {
 		return false;
 	}
 
-	private void addConfigurationSpecifiedImports(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void addConfigurationSpecifiedImports(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			for (String customImport : configuration.customImports) {
 				boolean customImportInUse = false;
 
 				List<String> qualifiedTypes = getFullyQualifiedTypes(customImport);
-				typeloop: for (Type type : file.types()) {
+				typeloop: for (MutableType type : file.types()) {
 					for (String qualifiedType : qualifiedTypes) {
 						customImportInUse = isCustomImportInUseInNestedTypes(qualifiedType, type);
 						if (customImportInUse) {
@@ -828,18 +831,18 @@ public class ProtoSerializer {
 		}
 	}
 
-	private boolean isCustomImportInUseInNestedTypes(String importPackage, Type type) {
+	private boolean isCustomImportInUseInNestedTypes(String importPackage, MutableType type) {
 		AtomicBoolean customImportInUse = new AtomicBoolean(false);
 
-		if (type instanceof MessageType) {
-			for (Field field : ((MessageType) type).fieldsAndOneOfFields()) {
+		if (type instanceof MutableMessageType) {
+			for (MutableField field : ((MutableMessageType) type).fieldsAndOneOfFields()) {
 				if (field.getElementType() != null && field.getElementType().equalsIgnoreCase(importPackage)) {
 					customImportInUse.set(true);
 				}
 			}
 			if (!customImportInUse.get()) {
 				messageTypes(type.nestedTypes()).forEach(mt -> {
-					for (Field field : ((MessageType) type).fieldsAndOneOfFields()) {
+					for (MutableField field : ((MutableMessageType) type).fieldsAndOneOfFields()) {
 						if (field.getElementType() != null && field.getElementType().equalsIgnoreCase(importPackage)) {
 							customImportInUse.set(true);
 						}
@@ -856,8 +859,8 @@ public class ProtoSerializer {
 		return customImportInUse.get();
 	}
 
-	private void computeLocalImports(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void computeLocalImports(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			SortedSet<String> imports = new TreeSet<>(file.imports());
 
 			messageTypes(file.types()).forEach(mt -> computeLocalImports(packageToProtoFileMap, file, imports, mt));
@@ -868,16 +871,17 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void computeLocalImports(Map<String, ProtoFile> packageToProtoFileMap, ProtoFile file, SortedSet<String> imports, MessageType messageType) {
+	private void computeLocalImports(Map<String, MutableProtoFile> packageToProtoFileMap, MutableProtoFile file, SortedSet<String> imports,
+			MutableMessageType messageType) {
 		messageTypes(messageType.nestedTypes()).forEach(e -> computeLocalImports(packageToProtoFileMap, file, imports, e));
 
-		for (Field field : messageType.fieldsAndOneOfFields()) {
+		for (MutableField field : messageType.fieldsAndOneOfFields()) {
 			String packageName = StringUtils.trimToNull(field.packageName());
 			if (file.packageName() != null && file.packageName().equals(packageName)) {
 				field.clearPackageName();
 			} else if (packageName != null) {
 				// Add import
-				ProtoFile fileToImport = packageToProtoFileMap.get(packageName);
+				MutableProtoFile fileToImport = packageToProtoFileMap.get(packageName);
 				if (fileToImport != null) {
 					imports.add(getPathFromPackageNameAndType(packageName, messageType) + "/" + fileToImport.location().getPath());
 				} else {
@@ -887,20 +891,20 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void moveFieldPackageNameToFieldTypeName(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void moveFieldPackageNameToFieldTypeName(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(this::moveFieldPackageNameToFieldTypeName);
 
 		}
 	}
 
 	// Recursively loops through all fields for all nested types
-	private void moveFieldPackageNameToFieldTypeName(MessageType messageType) {
+	private void moveFieldPackageNameToFieldTypeName(MutableMessageType messageType) {
 		messageTypes(messageType.nestedTypes()).forEach(this::moveFieldPackageNameToFieldTypeName);
 
-		List<Field> fields = messageType.fieldsAndOneOfFields();
+		List<MutableField> fields = messageType.fieldsAndOneOfFields();
 
-		for (Field field : fields) {
+		for (MutableField field : fields) {
 			String fieldPackageName = StringUtils.trimToNull(field.packageName());
 			if (fieldPackageName != null) {
 				field.clearPackageName();
@@ -912,11 +916,11 @@ public class ProtoSerializer {
 	/*
 	 * Adds leading '.' to field.elementType when needed. Ref.: https://developers.google.com/protocol-buffers/docs/proto3#packages-and-name-resolution
 	 */
-	private void addLeadingPeriodToElementType(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void addLeadingPeriodToElementType(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> {
 				// TODO must this be done for nested types as well or handled differently?
-				for (Field field : mt.fieldsAndOneOfFields()) {
+				for (MutableField field : mt.fieldsAndOneOfFields()) {
 					String fieldElementType = StringUtils.trimToNull(field.getElementType());
 					if (fieldElementType != null && fieldElementType.contains(".")) {
 						for (String pkg : packageToProtoFileMap.keySet()) {
@@ -934,18 +938,18 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void translateTypes(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			translateTypes(packageToProtoFileMap, file.types(), file.packageName());
 		}
 	}
 
-	private void translateTypes(Map<String, ProtoFile> packageToProtoFileMap, List<Type> types, String packageName) {
+	private void translateTypes(Map<String, MutableProtoFile> packageToProtoFileMap, List<MutableType> types, String packageName) {
 		if (!types.isEmpty()) {
 			Set<String> usedNames = findExistingTypeNamesInProtoFile(types);
-			for (Type type : types) {
-				if (type instanceof MessageType) {
-					MessageType mt = (MessageType) type;
+			for (MutableType type : types) {
+				if (type instanceof MutableMessageType) {
+					MutableMessageType mt = (MutableMessageType) type;
 
 					translateTypes(packageToProtoFileMap, type.nestedTypes(), packageName);
 
@@ -964,8 +968,8 @@ public class ProtoSerializer {
 					}
 					translateTypes(mt.fieldsAndOneOfFields());
 
-				} else if (type instanceof EnumType) {
-					EnumType et = (EnumType) type;
+				} else if (type instanceof MutableEnumType) {
+					MutableEnumType et = (MutableEnumType) type;
 					String messageName = et.name();
 					String newMessageName = typeAndFieldNameMapper.translateType(messageName);
 
@@ -983,8 +987,8 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void translateTypes(List<Field> fields) {
-		for (Field field : fields) {
+	private void translateTypes(List<MutableField> fields) {
+		for (MutableField field : fields) {
 			// Translate basic types as well
 			if (field.packageName() == null && basicTypes.contains(field.getElementType())) {
 				String newFieldType = typeAndFieldNameMapper.translateType(field.getElementType());
@@ -997,13 +1001,13 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void replaceTypes(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void replaceTypes(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			replaceTypesRecursive(file.types());
 		}
 	}
 
-	private void replaceTypesRecursive(List<Type> types) {
+	private void replaceTypesRecursive(List<MutableType> types) {
 		messageTypes(types).forEach(mt -> {
 			replaceTypesRecursive(mt.nestedTypes());
 			replaceTypes(mt.fieldsAndOneOfFields());
@@ -1011,33 +1015,33 @@ public class ProtoSerializer {
 
 	}
 
-	private void replaceTypes(List<Field> fields) {
-		for (Field field : fields) {
+	private void replaceTypes(List<MutableField> fields) {
+		for (MutableField field : fields) {
 			String newFieldType = typeAndFieldNameMapper.replaceType(field.getElementType());
 			field.updateElementType(newFieldType);
 		}
 	}
 
-	private void updateTypeReferences(Map<String, ProtoFile> packageToProtoFileMap, String packageNameOfType, String oldName, String newName) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void updateTypeReferences(Map<String, MutableProtoFile> packageToProtoFileMap, String packageNameOfType, String oldName, String newName) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			updateTypeReferences(packageNameOfType, oldName, newName, file.types(), file.packageName());
 		}
 
 	}
 
-	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, List<Type> types, String currentMessageTypePackage) {
-		for (Type type : types) {
+	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, List<MutableType> types, String currentMessageTypePackage) {
+		for (MutableType type : types) {
 			updateTypeReferences(packageNameOfType, oldName, newName, type.nestedTypes(), currentMessageTypePackage);
-			if (type instanceof MessageType) {
-				MessageType mt = (MessageType) type;
+			if (type instanceof MutableMessageType) {
+				MutableMessageType mt = (MutableMessageType) type;
 				updateTypeReferences(packageNameOfType, oldName, newName, mt, mt.fieldsAndOneOfFields(), currentMessageTypePackage);
 			}
 		}
 	}
 
-	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, MessageType mt, Collection<Field> fields,
+	private void updateTypeReferences(String packageNameOfType, String oldName, String newName, MutableMessageType mt, Collection<MutableField> fields,
 			String currentMessageTypePackage) {
-		for (Field field : fields) {
+		for (MutableField field : fields) {
 			if (samePackage(field.packageName(), packageNameOfType)) {
 				String fieldType = field.getElementType();
 				if (fieldType.equals(oldName)) {
@@ -1047,25 +1051,25 @@ public class ProtoSerializer {
 			}
 		}
 
-		Options options = mt.options();
+		MutableOptions options = mt.options();
 		// Avoid concurrent mod exception
 
 		List<OptionElement> listCopy = new ArrayList<>(options.getOptionElements());
 
-		listCopy.stream().filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME)).forEach(e -> {
+		listCopy.stream().filter(e -> e.getName().equals(MutableMessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME)).forEach(e -> {
 			String packageAndType = (String) e.getValue();
 			if (packageAndType.equals(".")) {
 				String packageName = packageAndType.substring(0, packageAndType.lastIndexOf('.'));
 				String messageName = packageAndType.substring(packageName.hashCode() + 1);
 
 				if (packageName.equals(packageAndType) && oldName.equals(messageName)) {
-					options.replaceOption(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME,
-							new OptionElement(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME, Kind.STRING, packageName + "." + newName, true));
+					options.replaceOption(MutableMessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME,
+							new OptionElement(MutableMessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME, Kind.STRING, packageName + "." + newName, true));
 
 				}
 			} else if (currentMessageTypePackage.equals(packageNameOfType) && packageAndType.equals(oldName)) {
-				options.replaceOption(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME,
-						new OptionElement(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME, Kind.STRING, newName, true));
+				options.replaceOption(MutableMessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME,
+						new OptionElement(MutableMessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME, Kind.STRING, newName, true));
 			}
 
 		});
@@ -1083,21 +1087,21 @@ public class ProtoSerializer {
 		}
 	}
 
-	private Set<String> findExistingTypeNamesInProtoFile(List<Type> types) {
+	private Set<String> findExistingTypeNamesInProtoFile(List<MutableType> types) {
 		Set<String> existingTypeNames = new HashSet<>();
-		for (Type t : types) {
-			if (t instanceof MessageType) {
-				existingTypeNames.add(((MessageType) t).getName());
-			} else if (t instanceof EnumType) {
-				existingTypeNames.add(((EnumType) t).name());
+		for (MutableType t : types) {
+			if (t instanceof MutableMessageType) {
+				existingTypeNames.add(((MutableMessageType) t).getName());
+			} else if (t instanceof MutableEnumType) {
+				existingTypeNames.add(((MutableEnumType) t).name());
 			}
 		}
 
 		return existingTypeNames;
 	}
 
-	private void translateFieldNames(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void translateFieldNames(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> {
 				messageTypes(mt.nestedTypes()).forEach(e -> translateFieldNames(e.fieldsAndOneOfFields()));
 
@@ -1108,16 +1112,16 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void translateFieldNames(List<Field> fields) {
-		for (Field field : fields) {
+	private void translateFieldNames(List<MutableField> fields) {
+		for (MutableField field : fields) {
 			String fieldName = field.name();
 			String newFieldName = typeAndFieldNameMapper.translateFieldName(fieldName);
 			field.updateName(newFieldName);
 		}
 	}
 
-	private void handleFieldNameCaseInsensitives(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void handleFieldNameCaseInsensitives(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 
 			messageTypes(file.types()).forEach(mt -> {
 
@@ -1130,10 +1134,10 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void handleFieldNameCaseInsensitives(List<Field> fields) {
+	private void handleFieldNameCaseInsensitives(List<MutableField> fields) {
 		Set<String> fieldNamesUppercase = new HashSet<>();
 
-		for (Field field : fields) {
+		for (MutableField field : fields) {
 			String fieldName = field.name();
 			boolean existedBefore = fieldNamesUppercase.add(fieldName.toUpperCase());
 			if (!existedBefore) {
@@ -1143,17 +1147,17 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void underscoreFieldNames(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void underscoreFieldNames(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(this::underscoreFieldNames);
 		}
 	}
 
-	private void underscoreFieldNames(MessageType mt) {
+	private void underscoreFieldNames(MutableMessageType mt) {
 
 		messageTypes(mt.nestedTypes()).forEach(this::underscoreFieldNames);
 
-		for (Field field : mt.fieldsAndOneOfFields()) {
+		for (MutableField field : mt.fieldsAndOneOfFields()) {
 			String fieldName = field.name();
 			boolean startsWithUnderscore = fieldName.startsWith(UNDERSCORE);
 			boolean endsWithUnderscore = fieldName.endsWith(UNDERSCORE);
@@ -1178,8 +1182,8 @@ public class ProtoSerializer {
 
 	}
 
-	private void escapeReservedJavaKeywords(Map<String, ProtoFile> packageToProtoFileMap) {
-		for (ProtoFile file : packageToProtoFileMap.values()) {
+	private void escapeReservedJavaKeywords(Map<String, MutableProtoFile> packageToProtoFileMap) {
+		for (MutableProtoFile file : packageToProtoFileMap.values()) {
 			messageTypes(file.types()).forEach(mt -> {
 				messageTypes(mt.nestedTypes()).forEach(this::escapeReservedJavaKeywords);
 				escapeReservedJavaKeywords(mt);
@@ -1188,8 +1192,8 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void escapeReservedJavaKeywords(MessageType mt) {
-		for (Field field : mt.fieldsAndOneOfFields()) {
+	private void escapeReservedJavaKeywords(MutableMessageType mt) {
+		for (MutableField field : mt.fieldsAndOneOfFields()) {
 			String fieldName = field.name();
 			String newFieldName = typeAndFieldNameMapper.escapeFieldName(fieldName);
 			field.updateName(newFieldName);
@@ -1233,12 +1237,12 @@ public class ProtoSerializer {
 		}
 	}
 
-	private void moveReusedLocalTypesToGlobal(Map<String, ProtoFile> packageToProtoFileMap, List<LocalType> localTypesAllPackages) {
+	private void moveReusedLocalTypesToGlobal(Map<String, MutableProtoFile> packageToProtoFileMap, List<LocalType> localTypesAllPackages) {
 		LOGGER.debug("Reorganizing embedded local types into global if reused");
 
 		localTypesAllPackages.forEach(e -> LOGGER.debug("{} -> {}", e.enclosingType.getName(), e.localType.getName()));
 
-		for (Entry<String, ProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
+		for (Entry<String, MutableProtoFile> protoFileEntry : packageToProtoFileMap.entrySet()) {
 
 			String currentPackageName = protoFileEntry.getKey();
 
@@ -1289,7 +1293,7 @@ public class ProtoSerializer {
 					if (packageName == null) {
 						packageName = Schema2ProtoConfiguration.DEFAULT_PROTO_PACKAGE;
 					}
-					ProtoFile enclosingFile = packageToProtoFileMap.get(packageName);
+					MutableProtoFile enclosingFile = packageToProtoFileMap.get(packageName);
 
 					// DuplicateCheck
 					String candidateName = currentComponent.messageName;
@@ -1302,15 +1306,15 @@ public class ProtoSerializer {
 									first.localType.getName(), ToStringBuilder.reflectionToString(enclosingTypes.toArray(), ToStringStyle.SIMPLE_STYLE)));
 						}
 						candidateName = StringUtils.capitalize(enclosingTypes.iterator().next()) + "_"
-								+ StringUtils.capitalize(first.localType.type().simpleName());
+								+ StringUtils.capitalize(first.localType.type().getSimpleName());
 						LOGGER.debug("Candidate name for inherited local type prefixed with enclosing type {}", candidateName);
 					} else {
 						LOGGER.debug("Candidate name for inherited local type {} is unique - keeping as is", candidateName);
 					}
 
-					Optional<Type> existingType = checkForExistingType(enclosingFile, candidateName);
+					Optional<MutableType> existingType = checkForExistingType(enclosingFile, candidateName);
 					if (!existingType.isPresent()) {
-						MessageType localToBecomeGlobal = first.localType;
+						MutableMessageType localToBecomeGlobal = first.localType;
 						localToBecomeGlobal.updateName(candidateName);
 						enclosingFile.types().add(localToBecomeGlobal);
 
@@ -1336,10 +1340,10 @@ public class ProtoSerializer {
 	}
 
 	@NotNull
-	private Optional<Type> checkForExistingType(ProtoFile enclosingFile, String candidateName) {
-		Optional<Type> existingType = Optional.empty();
-		for (Type type : enclosingFile.types()) {
-			if (candidateName.equals(type.type().simpleName())) {
+	private Optional<MutableType> checkForExistingType(MutableProtoFile enclosingFile, String candidateName) {
+		Optional<MutableType> existingType = Optional.empty();
+		for (MutableType type : enclosingFile.types()) {
+			if (candidateName.equals(type.type().getSimpleName())) {
 				existingType = Optional.of(type);
 				break;
 			}
@@ -1347,8 +1351,8 @@ public class ProtoSerializer {
 		return existingType;
 	}
 
-	private Stream<MessageType> messageTypes(List<Type> types) {
-		return types.stream().filter(MessageType.class::isInstance).map(MessageType.class::cast);
+	private Stream<MutableMessageType> messageTypes(List<MutableType> types) {
+		return types.stream().filter(MutableMessageType.class::isInstance).map(MutableMessageType.class::cast);
 	}
 
 }

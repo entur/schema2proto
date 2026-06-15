@@ -25,37 +25,35 @@ package no.entur.schema2proto.wiretest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.squareup.wire.schema.IdentifierSet;
 import com.squareup.wire.schema.ProtoFile;
+import com.squareup.wire.schema.PruningRules;
 import com.squareup.wire.schema.Schema;
-import com.squareup.wire.schema.SchemaLoader;
+
+import no.entur.schema2proto.generateproto.wire.WireSchemaLoader;
 
 public class ParserTest {
 
 	@Test
 	public void testParseWithFieldRules() throws IOException {
-		SchemaLoader schemaLoader = new SchemaLoader();
-		schemaLoader.addSource(new File("src/test/resources/wiretest/source"));
-		schemaLoader.addSource(new File("target/proto_deps"));
-		schemaLoader.addProto("packagename/fieldrulesloading.proto");
-		Schema schema = schemaLoader.load();
+		Schema schema = WireSchemaLoader.load(Arrays.asList(new File("src/test/resources/wiretest/source").toPath(), new File("target/proto_deps").toPath()),
+				Collections.singletonList("packagename/fieldrulesloading.proto"));
 
-		IdentifierSet.Builder b = new IdentifierSet.Builder();
-		b.exclude("packagename.PruneMessage");
-		Schema prunedSchema = schema.prune(b.build());
+		PruningRules rules = new PruningRules.Builder().prune("packagename.PruneMessage").build();
+		Schema prunedSchema = schema.prune(rules);
 
 		ProtoFile protoFile = prunedSchema.protoFile("packagename/fieldrulesloading.proto");
 		String prunedFile = protoFile.toSchema();
 
-		Assertions.assertEquals(
-				"// src/test/resources/wiretest/source/packagename/fieldrulesloading.proto\n" + "syntax = \"proto3\";\n" + "package packagename;\n" + "\n"
-						+ "import \"buf/validate/validate.proto\";\n" + "\n" + "message PriceUnit {\n" + "  SubMessage with_options_nested_style = 1 [\n"
-						+ "    (buf.validate.field).required = true\n" + "  ];\n" + "}\n" + "message SubMessage {\n" + "  string x = 1;\n" + "}\n",
-				prunedFile);
+		Assertions.assertEquals("// Proto schema formatted by Wire, do not edit.\n" + "// Source: packagename/fieldrulesloading.proto\n" + "\n"
+				+ "syntax = \"proto3\";\n" + "\n" + "package packagename;\n" + "\n" + "import \"buf/validate/validate.proto\";\n" + "\n"
+				+ "message PriceUnit {\n" + "  SubMessage with_options_nested_style = 1 [(buf.validate.field).required = true];\n" + "}\n" + "\n"
+				+ "message SubMessage {\n" + "  string x = 1;\n" + "}\n", prunedFile);
 
 	}
 }

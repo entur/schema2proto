@@ -36,20 +36,20 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.squareup.wire.schema.EnumConstant;
-import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.ProtoFile;
 
 import no.entur.schema2proto.compatibility.protolock.ProtolockEnum;
 import no.entur.schema2proto.compatibility.protolock.ProtolockEnumConstant;
+import no.entur.schema2proto.generateproto.wire.MutableEnumConstant;
+import no.entur.schema2proto.generateproto.wire.MutableEnumType;
+import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
 
 public class EnumConflictChecker {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(EnumConflictChecker.class);
 	private boolean failIfRemovedFieldsTriggered;
 
-	public boolean tryResolveEnumConflicts(ProtoFile file, EnumType enumType, ProtolockEnum protolockEnum) {
+	public boolean tryResolveEnumConflicts(MutableProtoFile file, MutableEnumType enumType, ProtolockEnum protolockEnum) {
 		SortedSet<ProtolockEnumConstant> lockEnumConstants = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(protolockEnum.getEnumFields()))); // from
 		// proto.lock
 		SortedSet<ProtolockEnumConstant> xsdEnumConstants = Collections.unmodifiableSortedSet(
@@ -90,7 +90,7 @@ public class EnumConflictChecker {
 
 			AtomicInteger nextId = new AtomicInteger(maxLockId + 1);
 
-			for (EnumConstant constant : enumType.constants()) {
+			for (MutableEnumConstant constant : enumType.constants()) {
 				if (!lockNames.contains(constant.getName())) {
 					while (enumType.reserveds().stream().anyMatch(s -> s.matchesTag(nextId.get()))) {
 						nextId.incrementAndGet();
@@ -108,7 +108,7 @@ public class EnumConflictChecker {
 		return failIfRemovedFieldsTriggered;
 	}
 
-	private void reserveEnumConstant(ProtoFile file, EnumType e, ProtolockEnumConstant newEnumConstant) {
+	private void reserveEnumConstant(MutableProtoFile file, MutableEnumType e, ProtolockEnumConstant newEnumConstant) {
 
 		String reservationDoc = "Reservation added by schema2proto";
 		Location loc = new Location("", "", 0, 0);
@@ -123,7 +123,7 @@ public class EnumConflictChecker {
 		failIfRemovedFieldsTriggered = true;
 	}
 
-	private static Optional<EnumConstant> getConstant(EnumType e, String intrudingConstantName) {
+	private static Optional<MutableEnumConstant> getConstant(MutableEnumType e, String intrudingConstantName) {
 		return e.constants().stream().filter(z -> z.getName().equals(intrudingConstantName)).findFirst();
 	}
 

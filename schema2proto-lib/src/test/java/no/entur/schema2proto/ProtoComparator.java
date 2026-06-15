@@ -45,9 +45,10 @@ import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.ProtoMember;
 import com.squareup.wire.schema.Rpc;
 import com.squareup.wire.schema.Schema;
-import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Service;
 import com.squareup.wire.schema.Type;
+
+import no.entur.schema2proto.generateproto.wire.WireSchemaLoader;
 
 public class ProtoComparator {
 
@@ -57,14 +58,15 @@ public class ProtoComparator {
 			ProtoFile generated = load(generatedRootFolder, generatedFile);
 
 			assertEquals(expected.javaPackage(), generated.javaPackage(),
-					"java package mismatch" + generateLocationInformation(expected.location(), generated.location()));
-			assertEquals(expected.packageName(), generated.packageName(),
-					"package name mismatch" + generateLocationInformation(expected.location(), generated.location()));
-			// assertEquals(expected.name(), generated.name(), "name mismatch" + generateLocationInformation(expected.location(), generated.location()));
+					"java package mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+			assertEquals(expected.getPackageName(), generated.getPackageName(),
+					"package name mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+			// assertEquals(expected.getName(), generated.getName(), "name mismatch" + generateLocationInformation(expected.getLocation(),
+			// generated.getLocation()));
 
-			compareOptions(expected.options(), generated.options());
+			compareOptions(expected.getOptions(), generated.getOptions());
 			compareServices(expected, generated);
-			compareTypes(expected, generated, expected.types(), generated.types());
+			compareTypes(expected, generated, expected.getTypes(), generated.getTypes());
 		} catch (IOException e) {
 			fail("Error loading protos for comparison", e);
 		}
@@ -76,11 +78,11 @@ public class ProtoComparator {
 		Map<String, Service> expectedMap = new HashMap<>();
 		Map<String, Service> generatedMap = new HashMap<>();
 
-		for (Service t : expected.services()) {
+		for (Service t : expected.getServices()) {
 			expectedMap.put(t.name(), t);
 		}
 
-		for (Service t : generated.services()) {
+		for (Service t : generated.getServices()) {
 			generatedMap.put(t.name(), t);
 		}
 
@@ -113,11 +115,11 @@ public class ProtoComparator {
 		Map<String, Rpc> generatedMap = new HashMap<>();
 
 		for (Rpc t : expected.rpcs()) {
-			expectedMap.put(t.name(), t);
+			expectedMap.put(t.getName(), t);
 		}
 
 		for (Rpc t : generated.rpcs()) {
-			generatedMap.put(t.name(), t);
+			generatedMap.put(t.getName(), t);
 		}
 
 		Set<String> missing = new HashSet<>(expectedMap.keySet());
@@ -135,33 +137,34 @@ public class ProtoComparator {
 	}
 
 	private static void compareRpc(Rpc expected, Rpc generated) {
-		assertEquals(expected.documentation(), generated.documentation(),
-				"Rpc call documentation mismatch" + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.name(), generated.name(), "Rpc call name mismatch" + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.requestStreaming(), generated.requestStreaming(),
-				"Rpc call request streaming mismatch" + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.requestType(), generated.requestType(),
-				"Rpc call request type mismatch" + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.responseStreaming(), generated.responseStreaming(),
-				"Rpc call response streaming mismatch" + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.responseType(), generated.responseType(),
-				"Rpc call response type mismatch" + generateLocationInformation(expected.location(), generated.location()));
+		assertEquals(expected.getDocumentation(), generated.getDocumentation(),
+				"Rpc call documentation mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getName(), generated.getName(),
+				"Rpc call name mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getRequestStreaming(), generated.getRequestStreaming(),
+				"Rpc call request streaming mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getRequestType(), generated.getRequestType(),
+				"Rpc call request type mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getResponseStreaming(), generated.getResponseStreaming(),
+				"Rpc call response streaming mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getResponseType(), generated.getResponseType(),
+				"Rpc call response type mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 
-		compareOptions(expected.options(), generated.options());
+		compareOptions(expected.getOptions(), generated.getOptions());
 	}
 
 	private static void compareOptions(Options expected, Options generated) {
 
-		Set<ProtoMember> missing = new HashSet<>(expected.map().keySet());
-		missing.removeAll(generated.map().keySet());
+		Set<ProtoMember> missing = new HashSet<>(expected.getMap().keySet());
+		missing.removeAll(generated.getMap().keySet());
 		assertTrue(missing.isEmpty(), "Options not found in generated proto file: " + missing);
 
-		Set<ProtoMember> unexpected = new HashSet<>(generated.map().keySet());
-		unexpected.removeAll(expected.map().keySet());
+		Set<ProtoMember> unexpected = new HashSet<>(generated.getMap().keySet());
+		unexpected.removeAll(expected.getMap().keySet());
 		assertTrue(unexpected.isEmpty(), "Unexpected options found in generated proto file: " + unexpected);
 
-		for (Entry<ProtoMember, Object> expectedService : expected.map().entrySet()) {
-			Object generatedType = generated.map().get(expectedService.getKey());
+		for (Entry<ProtoMember, Object> expectedService : expected.getMap().entrySet()) {
+			Object generatedType = generated.getMap().get(expectedService.getKey());
 			assertEquals(expectedService.getValue(), generatedType, "Options value mismatch for " + expectedService.getKey());
 		}
 	}
@@ -172,12 +175,12 @@ public class ProtoComparator {
 		Map<String, Type> generatedTypes = new HashMap<>();
 
 		for (Type t : _expectedTypes) {
-			expectedTypes.put(t.type().simpleName(), t);
+			expectedTypes.put(t.getType().getSimpleName(), t);
 		}
 
 		for (Type t : _generatedTypes) {
 
-			generatedTypes.put(t.type().simpleName(), t);
+			generatedTypes.put(t.getType().getSimpleName(), t);
 		}
 
 		Set<String> missingTypes = new HashSet<>(expectedTypes.keySet());
@@ -201,10 +204,10 @@ public class ProtoComparator {
 
 	private static void compareType(Type expected, Type generated, ProtoFile expectedFile, ProtoFile generatedFile) {
 
-		assertEquals(expected.documentation(), generated.documentation(),
-				"Type documentation mismatch" + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.type().toString(), generated.type().toString(),
-				"Type information mismatch" + generateLocationInformation(expected.location(), generated.location()));
+		assertEquals(expected.getDocumentation(), generated.getDocumentation(),
+				"Type documentation mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getType().toString(), generated.getType().toString(),
+				"Type information mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 
 		assertEquals(expected.getClass(), generated.getClass());
 		if (expected instanceof MessageType) {
@@ -214,7 +217,7 @@ public class ProtoComparator {
 			compareEnumType((EnumType) expected, (EnumType) generated);
 		}
 
-		compareTypes(expectedFile, generatedFile, expected.nestedTypes(), generated.nestedTypes());
+		compareTypes(expectedFile, generatedFile, expected.getNestedTypes(), generated.getNestedTypes());
 
 	}
 
@@ -224,9 +227,9 @@ public class ProtoComparator {
 
 	private static void compareEnumType(EnumType expected, EnumType generated) {
 
-		assertEquals(expected.documentation(), generated.documentation(),
-				"Enum documentation mismatch" + generateLocationInformation(expected.location(), generated.location()));
-		compareEnumConstants(expected.constants(), generated.constants());
+		assertEquals(expected.getDocumentation(), generated.getDocumentation(),
+				"Enum documentation mismatch" + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		compareEnumConstants(expected.getConstants(), generated.getConstants());
 
 	}
 
@@ -275,11 +278,11 @@ public class ProtoComparator {
 		Map<String, Field> generatedFields = new HashMap<>();
 
 		for (Field t : expected.fields()) {
-			expectedFields.put(t.name(), t);
+			expectedFields.put(t.getName(), t);
 		}
 
 		for (Field t : generated.fields()) {
-			generatedFields.put(t.name(), t);
+			generatedFields.put(t.getName(), t);
 		}
 
 		Set<String> missingFields = new HashSet<>(expectedFields.keySet());
@@ -302,37 +305,56 @@ public class ProtoComparator {
 	}
 
 	private static void compareField(Field expected, Field generated) {
-		assertEquals(expected.documentation(), generated.documentation(),
-				"Field documentation mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.name(), generated.name(),
-				"Field name mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
+		assertEquals(expected.getDocumentation(), generated.getDocumentation(),
+				"Field documentation mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getName(), generated.getName(),
+				"Field name mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 		assertEquals(expected.isRepeated(), generated.isRepeated(),
-				"Field isRepeated mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
+				"Field isRepeated mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 		assertEquals(expected.isDeprecated(), generated.isDeprecated(),
-				"Field isDeprecated mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
+				"Field isDeprecated mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 		assertEquals(expected.isExtension(), generated.isExtension(),
-				"Field isExtension mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.isOptional(), generated.isOptional(),
-				"Field isOptional mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
+				"Field isExtension mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getLabel(), generated.getLabel(),
+				"Field isOptional mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 		assertEquals(expected.isPacked(), generated.isPacked(),
-				"Field isPacked mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
+				"Field isPacked mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 		assertEquals(expected.isRequired(), generated.isRequired(),
-				"Field isRequired mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
+				"Field isRequired mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 		assertEquals(expected.isRedacted(), generated.isRedacted(),
-				"Field isRedacted mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.tag(), generated.tag(),
-				"Field tag mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
-		assertEquals(expected.type().simpleName(), generated.type().simpleName(),
-				"Field type mismatch " + expected.toString() + generateLocationInformation(expected.location(), generated.location()));
+				"Field isRedacted mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getTag(), generated.getTag(),
+				"Field tag mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
+		assertEquals(expected.getType().getSimpleName(), generated.getType().getSimpleName(),
+				"Field type mismatch " + expected.toString() + generateLocationInformation(expected.getLocation(), generated.getLocation()));
 	}
 
 	private static ProtoFile load(File rootFolder, File protoFilename) throws IOException {
-		SchemaLoader schemaLoader = new SchemaLoader();
-		schemaLoader.addSource(rootFolder);
-		schemaLoader.addProto(protoFilename.getPath());
-		Schema schema = schemaLoader.load();
-		ProtoFile protofile = schema.protoFile(protoFilename.getPath());
-		return protofile;
+		List<java.nio.file.Path> sources = new java.util.ArrayList<>();
+		sources.add(rootFolder.toPath());
+
+		// Stock wire links options strictly: the option-extension definitions (buf/validate, xsd) must be compiled as sources, not
+		// merely on the import path. When the file's own root does not contain validate.proto, pull it from the unpacked proto
+		// dependencies (only then, to avoid duplicate-path ambiguity).
+		boolean rootHasValidate = new File(rootFolder, "buf/validate/validate.proto").exists();
+		File protoDeps = new File("target/proto_deps");
+		if (!rootHasValidate && protoDeps.exists()) {
+			sources.add(protoDeps.toPath());
+		}
+
+		List<String> protos = new java.util.ArrayList<>();
+		protos.add(protoFilename.getPath());
+		for (String optionProto : new String[] { "buf/validate/validate.proto", "xsd/xsd.proto" }) {
+			for (java.nio.file.Path s : sources) {
+				if (java.nio.file.Files.exists(s.resolve(optionProto))) {
+					protos.add(optionProto);
+					break;
+				}
+			}
+		}
+
+		Schema schema = WireSchemaLoader.load(sources, protos);
+		return schema.protoFile(protoFilename.getPath());
 	}
 
 	private static String generateLocationInformation(Location expected, Location generated) {
