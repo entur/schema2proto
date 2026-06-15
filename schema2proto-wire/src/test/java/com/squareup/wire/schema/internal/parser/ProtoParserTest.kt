@@ -934,6 +934,38 @@ class ProtoParserTest {
     }
 
     @Test
+    fun extensionsWithOptions() {
+        // Modern descriptor.proto declares extension-range options, e.g. "[declaration = {...}]". These are
+        // descriptor-internal metadata that the parser must accept (and discard) on both single tags and ranges.
+        val proto = """
+        |message MessageOptions {
+        |  extensions 536000000 [declaration = {
+        |    number: 536000000
+        |    type: ".buf.descriptor.v1.FileDescriptorSetExtension"
+        |    full_name: ".buf.descriptor.v1.buf_file_descriptor_set_extension"
+        |  }];
+        |  extensions 1000 to max [
+        |    declaration = { number: 1000, full_name: ".pb.cpp", type: ".pb.CppFeatures" },
+        |    declaration = { number: 1001, full_name: ".pb.java", type: ".pb.JavaFeatures" }
+        |  ];
+        |}
+        """.trimMargin()
+        val messageElement = MessageElement(
+            location = location.at(1, 1),
+            name = "MessageOptions",
+            extensions = listOf(
+                ExtensionsElement(location.at(2, 3), "", 536000000, 536000000),
+                ExtensionsElement(location.at(7, 3), "", 1000, Util.MAX_TAG_VALUE)
+            )
+        )
+        val expected = ProtoFileElement(
+            location = location, types = listOf(messageElement)
+        )
+        val actual = ProtoParser.parse(location, proto)
+        assertThat(actual).isEqualTo(expected)
+    }
+
+    @Test
     fun nestingInMessage() {
         val proto = """
         |message FieldOptions {
