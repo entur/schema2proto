@@ -467,13 +467,14 @@ public final class ProtoParser {
 		return new ReservedElement(location, documentation, values);
 	}
 
-	/** Reads extensions like "extensions 101;" or "extensions 101 to max;". */
+	/** Reads extensions like "extensions 101;", "extensions 101 to max;" or "extensions 101 [declaration = {...}];". */
 	private ExtensionsElement readExtensions(Location location, String documentation) {
 		int start = reader.readInt(); // Range start.
 		int end = start;
-		if (reader.peekChar() != ';') {
+		char next = reader.peekChar();
+		if (next != ';' && next != '[') {
 			if (!"to".equals(reader.readWord()))
-				throw reader.unexpected("expected ';' or 'to'");
+				throw reader.unexpected("expected ';', '[' or 'to'");
 			String s = reader.readWord(); // Range end.
 			if (s.equals("max")) {
 				end = Util.MAX_TAG_VALUE;
@@ -481,6 +482,9 @@ public final class ProtoParser {
 				end = Integer.parseInt(s);
 			}
 		}
+		// Extension ranges may carry options, e.g. "extensions 1000 to max [declaration = {...}];". These are
+		// descriptor-internal metadata that schema2proto does not re-emit, so parse and discard them.
+		new OptionReader(reader).readOptions();
 		reader.require(';');
 		return new ExtensionsElement(location, documentation, start, end);
 	}

@@ -21,6 +21,12 @@
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
+            <!-- Provides google/protobuf/descriptor.proto on the classpath, loaded by SchemaLoader -->
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <scope>compile</scope>
