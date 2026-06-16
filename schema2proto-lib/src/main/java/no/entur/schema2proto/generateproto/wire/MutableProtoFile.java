@@ -31,6 +31,7 @@ import com.squareup.wire.Syntax;
 import com.squareup.wire.schema.Extend;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoFile;
+import com.squareup.wire.schema.Service;
 import com.squareup.wire.schema.Type;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.ProtoFile} used while generating proto files from XSD. */
@@ -41,8 +42,9 @@ public class MutableProtoFile {
 	private final List<String> publicImports = new ArrayList<>();
 	private final String packageName;
 	private final List<MutableType> types = new ArrayList<>();
-	// Extends are not produced by the XSD-to-proto path; they are carried through unchanged when modifying existing protos.
+	// Extends and services are not produced by the XSD-to-proto path; they are carried through unchanged when modifying existing protos.
 	private final List<Extend> extendList = new ArrayList<>();
+	private final List<Service> services = new ArrayList<>();
 	private final MutableOptions options;
 	private final Syntax syntax;
 
@@ -77,6 +79,10 @@ public class MutableProtoFile {
 		return extendList;
 	}
 
+	public List<Service> getServices() {
+		return services;
+	}
+
 	public Location location() {
 		return location;
 	}
@@ -103,12 +109,13 @@ public class MutableProtoFile {
 
 		types.addAll(source.types);
 		extendList.addAll(source.extendList);
+		services.addAll(source.services);
 	}
 
 	public ProtoFile toWire() {
 		List<Type> wireTypes = types.stream().map(t -> t.toWire(syntax)).collect(Collectors.toList());
 		return new ProtoFile(location, new ArrayList<>(imports), new ArrayList<>(publicImports), Collections.emptyList() /* weakImports */, packageName,
-				wireTypes, Collections.emptyList() /* services */, new ArrayList<>(extendList), options.toWire(), syntax);
+				wireTypes, new ArrayList<>(services), new ArrayList<>(extendList), options.toWire(), syntax);
 	}
 
 	public String toSchema() {

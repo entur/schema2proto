@@ -57,8 +57,9 @@ public final class WireBuilders {
 		file.imports().addAll(element.getImports());
 		file.publicImports().addAll(element.getPublicImports());
 		file.options().getOptionElements().addAll(element.getOptions());
-		// Carry extend declarations through unchanged (stock immutable Extend objects); schema2proto does not modify them.
+		// Carry extend declarations and services (gRPC RPCs) through unchanged; schema2proto does not modify them.
 		file.getExtendList().addAll(protoFile.getExtendList());
+		file.getServices().addAll(protoFile.getServices());
 
 		for (TypeElement typeElement : element.getTypes()) {
 			file.types().add(fromType(typeElement, packageName));
