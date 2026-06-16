@@ -73,7 +73,10 @@ public final class WireSchemaLoader {
 		List<Location> sourcePath = new ArrayList<>();
 		for (String proto : loadSet) {
 			Path root = protoToRoot.get(proto);
-			sourcePath.add(root != null ? Location.get(root.toString(), proto) : Location.get(proto));
+			if (root == null) {
+				throw new java.io.FileNotFoundException("Failed to locate " + proto + " in " + sources);
+			}
+			sourcePath.add(Location.get(root.toString(), proto));
 		}
 
 		// Remaining protos are available for transitive imports, added as individual (deduplicated) files so the same path is never offered twice.
