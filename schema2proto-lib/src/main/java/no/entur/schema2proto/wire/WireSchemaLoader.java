@@ -20,7 +20,7 @@
  * limitations under the Licence.
  * #L%
  */
-package no.entur.schema2proto.generateproto.wire;
+package no.entur.schema2proto.wire;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;

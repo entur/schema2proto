@@ -45,9 +45,9 @@ import com.squareup.wire.schema.Location;
 
 import no.entur.schema2proto.compatibility.protolock.ProtolockField;
 import no.entur.schema2proto.compatibility.protolock.ProtolockMessage;
-import no.entur.schema2proto.generateproto.wire.MutableField;
-import no.entur.schema2proto.generateproto.wire.MutableMessageType;
-import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.MutableField;
+import no.entur.schema2proto.wire.MutableMessageType;
+import no.entur.schema2proto.wire.MutableProtoFile;
 
 public class FieldConflictChecker {
 

@@ -25,8 +25,8 @@ package no.entur.schema2proto.generateproto;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSComponent;
 
-import no.entur.schema2proto.generateproto.wire.MutableField;
-import no.entur.schema2proto.generateproto.wire.MutableMessageType;
+import no.entur.schema2proto.wire.MutableField;
+import no.entur.schema2proto.wire.MutableMessageType;
 
 public class LocalType {
 	XSComponent xsComponent;

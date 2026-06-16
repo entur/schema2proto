@@ -1,4 +1,4 @@
-package no.entur.schema2proto.wiretest;
+package no.entur.schema2proto.wire;
 
 /*-
  * #%L
@@ -39,12 +39,6 @@ import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.ProtoType;
 import com.squareup.wire.schema.internal.parser.OptionElement;
-
-import no.entur.schema2proto.generateproto.wire.MutableEnumConstant;
-import no.entur.schema2proto.generateproto.wire.MutableEnumType;
-import no.entur.schema2proto.generateproto.wire.MutableMessageType;
-import no.entur.schema2proto.generateproto.wire.MutableOptions;
-import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
 
 public class SerializationTest {
 

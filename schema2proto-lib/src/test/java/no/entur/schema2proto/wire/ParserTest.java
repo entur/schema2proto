@@ -1,4 +1,4 @@
-package no.entur.schema2proto.wiretest;
+package no.entur.schema2proto.wire;
 
 /*-
  * #%L
@@ -34,8 +34,6 @@ import org.junit.jupiter.api.Test;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.PruningRules;
 import com.squareup.wire.schema.Schema;
-
-import no.entur.schema2proto.generateproto.wire.WireSchemaLoader;
 
 public class ParserTest {
 

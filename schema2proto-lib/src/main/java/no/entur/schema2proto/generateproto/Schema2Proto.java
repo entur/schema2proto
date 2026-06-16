@@ -54,7 +54,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import no.entur.schema2proto.InvalidConfigurationException;
-import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.MutableProtoFile;
 
 public class Schema2Proto {
 	private static final String OPTION_OUTPUT_DIRECTORY = "outputDirectory";

@@ -38,9 +38,9 @@ import org.apache.commons.io.FileUtils;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
 
-import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
-import no.entur.schema2proto.generateproto.wire.WireBuilders;
-import no.entur.schema2proto.generateproto.wire.WireSchemaLoader;
+import no.entur.schema2proto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.WireBuilders;
+import no.entur.schema2proto.wire.WireSchemaLoader;
 
 public abstract class AbstractBackwardsCompatTest {
 

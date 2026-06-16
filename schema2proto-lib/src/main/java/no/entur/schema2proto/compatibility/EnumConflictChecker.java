@@ -40,9 +40,9 @@ import com.squareup.wire.schema.Location;
 
 import no.entur.schema2proto.compatibility.protolock.ProtolockEnum;
 import no.entur.schema2proto.compatibility.protolock.ProtolockEnumConstant;
-import no.entur.schema2proto.generateproto.wire.MutableEnumConstant;
-import no.entur.schema2proto.generateproto.wire.MutableEnumType;
-import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.MutableEnumConstant;
+import no.entur.schema2proto.wire.MutableEnumType;
+import no.entur.schema2proto.wire.MutableProtoFile;
 
 public class EnumConflictChecker {
 

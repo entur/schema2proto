@@ -48,7 +48,7 @@ import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.Service;
 import com.squareup.wire.schema.Type;
 
-import no.entur.schema2proto.generateproto.wire.WireSchemaLoader;
+import no.entur.schema2proto.wire.WireSchemaLoader;
 
 public class ProtoComparator {
 

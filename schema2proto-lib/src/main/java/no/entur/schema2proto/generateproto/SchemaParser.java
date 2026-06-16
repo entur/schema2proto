@@ -22,7 +22,7 @@
  */
 package no.entur.schema2proto.generateproto;
 
-import static no.entur.schema2proto.generateproto.wire.MutableMessageType.XSD_MESSAGE_OPTIONS_PACKAGE;
+import static no.entur.schema2proto.wire.MutableMessageType.XSD_MESSAGE_OPTIONS_PACKAGE;
 
 import java.io.IOException;
 import java.net.URI;
@@ -80,14 +80,14 @@ import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
 
-import no.entur.schema2proto.generateproto.wire.MutableEnumConstant;
-import no.entur.schema2proto.generateproto.wire.MutableEnumType;
-import no.entur.schema2proto.generateproto.wire.MutableField;
-import no.entur.schema2proto.generateproto.wire.MutableMessageType;
-import no.entur.schema2proto.generateproto.wire.MutableOneOf;
-import no.entur.schema2proto.generateproto.wire.MutableOptions;
-import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
-import no.entur.schema2proto.generateproto.wire.MutableType;
+import no.entur.schema2proto.wire.MutableEnumConstant;
+import no.entur.schema2proto.wire.MutableEnumType;
+import no.entur.schema2proto.wire.MutableField;
+import no.entur.schema2proto.wire.MutableMessageType;
+import no.entur.schema2proto.wire.MutableOneOf;
+import no.entur.schema2proto.wire.MutableOptions;
+import no.entur.schema2proto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.MutableType;
 
 public class SchemaParser implements ErrorHandler {
 

@@ -40,9 +40,9 @@ import no.entur.schema2proto.compatibility.protolock.ProtolockDefinitions;
 import no.entur.schema2proto.compatibility.protolock.ProtolockEnum;
 import no.entur.schema2proto.compatibility.protolock.ProtolockFile;
 import no.entur.schema2proto.compatibility.protolock.ProtolockMessage;
-import no.entur.schema2proto.generateproto.wire.MutableEnumType;
-import no.entur.schema2proto.generateproto.wire.MutableMessageType;
-import no.entur.schema2proto.generateproto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.MutableEnumType;
+import no.entur.schema2proto.wire.MutableMessageType;
+import no.entur.schema2proto.wire.MutableProtoFile;
 
 public class ProtolockBackwardsCompatibilityChecker {
 
