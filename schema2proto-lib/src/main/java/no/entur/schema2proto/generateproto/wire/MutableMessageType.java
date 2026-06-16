@@ -204,8 +204,13 @@ public class MutableMessageType extends MutableType {
 
 	@Override
 	public Type toWire(Syntax syntax) {
-		List<com.squareup.wire.schema.Field> wireDeclaredFields = declaredFields.stream().map(MutableField::toWire).collect(Collectors.toList());
-		List<com.squareup.wire.schema.OneOf> wireOneOfs = oneOfs.stream().map(MutableOneOf::toWire).collect(Collectors.toList());
+		// Stock wire serializes message fields sorted by Location (line, column), not by list order. Encode each field's list position
+		// as its location so the vendored serializer's list-order output (declared fields first, then oneOfs) is reproduced exactly.
+		java.util.concurrent.atomic.AtomicInteger order = new java.util.concurrent.atomic.AtomicInteger(0);
+		List<com.squareup.wire.schema.Field> wireDeclaredFields = declaredFields.stream()
+				.map(f -> f.toWire(order.getAndIncrement()))
+				.collect(Collectors.toList());
+		List<com.squareup.wire.schema.OneOf> wireOneOfs = oneOfs.stream().map(o -> o.toWire(order)).collect(Collectors.toList());
 		List<Type> wireNestedTypes = nestedTypes.stream().map(t -> t.toWire(syntax)).collect(Collectors.toList());
 		Options wireOptions = options.toWire();
 		return new MessageType(protoType, location, documentation == null ? "" : documentation, name, wireDeclaredFields,

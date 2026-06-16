@@ -24,7 +24,6 @@ package no.entur.schema2proto.generateproto.wire;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.OneOf;
@@ -66,11 +65,12 @@ public class MutableOneOf {
 		fields.add(newField);
 	}
 
-	public OneOf toWire() {
-		List<com.squareup.wire.schema.Field> wireFields = fields.stream().map(f -> {
+	public OneOf toWire(java.util.concurrent.atomic.AtomicInteger order) {
+		List<com.squareup.wire.schema.Field> wireFields = new ArrayList<>();
+		for (MutableField f : fields) {
 			f.setOneOf(true);
-			return f.toWire();
-		}).collect(Collectors.toList());
+			wireFields.add(f.toWire(order.getAndIncrement()));
+		}
 		return new OneOf(name, documentation == null ? "" : documentation, wireFields, Location.get("", ""), options.toWire());
 	}
 

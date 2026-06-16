@@ -158,9 +158,15 @@ public class MutableField {
 		this.isOneOf = isOneOf;
 	}
 
-	public Field toWire() {
+	/**
+	 * @param order the field's position within its enclosing message. Stock wire serializes message fields sorted by their {@link Location} (line, column)
+	 *              rather than by list order, so we encode the intended emission order as the location line to reproduce the vendored serializer's list-order
+	 *              output.
+	 */
+	public Field toWire(int order) {
 		List<String> namespaces = Collections.emptyList();
-		return new Field(namespaces, location, label, name, documentation == null ? "" : documentation, tag, defaultValue, elementType, options.toWire(),
+		Location orderedLocation = new Location("", "", order, 0);
+		return new Field(namespaces, orderedLocation, label, name, documentation == null ? "" : documentation, tag, defaultValue, elementType, options.toWire(),
 				extension, isOneOf, null);
 	}
 
