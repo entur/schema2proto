@@ -1,0 +1,11 @@
+// xsd.proto at 0:0
+syntax = "proto3";
+package xsd;
+
+import "google/protobuf/descriptor.proto";
+
+// Information elements extracted from the xsd structure
+extend google.protobuf.MessageOptions {
+  // Base type this message actually is an extension of
+  string base_type = 1101;
+}
