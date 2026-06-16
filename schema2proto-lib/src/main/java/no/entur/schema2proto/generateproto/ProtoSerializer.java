@@ -302,7 +302,7 @@ public class ProtoSerializer {
 
 	private void addPackedOption(MutableField f, boolean packed) {
 		OptionElement packedOptionElement = new OptionElement("packed", Kind.BOOLEAN, packed, false);
-		f.options().getOptionElements().add(packedOptionElement);
+		f.options().optionElements().add(packedOptionElement);
 	}
 
 	private boolean isExposedToPackedBug(Map<String, MutableProtoFile> packageToProtoFileMap, MutableProtoFile protoFile, MutableField elementType) {
@@ -745,7 +745,7 @@ public class ProtoSerializer {
 	private void includeGoPackageNameOptions(Map<String, MutableProtoFile> packageToProtoFileMap) {
 		for (MutableProtoFile protoFile : packageToProtoFileMap.values()) {
 			String optionName = "go_package";
-			boolean alreadySet = protoFile.options().getOptionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
+			boolean alreadySet = protoFile.options().optionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
 			if (!alreadySet) {
 				String goPackageName = packageNameToGoPackageName(configuration.goPackageSourcePrefix, protoFile.packageName());
 				OptionElement optionElement = new OptionElement(optionName, OptionElement.Kind.STRING, goPackageName, false);
@@ -1054,7 +1054,7 @@ public class ProtoSerializer {
 		MutableOptions options = mt.options();
 		// Avoid concurrent mod exception
 
-		List<OptionElement> listCopy = new ArrayList<>(options.getOptionElements());
+		List<OptionElement> listCopy = new ArrayList<>(options.optionElements());
 
 		listCopy.stream().filter(e -> e.getName().equals(MutableMessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME)).forEach(e -> {
 			String packageAndType = (String) e.getValue();

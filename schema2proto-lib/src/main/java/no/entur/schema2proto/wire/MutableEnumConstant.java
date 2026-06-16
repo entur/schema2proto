@@ -31,7 +31,7 @@ public class MutableEnumConstant {
 	private final Location location;
 	private String name;
 	private int tag;
-	private String documentation;
+	private final String documentation;
 	private final MutableOptions options;
 
 	public MutableEnumConstant(Location location, String name, int tag, String documentation, MutableOptions options) {

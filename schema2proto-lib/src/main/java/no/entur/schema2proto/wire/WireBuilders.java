@@ -56,7 +56,7 @@ public final class WireBuilders {
 		file.setLocation(element.getLocation());
 		file.imports().addAll(element.getImports());
 		file.publicImports().addAll(element.getPublicImports());
-		file.options().getOptionElements().addAll(element.getOptions());
+		file.options().optionElements().addAll(element.getOptions());
 		// Carry extend declarations and services (gRPC RPCs) through unchanged; schema2proto does not modify them.
 		file.getExtendList().addAll(protoFile.getExtendList());
 		file.getServices().addAll(protoFile.getServices());

@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.SchemaLoader;
 
@@ -88,13 +87,4 @@ public final class WireSchemaLoader {
 		return loader.loadSchema();
 	}
 
-	/** Stock wire's {@link Schema} has no {@code protoFileForPackage}; emulate the vendored lookup by package name. */
-	public static ProtoFile protoFileForPackage(Schema schema, String packageName) {
-		for (ProtoFile file : schema.getProtoFiles()) {
-			if (packageName == null ? file.getPackageName() == null : packageName.equals(file.getPackageName())) {
-				return file;
-			}
-		}
-		return null;
-	}
 }

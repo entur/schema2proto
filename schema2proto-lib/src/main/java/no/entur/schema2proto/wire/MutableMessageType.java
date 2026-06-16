@@ -23,7 +23,6 @@
 package no.entur.schema2proto.wire;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -85,14 +84,14 @@ public class MutableMessageType extends MutableType {
 	public void addReserved(String documentation, Location location, int tag) {
 		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesTag(tag));
 		if (!alreadyReserved) {
-			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, Arrays.asList(tag)));
+			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(tag)));
 		}
 	}
 
 	public void addReserved(String documentation, Location location, String fieldName) {
 		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesName(fieldName));
 		if (!alreadyReserved) {
-			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, Arrays.asList(fieldName)));
+			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(fieldName)));
 		}
 	}
 

@@ -282,7 +282,7 @@ public class ModifyProto {
 	private void includeGoPackageNameOptions(Collection<MutableProtoFile> protoFiles, String goPackageSourcePrefix) {
 		for (MutableProtoFile protoFile : protoFiles) {
 			String optionName = "go_package";
-			boolean alreadySet = protoFile.options().getOptionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
+			boolean alreadySet = protoFile.options().optionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
 			if (!alreadySet) {
 				String goPackageName = packageNameToGoPackageName(goPackageSourcePrefix, protoFile.packageName());
 				OptionElement optionElement = new OptionElement(optionName, OptionElement.Kind.STRING, goPackageName, false);
