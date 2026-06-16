@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -189,18 +190,14 @@ public class ModifyProto {
 		Schema schema = WireSchemaLoader.load(sources, Collections.emptyList());
 
 		// First run initial pruning, then look at the results and add referenced types from xsd.base_type
-
-		PruningRules.Builder initialPruningRules = new PruningRules.Builder();
-		initialPruningRules.prune(configuration.excludes);
-		initialPruningRules.addRoot(configuration.includes);
-
-		PruningRules finalIterationRules;
+		Set<String> excludes = new LinkedHashSet<>(configuration.excludes);
+		Set<String> includes = new LinkedHashSet<>(configuration.includes);
 
 		if (configuration.includeBaseTypes) {
-			finalIterationRules = followOneMoreLevel(initialPruningRules.build(), schema);
-		} else {
-			finalIterationRules = initialPruningRules.build();
+			includes = followOneMoreLevel(includes, excludes, schema);
 		}
+
+		PruningRules finalIterationRules = buildPruningRules(includes, excludes);
 		Schema prunedSchema = schema.prune(finalIterationRules);
 		for (String s : finalIterationRules.unusedPrunes()) {
 			LOGGER.warn("Unused exclude: {} (already excluded elsewhere or explicitly included?)", s);
@@ -298,35 +295,42 @@ public class ModifyProto {
 		return p.types().isEmpty() && p.getExtendList().isEmpty();
 	}
 
-	private PruningRules followOneMoreLevel(PruningRules pruningRules, Schema schema) {
+	/**
+	 * Builds the pruning rules, mirroring the vendored {@code IdentifierSet} semantics where excludes take precedence over includes: an identifier present in
+	 * both is pruned, not rooted. Stock wire's {@link PruningRules} rejects the same identifier in both roots and prunes, so the overlap is dropped from the
+	 * roots here.
+	 */
+	private PruningRules buildPruningRules(Set<String> includes, Set<String> excludes) {
+		PruningRules.Builder builder = new PruningRules.Builder();
+		builder.prune(excludes);
+		builder.addRoot(includes.stream().filter(i -> !excludes.contains(i)).collect(Collectors.toList()));
+		return builder.build();
+	}
+
+	private Set<String> followOneMoreLevel(Set<String> includes, Set<String> excludes, Schema schema) {
 
 		// Prune schema using current rules
-		Schema prunedSchema = schema.prune(pruningRules);
+		Schema prunedSchema = schema.prune(buildPruningRules(includes, excludes));
 
 		// Add new base types to follow
-		PruningRules.Builder updatedPruningRulesBuilder = new PruningRules.Builder();
-		updatedPruningRulesBuilder.prune(pruningRules.getPrunes());
-		updatedPruningRulesBuilder.addRoot(pruningRules.getRoots());
-
+		Set<String> updatedIncludes = new LinkedHashSet<>(includes);
 		for (ProtoFile file : prunedSchema.getProtoFiles()) {
 			for (Type t : file.getTypes()) {
-				includeBaseType(updatedPruningRulesBuilder, t, file.getPackageName());
+				includeBaseType(updatedIncludes, t, file.getPackageName());
 			}
 		}
 
-		PruningRules updatedPruningRules = updatedPruningRulesBuilder.build();
-
 		// More dependencies found, iterate once more
-		if (!pruningRules.getRoots().equals(updatedPruningRules.getRoots())) {
-			return followOneMoreLevel(updatedPruningRules, schema);
+		if (!includes.equals(updatedIncludes)) {
+			return followOneMoreLevel(updatedIncludes, excludes, schema);
 		} else {
 			// Another iteration yielded no more identifiers to include, we're done
-			return updatedPruningRules;
+			return updatedIncludes;
 		}
 
 	}
 
-	private void includeBaseType(PruningRules.Builder b, Type type, String enclosingPackage) {
+	private void includeBaseType(Set<String> includes, Type type, String enclosingPackage) {
 		if (type.getOptions() != null) {
 			List<OptionElement> baseTypeInherits = type.getOptions()
 					.getElements()
@@ -336,18 +340,18 @@ public class ModifyProto {
 			baseTypeInherits.stream().forEach(e -> {
 				String baseTypeValue = (String) e.getValue();
 				if (baseTypeValue.contains(".")) {
-					b.addRoot(baseTypeValue);
+					includes.add(baseTypeValue);
 				} else {
 					// No package in includeBaseType statement
 					String fullType = baseTypeValue;
 					if (enclosingPackage != null) {
 						fullType = enclosingPackage + "." + fullType;
 					}
-					b.addRoot(fullType);
+					includes.add(fullType);
 				}
 			});
 		}
-		type.getNestedTypes().stream().forEach(e -> includeBaseType(b, e, enclosingPackage));
+		type.getNestedTypes().stream().forEach(e -> includeBaseType(includes, e, enclosingPackage));
 
 	}
 

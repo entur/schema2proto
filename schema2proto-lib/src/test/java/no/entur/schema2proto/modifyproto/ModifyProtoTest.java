@@ -23,6 +23,7 @@
 package no.entur.schema2proto.modifyproto;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +105,24 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		compareExpectedAndGenerated(expected, "disabled.proto", generatedRootFolder, "simple.proto");
 
+	}
+
+	@Test
+	public void testIncludeAndExcludeOverlapWithBaseTypes() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Regression: when followOneMoreLevel adds a base type ("A", referenced by B's xsd.base_type) that is also excluded,
+		// the identifier ends up in both roots and prunes. The vendored IdentifierSet tolerated this (excludes win); stock
+		// wire's PruningRules rejects the overlap. ModifyProto must drop the overlap from the roots rather than fail.
+		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("B");
+		configuration.excludes = Collections.singletonList("A");
+		configuration.includeBaseTypes = true;
+
+		modifyProto(configuration);
+
+		assertTrue(new File(generatedRootFolder, "simple.proto").exists(), "Expected proto to be generated without a roots/prunes overlap failure");
 	}
 
 	@Test
