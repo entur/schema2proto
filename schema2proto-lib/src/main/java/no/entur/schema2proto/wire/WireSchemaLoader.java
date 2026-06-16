@@ -60,7 +60,7 @@ public final class WireSchemaLoader {
 		Map<String, Path> protoToRoot = new LinkedHashMap<>();
 		for (Path root : sources) {
 			if (!Files.isDirectory(root)) {
-				continue;
+				throw new IllegalArgumentException("Source root is not a directory: " + root);
 			}
 			try (Stream<Path> walk = Files.walk(root)) {
 				walk.filter(p -> p.toString().endsWith(".proto"))
