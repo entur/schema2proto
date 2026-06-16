@@ -101,7 +101,13 @@ public abstract class AbstractBackwardsCompatTest {
 
 	private static String stripLocationComment(String schema) {
 		int newline = schema.indexOf('\n');
-		if (schema.startsWith("//") && newline != -1) {
+		if (newline == -1) return schema;
+		String firstLine = schema.substring(0, newline);
+		if (firstLine.startsWith("// Proto schema formatted by Wire") || firstLine.startsWith("// Source:")) {
+			return schema;
+		}
+		// Strip only legacy location comments like "// default.proto at 0:0" or "// /abs/path/file.proto".
+		if (firstLine.startsWith("//") && firstLine.contains(".proto")) {
 			return schema.substring(newline + 1);
 		}
 		return schema;
