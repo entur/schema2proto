@@ -63,8 +63,7 @@ public final class WireSchemaLoader {
 				throw new IllegalArgumentException("Source root is not a directory: " + root);
 			}
 			try (Stream<Path> walk = Files.walk(root)) {
-				walk.filter(p -> p.toString().endsWith(".proto"))
-						.forEach(p -> protoToRoot.putIfAbsent(root.relativize(p).toString().replace('\\', '/'), root));
+				walk.filter(p -> p.toString().endsWith(".proto")).forEach(p -> protoToRoot.putIfAbsent(root.relativize(p).toString().replace('\\', '/'), root));
 			}
 		}
 
