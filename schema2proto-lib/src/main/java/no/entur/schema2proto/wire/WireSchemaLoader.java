@@ -63,7 +63,8 @@ public final class WireSchemaLoader {
 				continue;
 			}
 			try (Stream<Path> walk = Files.walk(root)) {
-				walk.filter(p -> p.toString().endsWith(".proto")).forEach(p -> protoToRoot.putIfAbsent(root.relativize(p).toString(), root));
+				walk.filter(p -> p.toString().endsWith(".proto"))
+						.forEach(p -> protoToRoot.putIfAbsent(root.relativize(p).toString().replace('\\', '/'), root));
 			}
 		}
 
