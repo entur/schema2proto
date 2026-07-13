@@ -31,11 +31,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -50,18 +53,12 @@ import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import com.google.common.collect.ImmutableList;
-import com.squareup.wire.schema.EnumConstant;
-import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Field;
-import com.squareup.wire.schema.IdentifierSet;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.MessageType;
-import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
+import com.squareup.wire.schema.PruningRules;
 import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.Schema;
-import com.squareup.wire.schema.SchemaLoader;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.OptionReader;
@@ -76,6 +73,15 @@ import no.entur.schema2proto.modifyproto.config.ModifyField;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
 import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
 import no.entur.schema2proto.modifyproto.config.NewField;
+import no.entur.schema2proto.wire.MutableEnumConstant;
+import no.entur.schema2proto.wire.MutableEnumType;
+import no.entur.schema2proto.wire.MutableField;
+import no.entur.schema2proto.wire.MutableMessageType;
+import no.entur.schema2proto.wire.MutableOptions;
+import no.entur.schema2proto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.MutableType;
+import no.entur.schema2proto.wire.WireBuilders;
+import no.entur.schema2proto.wire.WireSchemaLoader;
 
 public class ModifyProto {
 
@@ -164,7 +170,6 @@ public class ModifyProto {
 	}
 
 	public void modifyProto(ModifyProtoConfiguration configuration) throws IOException, InvalidProtobufException, InvalidConfigurationException {
-		SchemaLoader schemaLoader = new SchemaLoader();
 
 		// Collect source proto files (but not dependencies). Used to know which files should be written to .proto and which that should remain a dependency.
 		Collection<File> protoFiles = FileUtils.listFiles(configuration.inputDirectory, new String[] { "proto" }, true);
@@ -172,60 +177,60 @@ public class ModifyProto {
 				.map(e -> configuration.inputDirectory.toURI().relativize(e.toURI()).getPath())
 				.collect(Collectors.toList());
 
+		List<java.nio.file.Path> sources = new ArrayList<>();
 		for (String importRootFolder : configuration.customImportLocations) {
-			schemaLoader.addSource(new File(configuration.basedir, importRootFolder).toPath());
+			sources.add(new File(configuration.basedir, importRootFolder).toPath());
 		}
+		sources.add(configuration.inputDirectory.toPath());
 
-		schemaLoader.addSource(configuration.inputDirectory);
-
-		for (Path s : schemaLoader.sources()) {
+		for (java.nio.file.Path s : sources) {
 			LOGGER.info("Linking proto from path {}", s);
 		}
-		for (String s : schemaLoader.protos()) {
-			LOGGER.info("Linking proto {}", s);
-		}
 
-		Schema schema = schemaLoader.load();
+		Schema schema = WireSchemaLoader.load(sources, Collections.emptyList());
 
 		// First run initial pruning, then look at the results and add referenced types from xsd.base_type
-
-		IdentifierSet.Builder initialIdentifierSet = new IdentifierSet.Builder();
-		initialIdentifierSet.exclude(configuration.excludes);
-		initialIdentifierSet.include(configuration.includes);
-
-		IdentifierSet finalIterationIdentifiers;
+		Set<String> excludes = new LinkedHashSet<>(configuration.excludes);
+		Set<String> includes = new LinkedHashSet<>(configuration.includes);
 
 		if (configuration.includeBaseTypes) {
-			finalIterationIdentifiers = followOneMoreLevel(initialIdentifierSet, schema);
-		} else {
-			finalIterationIdentifiers = initialIdentifierSet.build();
+			includes = followOneMoreLevel(includes, excludes, schema);
 		}
-		Schema prunedSchema = schema.prune(finalIterationIdentifiers);
-		for (String s : finalIterationIdentifiers.unusedExcludes()) {
+
+		PruningRules finalIterationRules = buildPruningRules(includes, excludes);
+		Schema prunedSchema = schema.prune(finalIterationRules);
+		for (String s : finalIterationRules.unusedPrunes()) {
 			LOGGER.warn("Unused exclude: {} (already excluded elsewhere or explicitly included?)", s);
 		}
-		for (String s : finalIterationIdentifiers.unusedIncludes()) {
+		for (String s : finalIterationRules.unusedRoots()) {
 			LOGGER.warn("Unused include: {} (already included elsewhere or explicitly excluded?) ", s);
 		}
 
+		// Convert the pruned (immutable) schema into the mutable builder model used for editing and backwards-compat resolution
+		Map<String, MutableProtoFile> builderFilesByPath = new LinkedHashMap<>();
+		for (ProtoFile pf : prunedSchema.getProtoFiles()) {
+			builderFilesByPath.put(pf.getLocation().getPath(), WireBuilders.fromProtoFile(pf));
+		}
+		Collection<MutableProtoFile> builderFiles = builderFilesByPath.values();
+
 		for (NewField newField : configuration.newFields) {
-			addField(newField, prunedSchema);
+			addField(newField, builderFiles);
 		}
 
 		for (ModifyField modifyField : configuration.modifyFields) {
-			modifyField(modifyField, prunedSchema);
+			modifyField(modifyField, builderFiles);
 		}
 
 		for (NewEnumConstant newEnumValue : configuration.newEnumConstants) {
-			addEnumConstant(newEnumValue, prunedSchema);
+			addEnumConstant(newEnumValue, builderFiles);
 		}
 
 		for (MergeFrom mergeFrom : configuration.mergeFrom) {
-			mergeFromFile(mergeFrom, prunedSchema, configuration);
+			mergeFromFile(mergeFrom, builderFiles, configuration);
 		}
 
 		for (FieldOption fieldOption : configuration.fieldOptions) {
-			addFieldOption(fieldOption, prunedSchema);
+			addFieldOption(fieldOption, builderFiles);
 		}
 
 		Set<Boolean> possibleIncompatibilitiesDetected = new HashSet<>();
@@ -234,26 +239,26 @@ public class ModifyProto {
 			try {
 				ProtolockBackwardsCompatibilityChecker backwardsCompatibilityChecker = new ProtolockBackwardsCompatibilityChecker();
 				backwardsCompatibilityChecker.init(configuration.protoLockFile);
-				ImmutableList<ProtoFile> files = prunedSchema.protoFiles();
-
-				files.stream().forEach(file -> possibleIncompatibilitiesDetected.add(backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file)));
+				for (MutableProtoFile file : builderFiles) {
+					possibleIncompatibilitiesDetected.add(backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file));
+				}
 			} catch (FileNotFoundException e) {
 				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
 			}
 		}
 
 		if (configuration.includeGoPackageOptions) {
-			includeGoPackageNameOptions(prunedSchema.protoFiles(), configuration.goPackageSourcePrefix);
+			includeGoPackageNameOptions(builderFiles, configuration.goPackageSourcePrefix);
 		}
 
 		Set<String> emptyImportLocations = protosLoaded.stream()
-				.map(prunedSchema::protoFile)
+				.map(builderFilesByPath::get)
 				.filter(Objects::nonNull)
 				.filter(this::isEmptyFile)
 				.map(p -> p.location().getPath())
 				.collect(Collectors.toSet());
 
-		protosLoaded.stream().map(prunedSchema::protoFile).filter(Objects::nonNull).filter(p -> !isEmptyFile(p)).forEach(file -> {
+		protosLoaded.stream().map(builderFilesByPath::get).filter(Objects::nonNull).filter(p -> !isEmptyFile(p)).forEach(file -> {
 			file.imports().removeIf(emptyImportLocations::contains);
 			file.publicImports().removeIf(emptyImportLocations::contains);
 			File outputFile = new File(configuration.outputDirectory, file.location().getPath());
@@ -274,10 +279,10 @@ public class ModifyProto {
 
 	}
 
-	private void includeGoPackageNameOptions(Collection<ProtoFile> protoFiles, String goPackageSourcePrefix) {
-		for (ProtoFile protoFile : protoFiles) {
+	private void includeGoPackageNameOptions(Collection<MutableProtoFile> protoFiles, String goPackageSourcePrefix) {
+		for (MutableProtoFile protoFile : protoFiles) {
 			String optionName = "go_package";
-			boolean alreadySet = protoFile.options().getOptionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
+			boolean alreadySet = protoFile.options().optionElements().stream().anyMatch(existingOption -> optionName.equals(existingOption.getName()));
 			if (!alreadySet) {
 				String goPackageName = packageNameToGoPackageName(goPackageSourcePrefix, protoFile.packageName());
 				OptionElement optionElement = new OptionElement(optionName, OptionElement.Kind.STRING, goPackageName, false);
@@ -286,109 +291,113 @@ public class ModifyProto {
 		}
 	}
 
-	private boolean isEmptyFile(ProtoFile p) {
+	private boolean isEmptyFile(MutableProtoFile p) {
 		return p.types().isEmpty() && p.getExtendList().isEmpty();
 	}
 
-	private IdentifierSet followOneMoreLevel(IdentifierSet.Builder identifierSetBuilder, Schema schema) {
+	/**
+	 * Builds the pruning rules, mirroring the vendored {@code IdentifierSet} semantics where excludes take precedence over includes: an identifier present in
+	 * both is pruned, not rooted. Stock wire's {@link PruningRules} rejects the same identifier in both roots and prunes, so the overlap is dropped from the
+	 * roots here.
+	 */
+	private PruningRules buildPruningRules(Set<String> includes, Set<String> excludes) {
+		PruningRules.Builder builder = new PruningRules.Builder();
+		builder.prune(excludes);
+		builder.addRoot(includes.stream().filter(i -> !excludes.contains(i)).collect(Collectors.toList()));
+		return builder.build();
+	}
 
-		// Prune schema using current schema
-		IdentifierSet identifierSet = identifierSetBuilder.build();
-		Schema prunedSchema = schema.prune(identifierSet);
+	private Set<String> followOneMoreLevel(Set<String> includes, Set<String> excludes, Schema schema) {
+
+		// Prune schema using current rules
+		Schema prunedSchema = schema.prune(buildPruningRules(includes, excludes));
 
 		// Add new base types to follow
-		IdentifierSet.Builder updatedIdentifierSetBuilder = new IdentifierSet.Builder();
-		updatedIdentifierSetBuilder.exclude(identifierSet.excludes());
-		updatedIdentifierSetBuilder.include(identifierSet.includes());
-
-		for (ProtoFile file : prunedSchema.protoFiles()) {
-			for (Type t : file.types()) {
-				includeBaseType(updatedIdentifierSetBuilder, t, file.packageName());
+		Set<String> updatedIncludes = new LinkedHashSet<>(includes);
+		for (ProtoFile file : prunedSchema.getProtoFiles()) {
+			for (Type t : file.getTypes()) {
+				includeBaseType(updatedIncludes, t, file.getPackageName());
 			}
 		}
 
-		IdentifierSet updatedIdentifierSet = updatedIdentifierSetBuilder.build();
-
 		// More dependencies found, iterate once more
-		if (!identifierSet.includes().equals(updatedIdentifierSet.includes())) {
-			return followOneMoreLevel(updatedIdentifierSetBuilder, schema);
+		if (!includes.equals(updatedIncludes)) {
+			return followOneMoreLevel(updatedIncludes, excludes, schema);
 		} else {
 			// Another iteration yielded no more identifiers to include, we're done
-			return updatedIdentifierSet;
+			return updatedIncludes;
 		}
 
 	}
 
-	private void includeBaseType(IdentifierSet.Builder b, Type type, String enclosingPackage) {
-		if (type.options() != null) {
-			List<OptionElement> baseTypeInherits = type.options()
-					.getOptionElements()
+	private void includeBaseType(Set<String> includes, Type type, String enclosingPackage) {
+		if (type.getOptions() != null) {
+			List<OptionElement> baseTypeInherits = type.getOptions()
+					.getElements()
 					.stream()
-					.filter(e -> e.getName().equals(MessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME))
+					.filter(e -> e.getName().equals(MutableMessageType.XSD_BASE_TYPE_MESSAGE_OPTION_NAME))
 					.collect(Collectors.toList());
 			baseTypeInherits.stream().forEach(e -> {
 				String baseTypeValue = (String) e.getValue();
 				if (baseTypeValue.contains(".")) {
-					b.include(baseTypeValue);
+					includes.add(baseTypeValue);
 				} else {
 					// No package in includeBaseType statement
 					String fullType = baseTypeValue;
 					if (enclosingPackage != null) {
 						fullType = enclosingPackage + "." + fullType;
 					}
-					b.include(fullType);
+					includes.add(fullType);
 				}
 			});
 		}
-		type.nestedTypes().stream().forEach(e -> includeBaseType(b, e, enclosingPackage));
+		type.getNestedTypes().stream().forEach(e -> includeBaseType(includes, e, enclosingPackage));
 
 	}
 
-	private void mergeFromFile(MergeFrom mergeFrom, Schema prunedSchema, ModifyProtoConfiguration configuration) throws IOException {
+	private void mergeFromFile(MergeFrom mergeFrom, Collection<MutableProtoFile> builderFiles, ModifyProtoConfiguration configuration) throws IOException {
 
-		SchemaLoader schemaLoader = new SchemaLoader();
+		List<java.nio.file.Path> sources = new ArrayList<>();
 
 		for (String importRootFolder : configuration.customImportLocations) {
-			schemaLoader.addSource(new File(configuration.basedir, importRootFolder).toPath());
+			sources.add(new File(configuration.basedir, importRootFolder).toPath());
 		}
 
 		if (mergeFrom.sourceFolder.isAbsolute()) {
-			schemaLoader.addSource(mergeFrom.sourceFolder);
+			sources.add(mergeFrom.sourceFolder.toPath());
 		} else {
-			schemaLoader.addSource(new File(configuration.basedir, mergeFrom.sourceFolder.getPath()));
+			sources.add(new File(configuration.basedir, mergeFrom.sourceFolder.getPath()).toPath());
 		}
 
 		if (configuration.inputDirectory.isAbsolute()) {
-			schemaLoader.addSource(configuration.inputDirectory);
+			sources.add(configuration.inputDirectory.toPath());
 		} else {
-			schemaLoader.addSource(new File(configuration.basedir, configuration.inputDirectory.getPath()));
+			sources.add(new File(configuration.basedir, configuration.inputDirectory.getPath()).toPath());
 		}
 
-		schemaLoader.addProto(mergeFrom.protoFile);
-
-		Schema schema = schemaLoader.load();
+		Schema schema = WireSchemaLoader.load(sources, Collections.singletonList(mergeFrom.protoFile));
 
 		ProtoFile source = schema.protoFile(mergeFrom.protoFile);
-		ProtoFile destination = prunedSchema.protoFileForPackage(source.packageName());
+		MutableProtoFile sourceBuilder = WireBuilders.fromProtoFile(source);
+		MutableProtoFile destination = findProtoFileForPackage(builderFiles, sourceBuilder.packageName());
 
 		if (destination == null) {
 			throw new IllegalArgumentException("Destination protofile not found");
 		} else {
-			destination.mergeFrom(source);
+			destination.mergeFrom(sourceBuilder);
 		}
 
 	}
 
-	private void addEnumConstant(NewEnumConstant newEnumConstant, Schema prunedSchema) throws InvalidProtobufException {
-		Type targetEnumType = prunedSchema.getType(newEnumConstant.targetEnumType);
-		if (targetEnumType instanceof EnumType) {
-			List<OptionElement> optionElements = new ArrayList<>();
-			Options options = new Options(Options.ENUM_VALUE_OPTIONS, optionElements);
+	private void addEnumConstant(NewEnumConstant newEnumConstant, Collection<MutableProtoFile> builderFiles) throws InvalidProtobufException {
+		MutableEnumType enumType = findEnumType(builderFiles, newEnumConstant.targetEnumType);
+		if (enumType != null) {
+			MutableOptions options = new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, new ArrayList<>());
 			Location location = new Location("", "", -1, -1);
-			EnumConstant enumConstant = new EnumConstant(location, newEnumConstant.name, newEnumConstant.fieldNumber, newEnumConstant.documentation, options);
-			EnumType enumType = (EnumType) targetEnumType;
+			MutableEnumConstant enumConstant = new MutableEnumConstant(location, newEnumConstant.name, newEnumConstant.fieldNumber,
+					newEnumConstant.documentation, options);
 			// Duplicate check
-			Optional<EnumConstant> existing = enumType.constants()
+			Optional<MutableEnumConstant> existing = enumType.constants()
 					.stream()
 					.filter(e -> e.getName().equals(enumConstant.getName()) || e.getTag() == enumConstant.getTag())
 					.findFirst();
@@ -402,9 +411,9 @@ public class ModifyProto {
 		}
 	}
 
-	private void addField(NewField newField, Schema prunedSchema) throws InvalidProtobufException {
+	private void addField(NewField newField, Collection<MutableProtoFile> builderFiles) throws InvalidProtobufException {
 
-		MessageType type = (MessageType) prunedSchema.getType(newField.targetMessageType);
+		MutableMessageType type = findMessageType(builderFiles, newField.targetMessageType);
 		if (type == null) {
 			throw new InvalidProtobufException("Did not find existing type " + newField.targetMessageType);
 		} else {
@@ -435,8 +444,7 @@ public class ModifyProto {
 				reservedFields.addAll(updatedReservedFields);
 			}
 
-			List<OptionElement> optionElements = new ArrayList<>();
-			Options options = new Options(Options.FIELD_OPTIONS, optionElements);
+			MutableOptions options = new MutableOptions(MutableOptions.FIELD_OPTIONS, new ArrayList<>());
 			int tag = newField.fieldNumber;
 
 			String fieldPackage = StringUtils.substringBeforeLast(newField.type, ".");
@@ -452,9 +460,9 @@ public class ModifyProto {
 			}
 			Location location = new Location("", "", -1, -1);
 
-			Field field = new Field(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null, newField.type,
-					options, false, false);
-			List<Field> updatedFields = new ArrayList<>(type.fields());
+			MutableField field = new MutableField(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null,
+					newField.type, options, false, false);
+			List<MutableField> updatedFields = new ArrayList<>(type.fields());
 			updatedFields.add(field);
 			type.setDeclaredFields(updatedFields);
 
@@ -462,10 +470,10 @@ public class ModifyProto {
 
 			if (importStatement != null) {
 				String targetPackageName = StringUtils.trimToNull(StringUtils.substringBeforeLast(newField.targetMessageType, "."));
-				ProtoFile targetFile = prunedSchema.protoFileForPackage(targetPackageName);
+				MutableProtoFile targetFile = findProtoFileForPackage(builderFiles, targetPackageName);
 				if (newField.targetMessageType.equals(targetPackageName)) {
 					// no package name on target
-					targetFile = prunedSchema.protoFileForPackage(null);
+					targetFile = findProtoFileForPackage(builderFiles, null);
 				}
 				targetFile.imports().add(importStatement);
 			}
@@ -474,12 +482,12 @@ public class ModifyProto {
 
 	}
 
-	private void modifyField(ModifyField modifyField, Schema prunedSchema) throws InvalidProtobufException {
-		MessageType type = (MessageType) prunedSchema.getType(modifyField.targetMessageType);
+	private void modifyField(ModifyField modifyField, Collection<MutableProtoFile> builderFiles) throws InvalidProtobufException {
+		MutableMessageType type = findMessageType(builderFiles, modifyField.targetMessageType);
 		if (type == null) {
 			throw new InvalidProtobufException("Did not find existing type " + modifyField.targetMessageType);
 		}
-		Field field = type.field(modifyField.field);
+		MutableField field = type.field(modifyField.field);
 		if (field == null) {
 			throw new InvalidProtobufException("Did not find existing field " + modifyField.field);
 		}
@@ -492,21 +500,79 @@ public class ModifyProto {
 		}
 	}
 
-	public void addFieldOption(FieldOption fieldOption, Schema prunedSchema) throws InvalidProtobufException {
-		MessageType type = (MessageType) prunedSchema.getType(fieldOption.targetMessageType);
+	public void addFieldOption(FieldOption fieldOption, Collection<MutableProtoFile> builderFiles) throws InvalidProtobufException {
+		MutableMessageType type = findMessageType(builderFiles, fieldOption.targetMessageType);
 		if (type == null) {
 			throw new InvalidProtobufException("Did not find existing type " + fieldOption.targetMessageType);
 		}
-		Field field = type.field(fieldOption.field);
+		MutableField field = type.field(fieldOption.field);
 		if (field == null) {
 			throw new InvalidProtobufException("Did not find existing field " + fieldOption.field);
 		}
 		if (StringUtils.isEmpty(fieldOption.option)) {
 			throw new InvalidProtobufException("Missing option for field " + fieldOption.field);
 		}
-		OptionReader reader = new OptionReader(new SyntaxReader(fieldOption.option.toCharArray(), null));
+		OptionReader reader = new OptionReader(new SyntaxReader(fieldOption.option.toCharArray(), Location.get("", "")));
 		reader.readOptions().forEach(option -> field.options().add(option));
 
+		// A field that uses the buf.validate extension must import its definition for the result to be valid protobuf
+		if (fieldOption.option.contains("buf.validate")) {
+			MutableProtoFile file = findProtoFileForType(builderFiles, fieldOption.targetMessageType);
+			if (file != null && !file.imports().contains("buf/validate/validate.proto")) {
+				file.imports().add("buf/validate/validate.proto");
+			}
+		}
+	}
+
+	private MutableProtoFile findProtoFileForType(Collection<MutableProtoFile> builderFiles, String qualifiedName) {
+		for (MutableProtoFile file : builderFiles) {
+			if (findType(file.types(), qualifiedName) != null) {
+				return file;
+			}
+		}
+		return null;
+	}
+
+	private MutableMessageType findMessageType(Collection<MutableProtoFile> builderFiles, String qualifiedName) {
+		for (MutableProtoFile file : builderFiles) {
+			MutableType type = findType(file.types(), qualifiedName);
+			if (type instanceof MutableMessageType) {
+				return (MutableMessageType) type;
+			}
+		}
+		return null;
+	}
+
+	private MutableEnumType findEnumType(Collection<MutableProtoFile> builderFiles, String qualifiedName) {
+		for (MutableProtoFile file : builderFiles) {
+			MutableType type = findType(file.types(), qualifiedName);
+			if (type instanceof MutableEnumType) {
+				return (MutableEnumType) type;
+			}
+		}
+		return null;
+	}
+
+	private MutableType findType(List<MutableType> types, String qualifiedName) {
+		for (MutableType type : types) {
+			if (type.type().toString().equals(qualifiedName)) {
+				return type;
+			}
+			MutableType nested = findType(type.nestedTypes(), qualifiedName);
+			if (nested != null) {
+				return nested;
+			}
+		}
+		return null;
+	}
+
+	private MutableProtoFile findProtoFileForPackage(Collection<MutableProtoFile> builderFiles, String packageName) {
+		for (MutableProtoFile file : builderFiles) {
+			if (Objects.equals(file.packageName(), packageName)) {
+				return file;
+			}
+		}
+		return null;
 	}
 
 }

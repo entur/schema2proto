@@ -23,6 +23,7 @@
 package no.entur.schema2proto.modifyproto;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +105,58 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		compareExpectedAndGenerated(expected, "disabled.proto", generatedRootFolder, "simple.proto");
 
+	}
+
+	@Test
+	public void testIncludeAndExcludeOverlapWithBaseTypes() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Regression: when followOneMoreLevel adds a base type ("A", referenced by B's xsd.base_type) that is also excluded,
+		// the identifier ends up in both roots and prunes. The vendored IdentifierSet tolerated this (excludes win); stock
+		// wire's PruningRules rejects the overlap. ModifyProto must drop the overlap from the roots rather than fail.
+		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("B");
+		configuration.excludes = Collections.singletonList("A");
+		configuration.includeBaseTypes = true;
+
+		modifyProto(configuration);
+
+		assertTrue(new File(generatedRootFolder, "simple.proto").exists(), "Expected proto to be generated without a roots/prunes overlap failure");
+	}
+
+	@Test
+	public void testDuplicateOptionDefinitionAcrossSourceRootsIsDeduplicated() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Regression: the xsd.base_type extension definition (xsd/xsd.proto) is commonly present in more than one source root
+		// (e.g. unpacked proto deps and the input dir). Loading it from each root would define the extension twice, which stock
+		// wire rejects ("multiple fields share tag/name"). The loader must deduplicate protos by path (first root wins).
+		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		// A second source root that also contains xsd/xsd.proto (mirrors unpacked proto deps alongside the input dir).
+		configuration.customImportLocations = Collections.singletonList("src/test/resources/modify/dupimport");
+		configuration.includes = Collections.singletonList("B");
+		configuration.includeBaseTypes = true;
+
+		modifyProto(configuration);
+
+		assertTrue(new File(generatedRootFolder, "simple.proto").exists(), "Expected proto to be generated despite duplicate xsd.proto across source roots");
+	}
+
+	@Test
+	public void testServicesAndRpcsArePreserved() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Regression: gRPC service/RPC declarations on existing protos must survive the modify round-trip (the builder model
+		// previously dropped services, producing "missing RPC" protolock conflicts downstream).
+		File expected = new File("src/test/resources/modify/expected/withservice").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/withservice").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "svc.proto", generatedRootFolder, "svc.proto");
 	}
 
 	@Test

@@ -41,20 +41,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.BiMap;
-import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.MessageType;
-import com.squareup.wire.schema.ProtoFile;
 
 import no.entur.schema2proto.compatibility.protolock.ProtolockField;
 import no.entur.schema2proto.compatibility.protolock.ProtolockMessage;
+import no.entur.schema2proto.wire.MutableField;
+import no.entur.schema2proto.wire.MutableMessageType;
+import no.entur.schema2proto.wire.MutableProtoFile;
 
 public class FieldConflictChecker {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(FieldConflictChecker.class);
 	private boolean failIfRemovedFieldsTriggered;
 
-	public boolean tryResolveFieldConflicts(ProtoFile file, MessageType protoMessage, ProtolockMessage protolockMessage) {
+	public boolean tryResolveFieldConflicts(MutableProtoFile file, MutableMessageType protoMessage, ProtolockMessage protolockMessage) {
 
 		// Compute helper maps
 		SortedSet<ProtolockField> lockFileFields = Collections.unmodifiableSortedSet(getFields(protolockMessage)); // from proto.lock
@@ -84,7 +84,7 @@ public class FieldConflictChecker {
 						if (originalIdForField == null) {
 							originalIdForField = findNextAvailableFieldNum(protoMessage, protoMessageFieldAsLockFields, lockFileFields).get();
 						}
-						Optional<Field> intrudingField = getField(protoMessage, protoMessageFieldAsLockField.getName());
+						Optional<MutableField> intrudingField = getField(protoMessage, protoMessageFieldAsLockField.getName());
 						intrudingField.get().updateTag(originalIdForField);
 
 						//
@@ -164,8 +164,8 @@ public class FieldConflictChecker {
 
 	}
 
-	private void updateFieldTag(AtomicInteger nextAvailableFieldNum, int overlappingId, Optional<Field> intrudingField, Optional<Field> existingField,
-			Integer idFromLockFile) {
+	private void updateFieldTag(AtomicInteger nextAvailableFieldNum, int overlappingId, Optional<MutableField> intrudingField,
+			Optional<MutableField> existingField, Integer idFromLockFile) {
 		intrudingField.ifPresent(x -> {
 			if (idFromLockFile != null) {
 				x.updateTag(idFromLockFile);
@@ -178,7 +178,7 @@ public class FieldConflictChecker {
 	}
 
 	@NotNull
-	private AtomicInteger findNextAvailableFieldNum(MessageType e, SortedSet<ProtolockField> xsdFields, SortedSet<ProtolockField> lockFields) {
+	private AtomicInteger findNextAvailableFieldNum(MutableMessageType e, SortedSet<ProtolockField> xsdFields, SortedSet<ProtolockField> lockFields) {
 		AtomicInteger nextAvailableFieldNum = new AtomicInteger(
 				xsdFields.stream().max(Comparator.comparing(ProtolockField::getId)).orElse(new ProtolockField(0, null)).getId() + 1);
 
@@ -207,15 +207,15 @@ public class FieldConflictChecker {
 		return reservedFieldNum;
 	}
 
-	private Optional<Field> getField(MessageType e, String fieldName) {
+	private Optional<MutableField> getField(MutableMessageType e, String fieldName) {
 		return e.fieldsAndOneOfFields().stream().filter(z -> z.name().equals(fieldName)).findFirst();
 	}
 
-	private Optional<Field> getField(MessageType e, Integer fieldId) {
+	private Optional<MutableField> getField(MutableMessageType e, Integer fieldId) {
 		return e.fieldsAndOneOfFields().stream().filter(z -> z.tag() == fieldId).findFirst();
 	}
 
-	private void reserveField(ProtoFile file, MessageType e, ProtolockField newField) {
+	private void reserveField(MutableProtoFile file, MutableMessageType e, ProtolockField newField) {
 
 		String reservationDoc = "Reservation added by schema2proto";
 		Location loc = new Location("", "", 0, 0);
