@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:simpleType name="UnionEnumeration">
+        <xsd:union memberTypes="Enum1 Enum2"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Enum1">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="e1val1"/>
+            <xsd:enumeration value="e1val2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Enum2">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="e2val1"/>
+            <xsd:enumeration value="e2val2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>
