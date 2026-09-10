@@ -37,8 +37,12 @@
             <artifactId>slf4j-simple</artifactId>
         </dependency>
         <dependency>
-            <groupId>no.entur</groupId>
-            <artifactId>schema2proto-wire</artifactId>
+            <groupId>com.squareup.wire</groupId>
+            <artifactId>wire-schema-jvm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okio</groupId>
+            <artifactId>okio</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
