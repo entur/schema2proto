@@ -48,7 +48,7 @@
         <snakeyaml.version>2.7</snakeyaml.version>
         <spotless.version>3.10.2</spotless.version>
         <urnlib.version>3.0.0</urnlib.version>
-        <wire.version>6.4.7</wire.version>
+        <wire.version>7.0.1</wire.version>
     </properties>
     <dependencyManagement>
         <dependencies>
