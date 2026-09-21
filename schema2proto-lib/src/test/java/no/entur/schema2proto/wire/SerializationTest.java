@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -88,6 +89,48 @@ public class SerializationTest {
 		assertTrue(schema.contains("extend Wrapped {"), schema);
 		assertTrue(schema.contains("optional int32 extra = 100;"), schema);
 		assertTrue(schema.contains("[json_name = \"someName\"]"), schema);
+	}
+
+	/**
+	 * Stock wire escapes a top level string option but not one nested in an aggregate (message literal) option, while its parser unescapes both. Without the
+	 * workaround in {@code WireBuilders} a round trip through the modify path drops one level of escaping and emits proto that protoc rejects.
+	 */
+	@Test
+	public void testRoundTripKeepsEscapingInAggregateOptionValues() {
+		String source = "syntax = \"proto3\";\n" + "package test;\n" + "\n" + "message M {\n"
+				+ "  string a = 1 [(buf.validate.field).string = {pattern: \"^[a-z0-9\\\\-]+$\", min_len: 10}];\n"
+				+ "  string b = 2 [(buf.validate.field).string.pattern = \"^[a-z0-9\\\\-]+$\"];\n" + "}\n";
+
+		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("options.proto"), source));
+
+		String schema = WireBuilders.fromProtoFile(protoFile).toSchema();
+
+		// The aggregate form keeps its escaping instead of degrading to the invalid "\-".
+		assertTrue(schema.contains("pattern: \"^[a-z0-9\\\\-]+$\""), schema);
+		// The plain form, which wire already escapes, must not be escaped a second time.
+		assertTrue(schema.contains(".string.pattern = \"^[a-z0-9\\\\-]+$\""), schema);
+	}
+
+	/**
+	 * The XSD-to-proto path already stores option strings in proto source form (see {@code ValidationRuleFactory}), so options that never went through wire's
+	 * parser must be emitted verbatim rather than escaped a second time.
+	 */
+	@Test
+	public void testGeneratedAggregateOptionValuesAreNotEscapedTwice() {
+		String escapedPattern = "^[a-z0-9\\\\-]+$";
+		MutableOptions fieldOptions = new MutableOptions(MutableOptions.FIELD_OPTIONS, new ArrayList<>());
+		fieldOptions.add(new OptionElement("buf.validate.field", OptionElement.Kind.MAP, Map.of("string", Map.of("pattern", escapedPattern)), true));
+
+		MutableProtoFile f = new MutableProtoFile(Syntax.PROTO_3, "test");
+		Location location = new Location("base", "path", 1, 1);
+		MutableMessageType message = new MutableMessageType(ProtoType.get("M"), location, "", "M",
+				new MutableOptions(MutableOptions.MESSAGE_OPTIONS, new ArrayList<>()));
+		message.addField(new MutableField(null, location, Field.Label.OPTIONAL, "a", "", 1, "string", fieldOptions, true));
+		f.types().add(message);
+
+		String schema = f.toSchema();
+
+		assertTrue(schema.contains("pattern: \"" + escapedPattern + "\""), schema);
 	}
 
 	/** Verifies stock wire serializes extend declarations (used when modifying existing protos that contain them). */
