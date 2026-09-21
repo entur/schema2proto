@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -40,10 +41,72 @@ import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.Type;
 
+/**
+ * Covers the loader contract inherited from the vendored {@code SchemaLoaderTest}, which was deleted along with the fork: load everything when no protos are
+ * named, resolve named protos across several roots, fail when a named proto is missing, support archive roots, and let earlier roots win.
+ */
 public class WireSchemaLoaderTest {
+
+	@Test
+	public void testLoadAllFilesWhenNoneSpecified(@TempDir Path tempDir) throws IOException {
+		Files.writeString(tempDir.resolve("message1.proto"), "message Message1 {}");
+		Files.writeString(tempDir.resolve("message2.proto"), "message Message2 {}");
+		Files.writeString(tempDir.resolve("readme.txt"), "Here be protos!");
+
+		Schema schema = WireSchemaLoader.load(Collections.singletonList(tempDir), Collections.emptyList());
+
+		assertEquals(tempDir.toString(), schema.getType("Message1").getLocation().getBase());
+		assertEquals("message1.proto", schema.getType("Message1").getLocation().getPath());
+		assertEquals(tempDir.toString(), schema.getType("Message2").getLocation().getBase());
+		assertEquals("message2.proto", schema.getType("Message2").getLocation().getPath());
+	}
+
+	@Test
+	public void testLocateInMultiplePaths(@TempDir Path tempDir) throws IOException {
+		Path source1 = Files.createDirectories(tempDir.resolve("source1"));
+		Path source2 = Files.createDirectories(tempDir.resolve("source2"));
+		Files.writeString(source1.resolve("file1.proto"), "message Message1 {}");
+		Files.writeString(source2.resolve("file2.proto"), "message Message2 {}");
+
+		Schema schema = WireSchemaLoader.load(List.of(source1, source2), List.of("file1.proto", "file2.proto"));
+
+		assertNotNull(schema.getType("Message1"));
+		assertNotNull(schema.getType("Message2"));
+	}
+
+	@Test
+	public void testFailLocate(@TempDir Path tempDir) throws IOException {
+		Path source1 = Files.createDirectories(tempDir.resolve("source1"));
+		Path source2 = Files.createDirectories(tempDir.resolve("source2"));
+		Files.writeString(source2.resolve("file2.proto"), "message Message2 {}");
+
+		List<Path> sources = Collections.singletonList(source1);
+		assertThrows(FileNotFoundException.class, () -> WireSchemaLoader.load(sources, Collections.singletonList("file2.proto")));
+	}
+
+	@Test
+	public void testFailLocateInZipFile(@TempDir Path tempDir) throws IOException {
+		Path zip = writeZip(tempDir.resolve("protos.zip"), "a/b/trix.proto", "message Trix {}");
+
+		List<Path> sources = Collections.singletonList(zip);
+		assertThrows(FileNotFoundException.class, () -> WireSchemaLoader.load(sources, Collections.singletonList("a/b/message.proto")));
+	}
+
+	@Test
+	public void testEarlierSourcesTakePrecedenceOverLaterSources(@TempDir Path tempDir) throws IOException {
+		Path source1 = Files.createDirectories(tempDir.resolve("source1"));
+		Path source2 = Files.createDirectories(tempDir.resolve("source2"));
+		Files.writeString(source1.resolve("message.proto"), "message Message {\n  optional string a = 1;\n}\n");
+		Files.writeString(source2.resolve("message.proto"), "message Message {\n  optional string b = 2;\n}\n");
+
+		Schema schema = WireSchemaLoader.load(List.of(source1, source2), Collections.emptyList());
+
+		assertNotNull(((MessageType) schema.getType("Message")).field("a"));
+	}
 
 	/** Archive source roots were supported by the vendored loader (its {@code locateInZipFile} test) and must keep working. */
 	@Test
