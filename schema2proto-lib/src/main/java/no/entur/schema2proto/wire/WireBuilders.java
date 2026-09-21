@@ -130,8 +130,10 @@ public final class WireBuilders {
 
 	private static MutableField fromField(FieldElement element) {
 		MutableOptions options = new MutableOptions(MutableOptions.FIELD_OPTIONS, new ArrayList<>(element.getOptions()));
-		return new MutableField(null, element.getLocation(), element.getLabel(), element.getName(), element.getDocumentation(), element.getTag(),
+		MutableField field = new MutableField(null, element.getLocation(), element.getLabel(), element.getName(), element.getDocumentation(), element.getTag(),
 				element.getDefaultValue(), element.getType(), options, false, false);
+		field.setJsonName(element.getJsonName());
+		return field;
 	}
 
 	private static MutableOneOf fromOneOf(OneOfElement element) {

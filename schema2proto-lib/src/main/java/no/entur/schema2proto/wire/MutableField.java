@@ -49,14 +49,16 @@ public class MutableField {
 	private String elementType;
 	private final MutableOptions options;
 	private final boolean extension;
+	// Explicit json_name of the source field, if any. Never set by the XSD-to-proto path; carried through unchanged when modifying existing protos.
+	private String jsonName;
 	private boolean isOneOf;
 
 	private boolean fromElement;
 	private boolean fromAttribute;
 
 	public MutableField(String packageName, Location location, Label label, String name, String documentation, int tag, String elementType,
-			MutableOptions options, boolean extension) {
-		this(packageName, location, label, name, documentation, tag, null, elementType, options, extension, false);
+			MutableOptions options, boolean fromElement) {
+		this(packageName, location, label, name, documentation, tag, null, elementType, options, false, fromElement);
 	}
 
 	public MutableField(String packageName, Location location, Label label, String name, String documentation, int tag, String defaultValue, String elementType,
@@ -138,6 +140,14 @@ public class MutableField {
 		return extension;
 	}
 
+	public String jsonName() {
+		return jsonName;
+	}
+
+	public void setJsonName(String jsonName) {
+		this.jsonName = jsonName;
+	}
+
 	public boolean isFromAttribute() {
 		return fromAttribute;
 	}
@@ -167,7 +177,7 @@ public class MutableField {
 		List<String> namespaces = Collections.emptyList();
 		Location orderedLocation = new Location("", "", order, 0);
 		return new Field(namespaces, orderedLocation, label, name, documentation == null ? "" : documentation, tag, defaultValue, elementType, options.toWire(),
-				extension, isOneOf, null);
+				extension, isOneOf, jsonName);
 	}
 
 	@Override

@@ -68,14 +68,14 @@ public class SerializationTest {
 
 	/**
 	 * Verifies that converting an existing proto into the mutable model and back does not drop declarations schema2proto never touches: weak imports, message
-	 * level extend declarations and extension ranges.
+	 * level extend declarations, extension ranges and explicit json_name.
 	 */
 	@Test
-	public void testRoundTripKeepsWeakImportsExtendsAndExtensionRanges() {
+	public void testRoundTripKeepsWeakImportsExtendsExtensionRangesAndJsonName() {
 		String source = "syntax = \"proto2\";\n" + "package test;\n" + "\n" + "import \"other.proto\";\n" + "import public \"pub.proto\";\n"
-				+ "import weak \"legacy.proto\";\n" + "\n" + "message Wrapped {\n" + "  optional string name = 1;\n" + "\n" + "  extensions 100 to 199;\n"
-				+ "\n" + "  extend Wrapped {\n" + "    optional int32 extra = 100;\n" + "  }\n" + "\n" + "  message Nested {\n" + "    extensions 200 to 299;\n"
-				+ "  }\n" + "}\n";
+				+ "import weak \"legacy.proto\";\n" + "\n" + "message Wrapped {\n" + "  optional string name = 1;\n"
+				+ "  optional string some_name = 2 [json_name = \"someName\"];\n" + "\n" + "  extensions 100 to 199;\n" + "\n" + "  extend Wrapped {\n"
+				+ "    optional int32 extra = 100;\n" + "  }\n" + "\n" + "  message Nested {\n" + "    extensions 200 to 299;\n" + "  }\n" + "}\n";
 
 		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("roundtrip.proto"), source));
 
@@ -87,6 +87,7 @@ public class SerializationTest {
 		assertTrue(schema.contains("extensions 200 to 299;"), schema);
 		assertTrue(schema.contains("extend Wrapped {"), schema);
 		assertTrue(schema.contains("optional int32 extra = 100;"), schema);
+		assertTrue(schema.contains("[json_name = \"someName\"]"), schema);
 	}
 
 	/** Verifies stock wire serializes extend declarations (used when modifying existing protos that contain them). */
