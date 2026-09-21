@@ -24,6 +24,7 @@ package no.entur.schema2proto.wire;
  */
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +40,7 @@ import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.ProtoType;
 import com.squareup.wire.schema.internal.parser.OptionElement;
+import com.squareup.wire.schema.internal.parser.ProtoParser;
 
 public class SerializationTest {
 
@@ -62,6 +64,29 @@ public class SerializationTest {
 
 		String schema = f.toSchema();
 		assertNotNull(schema);
+	}
+
+	/**
+	 * Verifies that converting an existing proto into the mutable model and back does not drop declarations schema2proto never touches: weak imports, message
+	 * level extend declarations and extension ranges.
+	 */
+	@Test
+	public void testRoundTripKeepsWeakImportsExtendsAndExtensionRanges() {
+		String source = "syntax = \"proto2\";\n" + "package test;\n" + "\n" + "import \"other.proto\";\n" + "import public \"pub.proto\";\n"
+				+ "import weak \"legacy.proto\";\n" + "\n" + "message Wrapped {\n" + "  optional string name = 1;\n" + "\n" + "  extensions 100 to 199;\n"
+				+ "\n" + "  extend Wrapped {\n" + "    optional int32 extra = 100;\n" + "  }\n" + "\n" + "  message Nested {\n" + "    extensions 200 to 299;\n"
+				+ "  }\n" + "}\n";
+
+		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("roundtrip.proto"), source));
+
+		String schema = WireBuilders.fromProtoFile(protoFile).toSchema();
+
+		assertTrue(schema.contains("import weak \"legacy.proto\";"), schema);
+		assertTrue(schema.contains("import public \"pub.proto\";"), schema);
+		assertTrue(schema.contains("extensions 100 to 199;"), schema);
+		assertTrue(schema.contains("extensions 200 to 299;"), schema);
+		assertTrue(schema.contains("extend Wrapped {"), schema);
+		assertTrue(schema.contains("optional int32 extra = 100;"), schema);
 	}
 
 	/** Verifies stock wire serializes extend declarations (used when modifying existing protos that contain them). */

@@ -23,11 +23,12 @@
 package no.entur.schema2proto.wire;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.squareup.wire.Syntax;
+import com.squareup.wire.schema.Extend;
+import com.squareup.wire.schema.Extensions;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.MessageType;
 import com.squareup.wire.schema.Options;
@@ -51,6 +52,10 @@ public class MutableMessageType extends MutableType {
 	private List<MutableField> declaredFields;
 	private final List<MutableOneOf> oneOfs;
 	private final List<MutableType> nestedTypes;
+	// Nested extend declarations and extension ranges are not produced by the XSD-to-proto path; they are carried through unchanged when modifying
+	// existing proto2 messages.
+	private final List<Extend> nestedExtendList;
+	private final List<Extensions> extensionsList;
 	private final List<Reserved> reserveds;
 	private final MutableOptions options;
 
@@ -66,6 +71,8 @@ public class MutableMessageType extends MutableType {
 		this.declaredFields = new ArrayList<>();
 		this.oneOfs = new ArrayList<>();
 		this.nestedTypes = new ArrayList<>();
+		this.nestedExtendList = new ArrayList<>();
+		this.extensionsList = new ArrayList<>();
 		this.reserveds = new ArrayList<>();
 	}
 
@@ -79,6 +86,14 @@ public class MutableMessageType extends MutableType {
 
 	public List<Reserved> getReserveds() {
 		return reserveds;
+	}
+
+	public List<Extend> getNestedExtendList() {
+		return nestedExtendList;
+	}
+
+	public List<Extensions> getExtensionsList() {
+		return extensionsList;
 	}
 
 	public void addReserved(String documentation, Location location, int tag) {
@@ -213,8 +228,8 @@ public class MutableMessageType extends MutableType {
 		List<Type> wireNestedTypes = nestedTypes.stream().map(t -> t.toWire(syntax)).collect(Collectors.toList());
 		Options wireOptions = options.toWire();
 		return new MessageType(protoType, location, documentation == null ? "" : documentation, name, wireDeclaredFields,
-				new ArrayList<>() /* extensionFields */, wireOneOfs, wireNestedTypes, Collections.emptyList() /* nestedExtendList */,
-				Collections.emptyList() /* extensionsList */, new ArrayList<>(reserveds), wireOptions, syntax);
+				new ArrayList<>() /* extensionFields, populated during linking */, wireOneOfs, wireNestedTypes, new ArrayList<>(nestedExtendList),
+				new ArrayList<>(extensionsList), new ArrayList<>(reserveds), wireOptions, syntax);
 	}
 
 	@Override

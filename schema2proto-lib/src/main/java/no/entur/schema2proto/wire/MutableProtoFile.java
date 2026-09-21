@@ -23,7 +23,6 @@
 package no.entur.schema2proto.wire;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,9 +39,10 @@ public class MutableProtoFile {
 	private Location location;
 	private final List<String> imports = new ArrayList<>();
 	private final List<String> publicImports = new ArrayList<>();
+	private final List<String> weakImports = new ArrayList<>();
 	private final String packageName;
 	private final List<MutableType> types = new ArrayList<>();
-	// Extends and services are not produced by the XSD-to-proto path; they are carried through unchanged when modifying existing protos.
+	// Weak imports, extends and services are not produced by the XSD-to-proto path; they are carried through unchanged when modifying existing protos.
 	private final List<Extend> extendList = new ArrayList<>();
 	private final List<Service> services = new ArrayList<>();
 	private final MutableOptions options;
@@ -65,6 +65,10 @@ public class MutableProtoFile {
 
 	public List<String> publicImports() {
 		return publicImports;
+	}
+
+	public List<String> weakImports() {
+		return weakImports;
 	}
 
 	public String packageName() {
@@ -107,6 +111,12 @@ public class MutableProtoFile {
 		publicImports.clear();
 		publicImports.addAll(mergedPublicImports);
 
+		java.util.SortedSet<String> mergedWeakImports = new java.util.TreeSet<>(weakImports);
+		mergedWeakImports.addAll(source.weakImports);
+		mergedWeakImports.remove(location.getPath()); // Remove any imports to one self
+		weakImports.clear();
+		weakImports.addAll(mergedWeakImports);
+
 		types.addAll(source.types);
 		extendList.addAll(source.extendList);
 		services.addAll(source.services);
@@ -114,8 +124,8 @@ public class MutableProtoFile {
 
 	public ProtoFile toWire() {
 		List<Type> wireTypes = types.stream().map(t -> t.toWire(syntax)).collect(Collectors.toList());
-		return new ProtoFile(location, new ArrayList<>(imports), new ArrayList<>(publicImports), Collections.emptyList() /* weakImports */, packageName,
-				wireTypes, new ArrayList<>(services), new ArrayList<>(extendList), options.toWire(), syntax);
+		return new ProtoFile(location, new ArrayList<>(imports), new ArrayList<>(publicImports), new ArrayList<>(weakImports), packageName, wireTypes,
+				new ArrayList<>(services), new ArrayList<>(extendList), options.toWire(), syntax);
 	}
 
 	public String toSchema() {

@@ -23,9 +23,12 @@
 package no.entur.schema2proto.wire;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.squareup.wire.Syntax;
+import com.squareup.wire.schema.Extend;
+import com.squareup.wire.schema.Extensions;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.ProtoType;
 import com.squareup.wire.schema.Reserved;
@@ -56,20 +59,23 @@ public final class WireBuilders {
 		file.setLocation(element.getLocation());
 		file.imports().addAll(element.getImports());
 		file.publicImports().addAll(element.getPublicImports());
+		file.weakImports().addAll(element.getWeakImports());
 		file.options().optionElements().addAll(element.getOptions());
 		// Carry extend declarations and services (gRPC RPCs) through unchanged; schema2proto does not modify them.
 		file.getExtendList().addAll(protoFile.getExtendList());
 		file.getServices().addAll(protoFile.getServices());
 
+		// Namespaces are the scope names used when resolving field types, mirroring com.squareup.wire.schema.Type.fromElements.
+		List<String> namespaces = packageName == null ? Collections.emptyList() : Collections.singletonList(packageName);
 		for (TypeElement typeElement : element.getTypes()) {
-			file.types().add(fromType(typeElement, packageName));
+			file.types().add(fromType(typeElement, packageName, namespaces));
 		}
 		return file;
 	}
 
-	private static MutableType fromType(TypeElement typeElement, String enclosing) {
+	private static MutableType fromType(TypeElement typeElement, String enclosing, List<String> namespaces) {
 		if (typeElement instanceof MessageElement) {
-			return fromMessage((MessageElement) typeElement, enclosing);
+			return fromMessage((MessageElement) typeElement, enclosing, namespaces);
 		} else if (typeElement instanceof EnumElement) {
 			return fromEnum((EnumElement) typeElement, enclosing);
 		}
@@ -80,7 +86,7 @@ public final class WireBuilders {
 		return enclosing == null || enclosing.isEmpty() ? name : enclosing + "." + name;
 	}
 
-	private static MutableMessageType fromMessage(MessageElement element, String enclosing) {
+	private static MutableMessageType fromMessage(MessageElement element, String enclosing, List<String> namespaces) {
 		String qualified = qualify(enclosing, element.getName());
 		MutableOptions options = new MutableOptions(MutableOptions.MESSAGE_OPTIONS, new ArrayList<>(element.getOptions()));
 		MutableMessageType message = new MutableMessageType(ProtoType.get(qualified), element.getLocation(), element.getDocumentation(), element.getName(),
@@ -95,9 +101,14 @@ public final class WireBuilders {
 		for (ReservedElement reservedElement : element.getReserveds()) {
 			message.getReserveds().add(fromReserved(reservedElement));
 		}
+		// Namespaces for all child elements include this message's name, mirroring com.squareup.wire.schema.MessageType.fromElement.
+		List<String> childNamespaces = new ArrayList<>(namespaces.isEmpty() ? List.of("") : namespaces);
+		childNamespaces.add(element.getName());
 		for (TypeElement nested : element.getNestedTypes()) {
-			message.nestedTypes().add(fromType(nested, qualified));
+			message.nestedTypes().add(fromType(nested, qualified, childNamespaces));
 		}
+		message.getNestedExtendList().addAll(Extend.fromElements(childNamespaces, element.getExtendDeclarations()));
+		message.getExtensionsList().addAll(Extensions.fromElements(element.getExtensions()));
 		return message;
 	}
 
