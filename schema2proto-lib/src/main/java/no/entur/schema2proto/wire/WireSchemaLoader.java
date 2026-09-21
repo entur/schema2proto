@@ -23,9 +23,11 @@
 package no.entur.schema2proto.wire;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.ProviderNotFoundException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -46,7 +48,8 @@ import com.squareup.wire.schema.SchemaLoader;
  * When {@code protos} is empty all protos found under the source roots are loaded; otherwise only the named protos (and their imports) are loaded. Each proto
  * is resolved against the first source root that contains it and is loaded only once, even when the same relative path exists in several roots (the vendored
  * loader deduplicated the same way). This matters because extension definitions (e.g. {@code xsd/xsd.proto}) are frequently present in more than one root, and
- * stock wire rejects a duplicated extension field. Google's well-known types (including {@code descriptor.proto}) are provided by stock wire automatically.
+ * stock wire rejects a duplicated extension field. A source root may be a directory or an archive (.zip/.jar), as in the vendored loader. Google's well-known
+ * types (including {@code descriptor.proto}) are provided by stock wire automatically.
  */
 public final class WireSchemaLoader {
 
@@ -59,11 +62,24 @@ public final class WireSchemaLoader {
 		// Map each relative proto path to the first source root that contains it (first root wins; deduplicates across roots).
 		Map<String, Path> protoToRoot = new LinkedHashMap<>();
 		for (Path root : sources) {
-			if (!Files.isDirectory(root)) {
-				throw new IllegalArgumentException("Source root is not a directory: " + root);
-			}
-			try (Stream<Path> walk = Files.walk(root)) {
-				walk.filter(p -> p.toString().endsWith(".proto")).forEach(p -> protoToRoot.putIfAbsent(root.relativize(p).toString().replace('\\', '/'), root));
+			if (Files.isDirectory(root)) {
+				try (Stream<Path> walk = Files.walk(root)) {
+					indexProtos(walk, root, root, protoToRoot);
+				}
+			} else if (Files.isRegularFile(root)) {
+				// An archive root (.zip/.jar), as supported by the vendored loader. Stock wire resolves a Location whose base is an archive by opening
+				// the archive itself, so the entries are indexed here with the archive as their root.
+				try (FileSystem archive = FileSystems.newFileSystem(root, (ClassLoader) null)) {
+					for (Path archiveRoot : archive.getRootDirectories()) {
+						try (Stream<Path> walk = Files.walk(archiveRoot)) {
+							indexProtos(walk, archiveRoot, root, protoToRoot);
+						}
+					}
+				} catch (IOException | ProviderNotFoundException e) {
+					throw new IllegalArgumentException("Source root is neither a directory nor a readable archive: " + root, e);
+				}
+			} else {
+				throw new IllegalArgumentException("Source root does not exist: " + root);
 			}
 		}
 
@@ -88,6 +104,12 @@ public final class WireSchemaLoader {
 
 		loader.initRoots(sourcePath, protoPath);
 		return loader.loadSchema();
+	}
+
+	/** Records every proto below {@code walkRoot} under its {@code walkRoot}-relative, slash-separated path, attributing it to {@code sourceRoot}. */
+	private static void indexProtos(Stream<Path> walk, Path walkRoot, Path sourceRoot, Map<String, Path> protoToRoot) {
+		walk.filter(p -> p.toString().endsWith(".proto"))
+				.forEach(p -> protoToRoot.putIfAbsent(walkRoot.relativize(p).toString().replace('\\', '/'), sourceRoot));
 	}
 
 }
