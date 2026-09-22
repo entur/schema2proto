@@ -78,6 +78,7 @@ public class Schema2Proto {
 	private static final String OPTION_INCLUDE_XSD_OPTIONS = "includeXsdOptions";
 	private static final String OPTION_PROTOLOCK_FILENAME = "protoLockFile";
 	private static final String OPTION_FAIL_IF_REMOVED_FIELDS = "failIfRemovedFields";
+	private static final String OPTION_FAIL_IF_FIELDS_RENUMBERED = "failIfFieldsRenumbered";
 	private static final String OPTION_DERIVATION_BY_SUBSUMPTION = "derivationBySubsumption";
 	private static final String OPTION_INCLUDE_GO_PACKAGE_OPTIONS = "includeGoPackageOptions";
 	private static final String OPTION_GO_PACKAGE_SOURCE_PREFIX = "goPackageSourcePrefix";
@@ -254,6 +255,13 @@ public class Schema2Proto {
 				.desc("when using backwards compatibility check via proto.lock file, fail if proto fields are removed")
 				.required(false)
 				.build());
+		commandLineOptions.addOption(Option.builder()
+				.longOpt(OPTION_FAIL_IF_FIELDS_RENUMBERED)
+				.hasArg()
+				.argName(TRUE_FALSE)
+				.desc("when using backwards compatibility check via proto.lock file, fail if fields had to be given a new number due to a conflict")
+				.required(false)
+				.build());
 		commandLineOptions.addOption(
 				Option.builder().longOpt(OPTION_PROTOLOCK_FILENAME).hasArg().argName("FILENAME").desc("Full path to proto.lock file").required(false).build());
 		commandLineOptions.addOption(Option.builder()
@@ -397,6 +405,7 @@ public class Schema2Proto {
 		}
 
 		configuration.failIfRemovedFields = configFile.failIfRemovedFields;
+		configuration.failIfFieldsRenumbered = configFile.failIfFieldsRenumbered;
 	}
 
 	private static Map<Pattern, String> parseRegexpKeyValue(Map<String, String> customTypeMappings) {
@@ -495,6 +504,9 @@ public class Schema2Proto {
 		}
 		if (cmd.hasOption(OPTION_PROTOLOCK_FILENAME)) {
 			configuration.protoLockFile = new File(cmd.getOptionValue(OPTION_PROTOLOCK_FILENAME));
+		}
+		if (cmd.hasOption(OPTION_FAIL_IF_FIELDS_RENUMBERED)) {
+			configuration.failIfFieldsRenumbered = Boolean.parseBoolean(cmd.getOptionValue(OPTION_FAIL_IF_FIELDS_RENUMBERED));
 		}
 		if (cmd.hasOption(OPTION_DERIVATION_BY_SUBSUMPTION)) {
 			configuration.derivationBySubsumption = Boolean.parseBoolean(cmd.getOptionValue(OPTION_DERIVATION_BY_SUBSUMPTION));
