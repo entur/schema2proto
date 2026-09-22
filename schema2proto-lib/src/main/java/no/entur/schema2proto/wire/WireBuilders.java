@@ -154,8 +154,9 @@ public final class WireBuilders {
 	 * which protoc rejects with "Invalid escape sequence in string literal".
 	 *
 	 * <p>
-	 * Only the values wire renders unescaped are touched. A top level {@code STRING}, and the nested elements of {@code OPTION} and {@code LIST} (each rendered
-	 * by its own {@code toSchema()}), are left as wire parsed them, so nothing ends up escaped twice.
+	 * Only the values wire renders unescaped are touched. A top level {@code STRING}, and a nested {@code OptionElement} (rendered by its own
+	 * {@code toSchema()}, which escapes), are left as wire parsed them, so nothing ends up escaped twice. Everything else — the raw strings, maps and lists
+	 * {@code OptionReader} produces inside a {@code MAP} or {@code LIST} value — goes through {@link #escapeAggregateValue}.
 	 */
 	private static List<OptionElement> escapedOptions(List<OptionElement> options) {
 		List<OptionElement> result = new ArrayList<>(options.size());
@@ -176,9 +177,10 @@ public final class WireBuilders {
 			return option;
 		case LIST:
 			if (option.getValue() instanceof List<?> items) {
+				// OptionReader.readList yields the raw parsed values, not OptionElements, so those items need escaping like any other aggregate value.
 				List<Object> escapedItems = new ArrayList<>(items.size());
 				for (Object item : items) {
-					escapedItems.add(item instanceof OptionElement element ? escapeAggregateStrings(element) : item);
+					escapedItems.add(item instanceof OptionElement element ? escapeAggregateStrings(element) : escapeAggregateValue(item));
 				}
 				return new OptionElement(option.getName(), option.getKind(), escapedItems, option.isParenthesized());
 			}

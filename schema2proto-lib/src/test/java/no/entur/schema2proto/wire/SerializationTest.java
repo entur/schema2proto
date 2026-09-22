@@ -209,13 +209,31 @@ public class SerializationTest {
 		assertTrue(schema.contains("pattern: \"" + escapedPattern + "\""), schema);
 	}
 
+	/**
+	 * The same asymmetry reaches further in than a scalar entry: {@code formatOptionMapValue} recurses into lists and nested message literals and appends every
+	 * string it finds verbatim, so escaping has to be restored at every depth, not just at the top of the aggregate.
+	 */
+	@Test
+	public void testRoundTripKeepsEscapingDeepInsideAggregateOptions() {
+		String source = "syntax = \"proto3\";\n" + "package test;\n" + "\n" + "message M {\n"
+				+ "  string a = 1 [(buf.validate.field).string = {in: [\"x\\\\-y\", \"z\"], not_in: [{pattern: \"p\\\\-q\"}]}];\n" + "}\n";
+
+		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("listoptions.proto"), source));
+
+		String schema = WireBuilders.fromProtoFile(protoFile).toSchema();
+
+		assertTrue(schema.contains("\"x\\\\-y\""), schema);
+		assertTrue(schema.contains("\"p\\\\-q\""), schema);
+	}
+
 	/** Verifies stock wire serializes extend declarations (used when modifying existing protos that contain them). */
 	@Test
 	public void testBuildExtension() {
 		Location loc = new Location("", "", 0, 0);
 
 		List<OptionElement> optionElements = new ArrayList<>();
-		Options options = new Options(ProtoType.get("google.protobuf.MessageOptions"), optionElements);
+		// The extendee is google.protobuf.MessageOptions, but options declared on the extension field itself are still field options.
+		Options options = new Options(Options.FIELD_OPTIONS, optionElements);
 		Field field = new Field(Collections.emptyList(), loc, null, "fieldname", "Base type this message actually is an extension of", 1101, null, "string",
 				options, true, false, null);
 		Extend extend = new Extend(loc, "Information elements extracted from the xsd structure", "google.protobuf.MessageOptions",
