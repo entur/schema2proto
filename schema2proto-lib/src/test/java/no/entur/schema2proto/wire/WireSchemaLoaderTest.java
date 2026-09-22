@@ -133,6 +133,39 @@ public class WireSchemaLoaderTest {
 		assertEquals(tempDir.resolve("dir").toString(), schema.getType("Message").getLocation().getBase());
 	}
 
+	/** Files.walk yields directories too, so a directory whose name ends in .proto must not be handed to wire as a schema source. */
+	@Test
+	public void testDirectoryNamedLikeAProtoIsIgnored(@TempDir Path tempDir) throws IOException {
+		Files.createDirectories(tempDir.resolve("looks_like_a_file.proto"));
+		Files.writeString(tempDir.resolve("message.proto"), "message Message {}");
+
+		Schema schema = WireSchemaLoader.load(Collections.singletonList(tempDir), Collections.emptyList());
+
+		assertNotNull(schema.getType("Message"));
+	}
+
+	/** The vendored loader applied the .proto suffix filter only when discovering the default set; a named file resolved by its exact path. */
+	@Test
+	public void testExplicitlyNamedNonProtoFileIsLoaded(@TempDir Path tempDir) throws IOException {
+		Files.writeString(tempDir.resolve("message.protodevel"), "message Message {}");
+
+		Schema schema = WireSchemaLoader.load(Collections.singletonList(tempDir), Collections.singletonList("message.protodevel"));
+
+		assertNotNull(schema.getType("Message"));
+	}
+
+	/** A transitive import resolves by its exact path too, so an import of a non-.proto file must not be reported as missing. */
+	@Test
+	public void testNonProtoImportIsResolved(@TempDir Path tempDir) throws IOException {
+		Files.writeString(tempDir.resolve("extra.protodevel"), "message Extra {}");
+		Files.writeString(tempDir.resolve("main.proto"), "import \"extra.protodevel\";\n\nmessage Main {\n  optional Extra extra = 1;\n}\n");
+
+		Schema schema = WireSchemaLoader.load(Collections.singletonList(tempDir), Collections.emptyList());
+
+		assertNotNull(schema.getType("Main"));
+		assertNotNull(schema.getType("Extra"));
+	}
+
 	@Test
 	public void testMissingSourceRootIsRejected(@TempDir Path tempDir) {
 		List<Path> sources = Collections.singletonList(tempDir.resolve("nope"));

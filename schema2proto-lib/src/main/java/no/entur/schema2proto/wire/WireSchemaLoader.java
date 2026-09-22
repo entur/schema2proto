@@ -45,11 +45,11 @@ import com.squareup.wire.schema.SchemaLoader;
  * wire's {@link SchemaLoader} ({@code initRoots} / {@code loadSchema}).
  *
  * <p>
- * When {@code protos} is empty all protos found under the source roots are loaded; otherwise only the named protos (and their imports) are loaded. Each proto
- * is resolved against the first source root that contains it and is loaded only once, even when the same relative path exists in several roots (the vendored
- * loader deduplicated the same way). This matters because extension definitions (e.g. {@code xsd/xsd.proto}) are frequently present in more than one root, and
- * stock wire rejects a duplicated extension field. A source root may be a directory or an archive (.zip/.jar), as in the vendored loader. Google's well-known
- * types (including {@code descriptor.proto}) are provided by stock wire automatically.
+ * When {@code protos} is empty all protos found under the source roots are loaded; otherwise only the named protos (and their imports) are loaded, whatever
+ * their extension. Each file is resolved against the first source root that contains it and is loaded only once, even when the same relative path exists in
+ * several roots (the vendored loader deduplicated the same way). This matters because extension definitions (e.g. {@code xsd/xsd.proto}) are frequently present
+ * in more than one root, and stock wire rejects a duplicated extension field. A source root may be a directory or an archive (.zip/.jar), as in the vendored
+ * loader. Google's well-known types (including {@code descriptor.proto}) are provided by stock wire automatically.
  */
 public final class WireSchemaLoader {
 
@@ -59,12 +59,12 @@ public final class WireSchemaLoader {
 	public static Schema load(List<Path> sources, List<String> protos) throws IOException {
 		SchemaLoader loader = new SchemaLoader(FileSystems.getDefault());
 
-		// Map each relative proto path to the first source root that contains it (first root wins; deduplicates across roots).
-		Map<String, Path> protoToRoot = new LinkedHashMap<>();
+		// Map each relative file path to the first source root that contains it (first root wins; deduplicates across roots).
+		Map<String, Path> fileToRoot = new LinkedHashMap<>();
 		for (Path root : sources) {
 			if (Files.isDirectory(root)) {
 				try (Stream<Path> walk = Files.walk(root)) {
-					indexProtos(walk, root, root, protoToRoot);
+					indexFiles(walk, root, root, fileToRoot);
 				}
 			} else if (Files.isRegularFile(root)) {
 				// An archive root (.zip/.jar), as supported by the vendored loader. Stock wire resolves a Location whose base is an archive by opening
@@ -72,7 +72,7 @@ public final class WireSchemaLoader {
 				try (FileSystem archive = FileSystems.newFileSystem(root, (ClassLoader) null)) {
 					for (Path archiveRoot : archive.getRootDirectories()) {
 						try (Stream<Path> walk = Files.walk(archiveRoot)) {
-							indexProtos(walk, archiveRoot, root, protoToRoot);
+							indexFiles(walk, archiveRoot, root, fileToRoot);
 						}
 					}
 				} catch (IOException | ProviderNotFoundException e) {
@@ -83,20 +83,32 @@ public final class WireSchemaLoader {
 			}
 		}
 
-		Set<String> loadSet = protos.isEmpty() ? new LinkedHashSet<>(protoToRoot.keySet()) : new LinkedHashSet<>(protos);
+		// With no protos named, every proto under the source roots is loaded. Files with other extensions stay in the index so that an explicitly requested
+		// file, or a transitive import such as {@code import "schema.protodevel";}, still resolves by its exact path, as it did in the vendored loader.
+		Set<String> loadSet = new LinkedHashSet<>();
+		if (protos.isEmpty()) {
+			for (String path : fileToRoot.keySet()) {
+				if (path.endsWith(".proto")) {
+					loadSet.add(path);
+				}
+			}
+		} else {
+			loadSet.addAll(protos);
+		}
 
 		List<Location> sourcePath = new ArrayList<>();
 		for (String proto : loadSet) {
-			Path root = protoToRoot.get(proto);
+			Path root = fileToRoot.get(proto);
 			if (root == null) {
 				throw new java.io.FileNotFoundException("Failed to locate " + proto + " in " + sources);
 			}
 			sourcePath.add(Location.get(root.toString(), proto));
 		}
 
-		// Remaining protos are available for transitive imports, added as individual (deduplicated) files so the same path is never offered twice.
+		// Remaining files are available for transitive imports, added as individual (deduplicated) entries so the same path is never offered twice. Stock wire
+		// resolves a proto path entry lazily, by exact path, so carrying non-proto files here costs nothing until something imports one.
 		List<Location> protoPath = new ArrayList<>();
-		for (Map.Entry<String, Path> entry : protoToRoot.entrySet()) {
+		for (Map.Entry<String, Path> entry : fileToRoot.entrySet()) {
 			if (!loadSet.contains(entry.getKey())) {
 				protoPath.add(Location.get(entry.getValue().toString(), entry.getKey()));
 			}
@@ -106,10 +118,12 @@ public final class WireSchemaLoader {
 		return loader.loadSchema();
 	}
 
-	/** Records every proto below {@code walkRoot} under its {@code walkRoot}-relative, slash-separated path, attributing it to {@code sourceRoot}. */
-	private static void indexProtos(Stream<Path> walk, Path walkRoot, Path sourceRoot, Map<String, Path> protoToRoot) {
-		walk.filter(p -> p.toString().endsWith(".proto"))
-				.forEach(p -> protoToRoot.putIfAbsent(walkRoot.relativize(p).toString().replace('\\', '/'), sourceRoot));
+	/**
+	 * Records every regular file below {@code walkRoot} under its {@code walkRoot}-relative, slash-separated path, attributing it to {@code sourceRoot}.
+	 * Directories are skipped, so one named e.g. {@code messages.proto} is never offered to wire as a schema source.
+	 */
+	private static void indexFiles(Stream<Path> walk, Path walkRoot, Path sourceRoot, Map<String, Path> fileToRoot) {
+		walk.filter(Files::isRegularFile).forEach(p -> fileToRoot.putIfAbsent(walkRoot.relativize(p).toString().replace('\\', '/'), sourceRoot));
 	}
 
 }
