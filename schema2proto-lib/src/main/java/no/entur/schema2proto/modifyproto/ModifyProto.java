@@ -80,6 +80,7 @@ import no.entur.schema2proto.wire.MutableMessageType;
 import no.entur.schema2proto.wire.MutableOptions;
 import no.entur.schema2proto.wire.MutableProtoFile;
 import no.entur.schema2proto.wire.MutableType;
+import no.entur.schema2proto.wire.Reservations;
 import no.entur.schema2proto.wire.WireBuilders;
 import no.entur.schema2proto.wire.WireSchemaLoader;
 
@@ -428,16 +429,13 @@ public class ModifyProto {
 					throw new InvalidProtobufException("Field name '" + newField.name + "' and/or fieldNumber " + newField.fieldNumber + " is reserved in type "
 							+ newField.targetMessageType + ". Use allowIfReserved to override.");
 				}
-				// Remove only the matching name/tag values from each Reserved entry, keeping other values intact
+				// Release only the name and tag being taken back, keeping the rest of each reservation intact - including the untouched halves of a
+				// reserved range the tag sits inside.
 				List<ReservedElement> updatedReservedFields = new ArrayList<>();
 				for (ReservedElement reserved : reservedFields) {
-					List<Object> filteredValues = reserved.getValues()
-							.stream()
-							.filter(v -> !Objects.equals(v, newField.name) && !Objects.equals(v, newField.fieldNumber))
-							.collect(Collectors.toList());
-
-					if (!filteredValues.isEmpty()) {
-						updatedReservedFields.add(new ReservedElement(reserved.getLocation(), reserved.getDocumentation(), filteredValues));
+					ReservedElement released = Reservations.released(reserved, newField.name, newField.fieldNumber);
+					if (released != null) {
+						updatedReservedFields.add(released);
 					}
 				}
 				reservedFields.clear();

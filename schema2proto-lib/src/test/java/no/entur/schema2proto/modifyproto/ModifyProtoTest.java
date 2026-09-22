@@ -359,6 +359,33 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void testAddFieldAllowIfReserved_whenTagIsInsideReservedRange_thenSplitRangeAroundIt()
+			throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Taking a tag back from inside a reserved range has to split the range around it; dropping only values equal to the tag leaves the range
+		// covering it, and wire's linker then reports "tag 150 is reserved" when the generated proto is loaded back. ProtoComparator does not compare
+		// reserved declarations, so the surviving halves of the range are asserted on the emitted text directly.
+		File expected = new File("src/test/resources/modify/expected/reserved_range").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved_range").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		newField.fieldNumber = 150;
+		newField.name = "reserved_field";
+		newField.type = "string";
+		newField.allowIfReserved = true;
+
+		configuration.newFields = Collections.singletonList(newField);
+		modifyProto(configuration);
+
+		String generated = java.nio.file.Files.readString(new File(generatedRootFolder, "addreservedfield_range.proto").toPath());
+		assertTrue(generated.contains("reserved 2, 100 to 149, 151 to 199;"), generated);
+
+		compareExpectedAndGenerated(expected, "addreservedfield_range.proto", generatedRootFolder, "addreservedfield_range.proto");
+	}
+
+	@Test
 	public void testAddFieldAllowIfReservedNameOnly() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 		// Add a field with same name as a reserved field.
 		File expected = new File("src/test/resources/modify/expected/reserved").getCanonicalFile();
