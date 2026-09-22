@@ -27,11 +27,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.squareup.wire.Syntax;
-import com.squareup.wire.schema.Extend;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.ProtoFile;
-import com.squareup.wire.schema.Service;
-import com.squareup.wire.schema.Type;
+import com.squareup.wire.schema.internal.parser.ExtendElement;
+import com.squareup.wire.schema.internal.parser.ProtoFileElement;
+import com.squareup.wire.schema.internal.parser.ServiceElement;
+import com.squareup.wire.schema.internal.parser.TypeElement;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.ProtoFile} used while generating proto files from XSD. */
 public class MutableProtoFile {
@@ -43,10 +43,12 @@ public class MutableProtoFile {
 	private final String packageName;
 	private final List<MutableType> types = new ArrayList<>();
 	// Weak imports, extends and services are not produced by the XSD-to-proto path; they are carried through unchanged when modifying existing protos.
-	private final List<Extend> extendList = new ArrayList<>();
-	private final List<Service> services = new ArrayList<>();
+	private final List<ExtendElement> extendList = new ArrayList<>();
+	private final List<ServiceElement> services = new ArrayList<>();
 	private final MutableOptions options;
 	private final Syntax syntax;
+	/** The element this file was built from, if any. See {@link MutableType#toElement()}. */
+	private ProtoFileElement sourceElement;
 
 	public MutableProtoFile(Syntax syntax, String packageName) {
 		this.syntax = syntax;
@@ -79,12 +81,16 @@ public class MutableProtoFile {
 		return options;
 	}
 
-	public List<Extend> getExtendList() {
+	public List<ExtendElement> getExtendList() {
 		return extendList;
 	}
 
-	public List<Service> getServices() {
+	public List<ServiceElement> getServices() {
 		return services;
+	}
+
+	void setSourceElement(ProtoFileElement sourceElement) {
+		this.sourceElement = sourceElement;
 	}
 
 	public Location location() {
@@ -122,14 +128,18 @@ public class MutableProtoFile {
 		services.addAll(source.services);
 	}
 
-	public ProtoFile toWire() {
-		List<Type> wireTypes = types.stream().map(t -> t.toWire(syntax)).collect(Collectors.toList());
-		return new ProtoFile(location, new ArrayList<>(imports), new ArrayList<>(publicImports), new ArrayList<>(weakImports), packageName, wireTypes,
-				new ArrayList<>(services), new ArrayList<>(extendList), options.toWire(), syntax);
+	public ProtoFileElement toElement() {
+		List<TypeElement> typeElements = types.stream().map(MutableType::toElement).collect(Collectors.toList());
+		if (sourceElement != null) {
+			return sourceElement.copy(location, packageName, syntax, new ArrayList<>(imports), new ArrayList<>(publicImports), new ArrayList<>(weakImports),
+					typeElements, new ArrayList<>(services), new ArrayList<>(extendList), options.toElements());
+		}
+		return new ProtoFileElement(location, packageName, syntax, new ArrayList<>(imports), new ArrayList<>(publicImports), new ArrayList<>(weakImports),
+				typeElements, new ArrayList<>(services), new ArrayList<>(extendList), options.toElements());
 	}
 
 	public String toSchema() {
-		return toWire().toSchema();
+		return toElement().toSchema();
 	}
 
 	@Override

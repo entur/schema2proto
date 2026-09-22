@@ -23,6 +23,7 @@ package no.entur.schema2proto.wire;
  * #L%
  */
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -89,6 +90,81 @@ public class SerializationTest {
 		assertTrue(schema.contains("extend Wrapped {"), schema);
 		assertTrue(schema.contains("optional int32 extra = 100;"), schema);
 		assertTrue(schema.contains("[json_name = \"someName\"]"), schema);
+	}
+
+	/**
+	 * Pins down the guarantee that makes the modify path safe: for a file nothing has edited, converting into the mutable model and back produces exactly the
+	 * schema stock wire itself would emit. Each node renders itself by copying the element it was built from, so a declaration survives whether or not the
+	 * mutable model has a field for it. Before that, anything unrepresented was replaced by an empty default and silently vanished — which is how weak imports,
+	 * nested extends, extension ranges, explicit json names and services were each lost in turn.
+	 *
+	 * <p>
+	 * The oneOf is declared last on purpose. Wire emits a message's fields sorted by source location and opens the oneOf block where its first field falls,
+	 * while schema2proto deliberately emits declared fields first and oneOf fields after them, reproducing the vendored serializer's order. The two agree only
+	 * when the source already declares the oneOf last; that difference is about field order, not fidelity, and is not what this test is pinning down.
+	 */
+	@Test
+	public void testUnmodifiedFileRoundTripsToTheSchemaStockWireEmits() {
+		String source = """
+				syntax = "proto2";
+				package fidelity;
+
+				import "common.proto";
+				import public "shared.proto";
+				import weak "legacy.proto";
+
+				option java_package = "no.entur.fidelity";
+
+				enum Kind {
+				  option allow_alias = true;
+				  reserved 5, 20 to 29;
+				  reserved "OLD_KIND";
+				  UNKNOWN = 0;
+				  FIRST = 1 [deprecated = true];
+				}
+
+				message Envelope {
+				  option (xsd.base_type) = "EnvelopeType";
+				  reserved 9;
+				  reserved "old_field";
+
+				  required string id = 1;
+				  optional int32 count = 2 [default = 3];
+				  optional string some_name = 3 [json_name = "someName"];
+				  repeated Kind kinds = 4 [packed = true];
+
+				  oneof payload {
+				    string text = 7;
+				    bytes blob = 8;
+				  }
+
+				  extend Envelope {
+				    optional int32 extra = 100;
+				  }
+
+				  extensions 100 to 199;
+
+				  message Nested {
+				    optional string note = 1;
+				  }
+				}
+
+				extend google.protobuf.MessageOptions {
+				  optional string base_type = 1101;
+				}
+
+				service EnvelopeService {
+				  option deprecated = true;
+
+				  rpc Send (Envelope) returns (Envelope) {
+				    option idempotency_level = NO_SIDE_EFFECTS;
+				  }
+				}
+				""";
+
+		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("fidelity.proto"), source));
+
+		assertEquals(protoFile.toSchema(), WireBuilders.fromProtoFile(protoFile).toSchema());
 	}
 
 	/**

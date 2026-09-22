@@ -24,10 +24,12 @@ package no.entur.schema2proto.wire;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.OneOf;
-import com.squareup.wire.schema.Options;
+import com.squareup.wire.schema.internal.parser.FieldElement;
+import com.squareup.wire.schema.internal.parser.OneOfElement;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.OneOf}. */
 public class MutableOneOf {
@@ -36,6 +38,8 @@ public class MutableOneOf {
 	private String documentation;
 	private final List<MutableField> fields;
 	private final MutableOptions options;
+	/** The element this oneOf was built from, if any. See {@link MutableType#toElement()}. */
+	private OneOfElement sourceElement;
 
 	public MutableOneOf(String name, String documentation, List<MutableField> fields, MutableOptions options) {
 		this.name = name;
@@ -61,20 +65,19 @@ public class MutableOneOf {
 	}
 
 	public void addField(MutableField newField) {
-		newField.setOneOf(true);
 		fields.add(newField);
 	}
 
-	public OneOf toWire(java.util.concurrent.atomic.AtomicInteger order) {
-		List<com.squareup.wire.schema.Field> wireFields = new ArrayList<>();
-		for (MutableField f : fields) {
-			f.setOneOf(true);
-			wireFields.add(f.toWire(order.getAndIncrement()));
-		}
-		return new OneOf(name, documentation == null ? "" : documentation, wireFields, Location.get("", ""), options.toWire());
+	void setSourceElement(OneOfElement sourceElement) {
+		this.sourceElement = sourceElement;
 	}
 
-	Options optionsToWire() {
-		return options.toWire();
+	public OneOfElement toElement(AtomicInteger order) {
+		List<FieldElement> fieldElements = fields.stream().map(f -> f.toElement(order.getAndIncrement())).collect(Collectors.toList());
+		String doc = documentation == null ? "" : documentation;
+		if (sourceElement != null) {
+			return sourceElement.copy(name, doc, fieldElements, sourceElement.getGroups(), options.toElements(), sourceElement.getLocation());
+		}
+		return new OneOfElement(name, doc, fieldElements, List.of(), options.toElements(), Location.get("", ""));
 	}
 }

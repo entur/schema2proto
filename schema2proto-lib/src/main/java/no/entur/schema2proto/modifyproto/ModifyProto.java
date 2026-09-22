@@ -57,11 +57,11 @@ import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.PruningRules;
-import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.OptionReader;
+import com.squareup.wire.schema.internal.parser.ReservedElement;
 import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
@@ -419,9 +419,9 @@ public class ModifyProto {
 		} else {
 
 			// Check if field name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
-			List<Reserved> reservedFields = type.getReserveds();
-			boolean nameReserved = reservedFields.stream().anyMatch(r -> r.matchesName(newField.name));
-			boolean tagReserved = newField.fieldNumber != -1 && reservedFields.stream().anyMatch(r -> r.matchesTag(newField.fieldNumber));
+			List<ReservedElement> reservedFields = type.getReserveds();
+			boolean nameReserved = type.isNameReserved(newField.name);
+			boolean tagReserved = newField.fieldNumber != -1 && type.isTagReserved(newField.fieldNumber);
 
 			if (nameReserved || tagReserved) {
 				if (!newField.allowIfReserved) {
@@ -429,15 +429,15 @@ public class ModifyProto {
 							+ newField.targetMessageType + ". Use allowIfReserved to override.");
 				}
 				// Remove only the matching name/tag values from each Reserved entry, keeping other values intact
-				List<Reserved> updatedReservedFields = new ArrayList<>();
-				for (Reserved reserved : reservedFields) {
+				List<ReservedElement> updatedReservedFields = new ArrayList<>();
+				for (ReservedElement reserved : reservedFields) {
 					List<Object> filteredValues = reserved.getValues()
 							.stream()
 							.filter(v -> !Objects.equals(v, newField.name) && !Objects.equals(v, newField.fieldNumber))
 							.collect(Collectors.toList());
 
 					if (!filteredValues.isEmpty()) {
-						updatedReservedFields.add(new Reserved(reserved.getLocation(), reserved.getDocumentation(), filteredValues));
+						updatedReservedFields.add(new ReservedElement(reserved.getLocation(), reserved.getDocumentation(), filteredValues));
 					}
 				}
 				reservedFields.clear();

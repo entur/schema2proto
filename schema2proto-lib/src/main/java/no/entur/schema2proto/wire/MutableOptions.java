@@ -30,8 +30,8 @@ import com.squareup.wire.schema.ProtoType;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 
 /**
- * Mutable builder analogue of {@link Options}. schema2proto manipulates option elements in place during conversion; the stock wire {@code Options} is
- * immutable, so we accumulate elements here and emit an immutable {@code Options} via {@link #toWire()} at serialization time.
+ * Mutable builder analogue of {@link Options}. schema2proto manipulates option elements in place during conversion; wire's own option elements are immutable,
+ * so we accumulate them here and emit a detached list via {@link #toElements()} at serialization time.
  */
 public record MutableOptions(ProtoType optionType, List<OptionElement> optionElements) {
 
@@ -57,7 +57,8 @@ public record MutableOptions(ProtoType optionType, List<OptionElement> optionEle
 		optionElements.add(element);
 	}
 
-	public Options toWire() {
-		return new Options(optionType, new ArrayList<>(optionElements));
+	/** A detached copy of the accumulated options, safe to hand to an immutable element. */
+	public List<OptionElement> toElements() {
+		return new ArrayList<>(optionElements);
 	}
 }

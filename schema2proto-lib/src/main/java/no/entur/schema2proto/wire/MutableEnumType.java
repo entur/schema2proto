@@ -27,12 +27,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.squareup.wire.Syntax;
-import com.squareup.wire.schema.EnumType;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoType;
-import com.squareup.wire.schema.Reserved;
-import com.squareup.wire.schema.Type;
+import com.squareup.wire.schema.internal.parser.EnumConstantElement;
+import com.squareup.wire.schema.internal.parser.EnumElement;
+import com.squareup.wire.schema.internal.parser.ReservedElement;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.EnumType}. */
 public class MutableEnumType extends MutableType {
@@ -42,11 +41,13 @@ public class MutableEnumType extends MutableType {
 	private String documentation;
 	private String name;
 	private final List<MutableEnumConstant> constants;
-	private final List<Reserved> reserveds;
+	private final List<ReservedElement> reserveds;
 	private final MutableOptions options;
+	/** The element this enum was built from, if any. See {@link MutableType#toElement()}. */
+	private EnumElement sourceElement;
 
 	public MutableEnumType(ProtoType protoType, Location location, String documentation, String name, List<MutableEnumConstant> constants,
-			List<Reserved> reserveds, MutableOptions options) {
+			List<ReservedElement> reserveds, MutableOptions options) {
 		this.protoType = protoType;
 		this.location = location;
 		this.documentation = documentation;
@@ -69,25 +70,31 @@ public class MutableEnumType extends MutableType {
 		return constants;
 	}
 
-	public List<Reserved> getReserveds() {
+	public List<ReservedElement> getReserveds() {
 		return reserveds;
 	}
 
-	public List<Reserved> reserveds() {
+	public List<ReservedElement> reserveds() {
 		return reserveds;
+	}
+
+	public boolean isTagReserved(int tag) {
+		return Reservations.matchesTag(reserveds, tag);
+	}
+
+	public boolean isNameReserved(String constantName) {
+		return Reservations.matchesName(reserveds, constantName);
 	}
 
 	public void addReserved(String documentation, Location location, int tag) {
-		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesTag(tag));
-		if (!alreadyReserved) {
-			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(tag)));
+		if (!isTagReserved(tag)) {
+			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, List.of(tag)));
 		}
 	}
 
 	public void addReserved(String documentation, Location location, String constantName) {
-		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesName(constantName));
-		if (!alreadyReserved) {
-			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, Collections.singletonList(constantName)));
+		if (!isNameReserved(constantName)) {
+			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, Collections.singletonList(constantName)));
 		}
 	}
 
@@ -121,11 +128,18 @@ public class MutableEnumType extends MutableType {
 		return Collections.emptyList();
 	}
 
+	void setSourceElement(EnumElement sourceElement) {
+		this.sourceElement = sourceElement;
+	}
+
 	@Override
-	public Type toWire(Syntax syntax) {
-		List<com.squareup.wire.schema.EnumConstant> wireConstants = constants.stream().map(MutableEnumConstant::toWire).collect(Collectors.toList());
-		return new EnumType(protoType, location, documentation == null ? "" : documentation, name, wireConstants, new ArrayList<>(reserveds), options.toWire(),
-				syntax);
+	public EnumElement toElement() {
+		List<EnumConstantElement> constantElements = constants.stream().map(MutableEnumConstant::toElement).collect(Collectors.toList());
+		String doc = documentation == null ? "" : documentation;
+		if (sourceElement != null) {
+			return sourceElement.copy(location, name, doc, options.toElements(), constantElements, new ArrayList<>(reserveds));
+		}
+		return new EnumElement(location, name, doc, options.toElements(), constantElements, new ArrayList<>(reserveds));
 	}
 
 	@Override
