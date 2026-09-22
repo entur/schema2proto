@@ -69,6 +69,7 @@ import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
+import no.entur.schema2proto.compatibility.FieldConflictChecker;
 import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
@@ -147,6 +148,7 @@ public class ModifyProto {
 			}
 
 			configuration.failIfRemovedFields = config.failIfRemovedFields;
+			configuration.failIfFieldsRenumbered = config.failIfFieldsRenumbered;
 
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(
@@ -229,6 +231,7 @@ public class ModifyProto {
 		}
 
 		Set<Boolean> possibleIncompatibilitiesDetected = new HashSet<>();
+		List<FieldConflictChecker.FieldRenumbering> fieldRenumberings = new ArrayList<>();
 
 		if (configuration.protoLockFile != null) {
 			try {
@@ -237,6 +240,7 @@ public class ModifyProto {
 				ImmutableList<ProtoFile> files = prunedSchema.protoFiles();
 
 				files.stream().forEach(file -> possibleIncompatibilitiesDetected.add(backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file)));
+				fieldRenumberings.addAll(backwardsCompatibilityChecker.getFieldRenumberings());
 			} catch (FileNotFoundException e) {
 				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
 			}
@@ -266,6 +270,10 @@ public class ModifyProto {
 			LOGGER.info("Wrote file {}", outputFile.getPath());
 
 		});
+
+		if (configuration.failIfFieldsRenumbered && !fieldRenumberings.isEmpty()) {
+			throw new BackwardsCompatibilityCheckException(FieldConflictChecker.describeFieldRenumberings(fieldRenumberings));
+		}
 
 		if (configuration.failIfRemovedFields && possibleIncompatibilitiesDetected.contains(Boolean.TRUE)) {
 			throw new BackwardsCompatibilityCheckException(

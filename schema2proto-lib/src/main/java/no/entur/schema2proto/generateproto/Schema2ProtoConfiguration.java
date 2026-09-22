@@ -53,6 +53,11 @@ public class Schema2ProtoConfiguration {
 	public boolean includeXsdOptions = false;
 	public File protoLockFile;
 	public boolean failIfRemovedFields = true;
+	/**
+	 * Fail if a field had to be given a new number because the number it was declared with was already taken or reserved in proto.lock. Such a renumbering
+	 * silently breaks wire compatibility with the input, so it is worth failing on. Defaults to false to preserve existing behaviour.
+	 */
+	public boolean failIfFieldsRenumbered = false;
 	public boolean derivationBySubsumption = false;
 	public boolean includeGoPackageOptions = false;
 	public String goPackageSourcePrefix = null;

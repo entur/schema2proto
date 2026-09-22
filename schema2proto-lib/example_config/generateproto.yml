@@ -71,6 +71,12 @@ protoLockFile: proto.lock
 # Setting `failIfRemovedFields: false` will print warnings but not fail the conversion. When using the Maven plugin you may also specify this as -DfailIfRemovedFields=false on the cmd line
 failIfRemovedFields: true
 
+# Fail if a field could not keep the number it was declared with, because proto.lock already uses that number for a
+# different field. schema2proto resolves such a conflict by giving the field a brand new number, which silently makes it
+# wire-incompatible with the input. Setting `failIfFieldsRenumbered: true` turns that into a build failure listing the
+# affected fields. When using the Maven plugin you may also specify this as -DfailIfFieldsRenumbered=false on the cmd line
+failIfFieldsRenumbered: false
+
 # Support derivation by subsumption. See https://cs.au.dk/~amoeller/XML/schemas/xmlschema-inheritance.html under "Subsumption"
 derivationBySubsumption: false
 
