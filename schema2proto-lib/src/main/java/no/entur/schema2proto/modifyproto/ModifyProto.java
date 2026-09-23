@@ -440,8 +440,10 @@ public class ModifyProto {
 	/**
 	 * Release only the name and tag being taken back, keeping the rest of each reservation intact - including the untouched halves of a reserved range the tag
 	 * sits inside.
+	 *
+	 * @param tag the tag to release, or {@code null} to release the name only.
 	 */
-	private static void releaseReservation(List<Reserved> reserveds, String name, int tag) {
+	private static void releaseReservation(List<Reserved> reserveds, String name, Integer tag) {
 		List<Reserved> updatedReserveds = new ArrayList<>();
 		for (Reserved reserved : reserveds) {
 			Reserved released = Reservations.released(reserved, name, tag);
@@ -469,9 +471,10 @@ public class ModifyProto {
 				throw new InvalidProtobufException("Enum constant already present: " + newEnumConstant);
 			}
 
-			// Check if constant name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
+			// Check if constant name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception. Unlike field numbers,
+			// -1 is not a "no number" marker here: the constant is added with that value, so it must be checked like any other.
 			boolean nameReserved = enumType.isNameReserved(newEnumConstant.name);
-			boolean tagReserved = newEnumConstant.fieldNumber != -1 && enumType.isTagReserved(newEnumConstant.fieldNumber);
+			boolean tagReserved = enumType.isTagReserved(newEnumConstant.fieldNumber);
 
 			if (nameReserved || tagReserved) {
 				if (!newEnumConstant.allowIfReserved) {
@@ -503,7 +506,7 @@ public class ModifyProto {
 					throw new InvalidProtobufException("Field name '" + newField.name + "' and/or fieldNumber " + newField.fieldNumber + " is reserved in type "
 							+ newField.targetMessageType + ". Use allowIfReserved to override.");
 				}
-				releaseReservation(type.getReserveds(), newField.name, newField.fieldNumber);
+				releaseReservation(type.getReserveds(), newField.name, newField.fieldNumber != -1 ? newField.fieldNumber : null);
 			}
 
 			MutableOptions options = new MutableOptions(MutableOptions.FIELD_OPTIONS, new ArrayList<>());

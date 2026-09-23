@@ -565,6 +565,44 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void testAddEnumConstantAllowIfReserved_whenTagIsMinusOne_thenReleaseIt()
+			throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// -1 is a real enum value, not the "no number" marker it is for fields, so its reservation must be found and released
+		File source = new File("src/test/resources/modify/input/reserved_enum_negative").getCanonicalFile();
+
+		NewEnumConstant newEnumConstant = new NewEnumConstant();
+		newEnumConstant.targetEnumType = "B";
+		newEnumConstant.fieldNumber = -1;
+		newEnumConstant.name = "B_NEGATIVE";
+		newEnumConstant.allowIfReserved = true;
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newEnumConstants = Collections.singletonList(newEnumConstant);
+		modifyProto(configuration);
+
+		String generated = Files.readString(new File(generatedRootFolder, "negativereservedenumconstant.proto").toPath());
+		assertTrue(generated.contains("reserved -3 to -2;"), generated);
+		assertTrue(generated.contains("B_NEGATIVE = -1;"), generated);
+	}
+
+	@Test
+	public void testAddEnumConstantReserved_whenTagIsMinusOne_thenThrowException() throws IOException {
+		File source = new File("src/test/resources/modify/input/reserved_enum_negative").getCanonicalFile();
+
+		NewEnumConstant newEnumConstant = new NewEnumConstant();
+		newEnumConstant.targetEnumType = "B";
+		newEnumConstant.fieldNumber = -1;
+		newEnumConstant.name = "B_NEGATIVE";
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newEnumConstants = Collections.singletonList(newEnumConstant);
+
+		assertThrows(InvalidProtobufException.class, () -> modifyProto(configuration));
+	}
+
+	@Test
 	public void testMergeProto() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
