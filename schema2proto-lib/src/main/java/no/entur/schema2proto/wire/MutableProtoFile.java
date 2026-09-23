@@ -46,6 +46,7 @@ public class MutableProtoFile {
 	private final List<ExtendElement> extendList = new ArrayList<>();
 	private final List<ServiceElement> services = new ArrayList<>();
 	private final MutableOptions options;
+	/** Null when the file declares no syntax, which is legal proto2 and must round trip without gaining a declaration. */
 	private final Syntax syntax;
 	/** The element this file was built from, if any. See {@link MutableType#toElement()}. */
 	private ProtoFileElement sourceElement;

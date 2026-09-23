@@ -24,6 +24,7 @@ package no.entur.schema2proto.wire;
  */
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -165,6 +166,28 @@ public class SerializationTest {
 		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("fidelity.proto"), source));
 
 		assertEquals(protoFile.toSchema(), WireBuilders.fromProtoFile(protoFile).toSchema());
+	}
+
+	/**
+	 * A file that declares no syntax is proto2, and wire keeps that syntax null rather than resolving it. The mutable model has to carry the null through:
+	 * substituting {@link Syntax#PROTO_2} would make every round trip add a {@code syntax = "proto2";} line to a file nothing had edited.
+	 */
+	@Test
+	public void testFileWithoutSyntaxDeclarationDoesNotGainOne() {
+		String source = """
+				package fidelity;
+
+				message Envelope {
+				  required string id = 1;
+				}
+				""";
+
+		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("implicit_proto2.proto"), source));
+
+		String schema = WireBuilders.fromProtoFile(protoFile).toSchema();
+
+		assertFalse(schema.contains("syntax"), schema);
+		assertEquals(protoFile.toSchema(), schema);
 	}
 
 	/**

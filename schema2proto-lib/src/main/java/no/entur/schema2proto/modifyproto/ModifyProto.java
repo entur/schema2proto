@@ -88,6 +88,9 @@ public class ModifyProto {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModifyProto.class);
 
+	/** Root standing in for "no identifier is rooted"; not a legal proto identifier, so it can never match one. */
+	private static final String NOTHING_INCLUDED = "!nothing-is-included";
+
 	public static ModifyProtoConfiguration parseConfigurationFile(File configFile, File basedir) throws IOException, InvalidConfigurationException {
 		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
 
@@ -204,7 +207,9 @@ public class ModifyProto {
 			LOGGER.warn("Unused exclude: {} (already excluded elsewhere or explicitly included?)", s);
 		}
 		for (String s : finalIterationRules.unusedRoots()) {
-			LOGGER.warn("Unused include: {} (already included elsewhere or explicitly excluded?) ", s);
+			if (!NOTHING_INCLUDED.equals(s)) {
+				LOGGER.warn("Unused include: {} (already included elsewhere or explicitly excluded?) ", s);
+			}
 		}
 
 		// Convert the pruned (immutable) schema into the mutable builder model used for editing and backwards-compat resolution
@@ -297,15 +302,56 @@ public class ModifyProto {
 	}
 
 	/**
-	 * Builds the pruning rules, mirroring the vendored {@code IdentifierSet} semantics where excludes take precedence over includes: an identifier present in
-	 * both is pruned, not rooted. Stock wire's {@link PruningRules} rejects the same identifier in both roots and prunes, so the overlap is dropped from the
-	 * roots here.
+	 * Builds the pruning rules, mirroring the vendored {@code IdentifierSet} semantics where excludes take precedence over includes: an identifier is pruned
+	 * when it, or any identifier enclosing it, is excluded, no matter how precisely it was included. Stock wire's {@link PruningRules} instead lets the more
+	 * precise of the two rules win, so an include shadowed by an exclude is dropped from the roots here. Dropping it rather than pruning it is also what wire
+	 * requires: its builder rejects the same identifier in both roots and prunes.
+	 *
+	 * <p>
+	 * Dropping every root is meaningful: empty roots mean "root everything" to wire, whereas includes that are all excluded meant "root nothing" in the
+	 * vendored set, so an unmatchable root is added to keep the schema empty instead of copying it wholesale.
 	 */
 	private PruningRules buildPruningRules(Set<String> includes, Set<String> excludes) {
 		PruningRules.Builder builder = new PruningRules.Builder();
 		builder.prune(excludes);
-		builder.addRoot(includes.stream().filter(i -> !excludes.contains(i)).collect(Collectors.toList()));
+		List<String> roots = includes.stream().filter(i -> !isExcluded(i, excludes)).collect(Collectors.toList());
+		if (roots.isEmpty() && !includes.isEmpty()) {
+			LOGGER.warn("Every include is covered by an exclude, so nothing is included: includes {}, excludes {}", includes, excludes);
+			roots = Collections.singletonList(NOTHING_INCLUDED);
+		}
+		builder.addRoot(roots);
 		return builder.build();
+	}
+
+	/** Returns true if {@code identifier} or any identifier enclosing it is excluded. */
+	private static boolean isExcluded(String identifier, Set<String> excludes) {
+		for (String rule = identifier; rule != null; rule = enclosing(rule)) {
+			if (excludes.contains(rule)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Returns the identifier or wildcard enclosing {@code identifier}, or null once the root wildcard is reached. A member yields its type, a type yields its
+	 * package with a wildcard ({@code pkg.*}), and a wildcard yields its parent package's. Kept in step with the same walk inside wire's {@link PruningRules},
+	 * which is not public, so that an include this rejects is one wire would otherwise have let win.
+	 */
+	private static String enclosing(String identifier) {
+		int hash = identifier.lastIndexOf('#');
+		if (hash != -1) {
+			String beforeHash = identifier.substring(0, hash);
+			String afterHash = enclosing(identifier.substring(hash + 1));
+			return afterHash != null ? beforeHash + "#" + afterHash : beforeHash;
+		}
+
+		int from = identifier.endsWith(".*") ? identifier.length() - 3 : identifier.length() - 1;
+		int dot = identifier.lastIndexOf('.', from);
+		if (dot != -1) {
+			return identifier.substring(0, dot) + ".*";
+		}
+		return identifier.equals("*") ? null : "*";
 	}
 
 	private Set<String> followOneMoreLevel(Set<String> includes, Set<String> excludes, Schema schema) {

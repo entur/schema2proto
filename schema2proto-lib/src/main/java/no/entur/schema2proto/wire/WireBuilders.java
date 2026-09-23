@@ -55,7 +55,9 @@ public final class WireBuilders {
 
 	public static MutableProtoFile fromProtoFile(ProtoFile protoFile) {
 		ProtoFileElement element = protoFile.toElement();
-		Syntax syntax = element.getSyntax() != null ? element.getSyntax() : Syntax.PROTO_2;
+		// A file that declares no syntax is proto2, but it must serialize back without one: defaulting to PROTO_2 here would add a syntax declaration to every
+		// such file on a round trip. Files built from XSD always pass an explicit syntax.
+		Syntax syntax = element.getSyntax();
 		String packageName = element.getPackageName();
 
 		MutableProtoFile file = new MutableProtoFile(syntax, packageName);

@@ -22,11 +22,13 @@
  */
 package no.entur.schema2proto.modifyproto;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -123,6 +125,40 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		modifyProto(configuration);
 
 		assertTrue(new File(generatedRootFolder, "simple.proto").exists(), "Expected proto to be generated without a roots/prunes overlap failure");
+	}
+
+	@Test
+	public void testExcludedTypeBeatsMoreSpecificIncludedMember() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// The vendored IdentifierSet let an exclude win over an include at any level, while stock wire's PruningRules lets the more precise of the two win.
+		// An excluded type must therefore still prune a member of it that was included by name.
+		File source = new File("src/test/resources/modify/input/withpackagename").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Arrays.asList("package.A", "package.B#lang");
+		configuration.excludes = Collections.singletonList("package.B");
+
+		modifyProto(configuration);
+
+		String generated = Files.readString(new File(generatedRootFolder, "package/simple.proto").toPath());
+		assertTrue(generated.contains("message A"), generated);
+		assertFalse(generated.contains("message B"), generated);
+	}
+
+	@Test
+	public void testExcludedPackageBeatsIncludedTypeInIt() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Same precedence rule one level up: a wildcard exclude covers an included type inside it. With every include excluded nothing is rooted, which is not
+		// the same as the empty include list that means "root everything".
+		File source = new File("src/test/resources/modify/input/withpackagename").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("package.LangType");
+		configuration.excludes = Collections.singletonList("package.*");
+
+		modifyProto(configuration);
+
+		assertFalse(new File(generatedRootFolder, "package/simple.proto").exists(), "Expected nothing to be included, not the whole schema");
 	}
 
 	@Test
