@@ -342,8 +342,11 @@ public class ProtoComparator {
 			sources.add(protoDeps.toPath());
 		}
 
+		// Wire identifies a proto by a forward-slash path regardless of platform, so normalize before both loading and lookup.
+		String protoPath = protoFilename.getPath().replace(File.separatorChar, '/');
+
 		List<String> protos = new java.util.ArrayList<>();
-		protos.add(protoFilename.getPath());
+		protos.add(protoPath);
 		for (String optionProto : new String[] { "buf/validate/validate.proto", "xsd/xsd.proto" }) {
 			for (java.nio.file.Path s : sources) {
 				if (java.nio.file.Files.exists(s.resolve(optionProto))) {
@@ -354,7 +357,7 @@ public class ProtoComparator {
 		}
 
 		Schema schema = WireSchemaLoader.load(sources, protos);
-		return schema.protoFile(protoFilename.getPath());
+		return schema.protoFile(protoPath);
 	}
 
 	private static String generateLocationInformation(Location expected, Location generated) {

@@ -183,8 +183,7 @@ public class FieldConflictChecker {
 				xsdFields.stream().max(Comparator.comparing(ProtolockField::getId)).orElse(new ProtolockField(0, null)).getId() + 1);
 
 		// Check that it is not reserved
-		while (e.getReserveds().stream().anyMatch(s -> s.matchesTag(nextAvailableFieldNum.get()))
-				|| lockFields.stream().anyMatch(s -> s.getId() == nextAvailableFieldNum.get())) {
+		while (e.isTagReserved(nextAvailableFieldNum.get()) || lockFields.stream().anyMatch(s -> s.getId() == nextAvailableFieldNum.get())) {
 			nextAvailableFieldNum.incrementAndGet();
 		}
 		return nextAvailableFieldNum;

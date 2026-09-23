@@ -92,7 +92,7 @@ public class EnumConflictChecker {
 
 			for (MutableEnumConstant constant : enumType.constants()) {
 				if (!lockNames.contains(constant.getName())) {
-					while (enumType.reserveds().stream().anyMatch(s -> s.matchesTag(nextId.get()))) {
+					while (enumType.isTagReserved(nextId.get())) {
 						nextId.incrementAndGet();
 					}
 					constant.updateTag(nextId.getAndIncrement());

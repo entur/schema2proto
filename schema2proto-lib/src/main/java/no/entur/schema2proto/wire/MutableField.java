@@ -22,20 +22,16 @@
  */
 package no.entur.schema2proto.wire;
 
-import java.util.Collections;
-import java.util.List;
-
-import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
+import com.squareup.wire.schema.internal.parser.FieldElement;
 
 /**
  * Mutable builder analogue of {@link com.squareup.wire.schema.Field}.
  *
  * <p>
  * {@code packageName} is schema2proto's transient notion of the proto package of the field's referenced type (used to compute imports); it is folded into
- * {@code elementType} before serialization. The stock wire {@code Field} carries no such concept (its {@code namespaces} are the enclosing scope, irrelevant
- * for canonical serialization), so {@link #toWire()} emits an empty namespaces list.
+ * {@code elementType} before serialization. Wire's own {@code FieldElement} carries no such concept, so it is not emitted.
  */
 public class MutableField {
 
@@ -51,10 +47,12 @@ public class MutableField {
 	private final boolean extension;
 	// Explicit json_name of the source field, if any. Never set by the XSD-to-proto path; carried through unchanged when modifying existing protos.
 	private String jsonName;
-	private boolean isOneOf;
 
 	private boolean fromElement;
 	private boolean fromAttribute;
+
+	/** The element this field was built from, if any. See {@link MutableType#toElement()}. */
+	private FieldElement sourceElement;
 
 	public MutableField(String packageName, Location location, Label label, String name, String documentation, int tag, String elementType,
 			MutableOptions options, boolean fromElement) {
@@ -164,8 +162,8 @@ public class MutableField {
 		this.fromElement = fromElement;
 	}
 
-	void setOneOf(boolean isOneOf) {
-		this.isOneOf = isOneOf;
+	void setSourceElement(FieldElement sourceElement) {
+		this.sourceElement = sourceElement;
 	}
 
 	/**
@@ -173,11 +171,13 @@ public class MutableField {
 	 *              rather than by list order, so we encode the intended emission order as the location line to reproduce the vendored serializer's list-order
 	 *              output.
 	 */
-	public Field toWire(int order) {
-		List<String> namespaces = Collections.emptyList();
+	public FieldElement toElement(int order) {
 		Location orderedLocation = new Location("", "", order, 0);
-		return new Field(namespaces, orderedLocation, label, name, documentation == null ? "" : documentation, tag, defaultValue, elementType, options.toWire(),
-				extension, isOneOf, jsonName);
+		String doc = documentation == null ? "" : documentation;
+		if (sourceElement != null) {
+			return sourceElement.copy(orderedLocation, label, elementType, name, defaultValue, jsonName, tag, doc, options.toElements());
+		}
+		return new FieldElement(orderedLocation, label, elementType, name, defaultValue, jsonName, tag, doc, options.toElements());
 	}
 
 	@Override

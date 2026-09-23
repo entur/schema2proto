@@ -24,10 +24,9 @@ package no.entur.schema2proto.wire;
 
 import java.util.List;
 
-import com.squareup.wire.Syntax;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoType;
-import com.squareup.wire.schema.Type;
+import com.squareup.wire.schema.internal.parser.TypeElement;
 
 /** Mutable builder analogue of the stock wire {@link com.squareup.wire.schema.Type} hierarchy. */
 public abstract class MutableType {
@@ -44,5 +43,9 @@ public abstract class MutableType {
 
 	public abstract List<MutableType> nestedTypes();
 
-	public abstract Type toWire(Syntax syntax);
+	/**
+	 * Renders this type back to wire's element AST, the layer schema2proto both reads from and writes to. Implementations that were built from an existing
+	 * element copy it rather than construct a fresh one, so that whatever this model does not represent survives the round trip.
+	 */
+	public abstract TypeElement toElement();
 }

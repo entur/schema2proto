@@ -23,17 +23,13 @@
 package no.entur.schema2proto.wire;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.squareup.wire.Syntax;
-import com.squareup.wire.schema.Extend;
-import com.squareup.wire.schema.Extensions;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.ProtoType;
-import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.internal.parser.EnumConstantElement;
 import com.squareup.wire.schema.internal.parser.EnumElement;
 import com.squareup.wire.schema.internal.parser.FieldElement;
@@ -41,12 +37,16 @@ import com.squareup.wire.schema.internal.parser.MessageElement;
 import com.squareup.wire.schema.internal.parser.OneOfElement;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
-import com.squareup.wire.schema.internal.parser.ReservedElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
 
 /**
  * Converts stock immutable wire types (via their element AST, {@link ProtoFile#toElement()}) into the mutable builder model used by schema2proto's
  * post-processing and backwards-compatibility logic. Used by the proto-modification path, which loads existing protos with stock wire and then edits them.
+ *
+ * <p>
+ * Every node keeps the element it was built from, and renders itself by copying that element rather than constructing a fresh one (see
+ * {@link MutableType#toElement()}). Anything the mutable model does not represent therefore survives a load-modify-serialize round trip instead of being
+ * silently replaced by an empty default, which is how weak imports, nested extends, extension ranges, explicit json names and services were each lost in turn.
  */
 public final class WireBuilders {
 
@@ -65,20 +65,19 @@ public final class WireBuilders {
 		file.weakImports().addAll(element.getWeakImports());
 		file.options().optionElements().addAll(escapedOptions(element.getOptions()));
 		// Carry extend declarations and services (gRPC RPCs) through unchanged; schema2proto does not modify them.
-		file.getExtendList().addAll(protoFile.getExtendList());
-		file.getServices().addAll(protoFile.getServices());
+		file.getExtendList().addAll(element.getExtendDeclarations());
+		file.getServices().addAll(element.getServices());
 
-		// Namespaces are the scope names used when resolving field types, mirroring com.squareup.wire.schema.Type.fromElements.
-		List<String> namespaces = packageName == null ? Collections.emptyList() : Collections.singletonList(packageName);
 		for (TypeElement typeElement : element.getTypes()) {
-			file.types().add(fromType(typeElement, packageName, namespaces));
+			file.types().add(fromType(typeElement, packageName));
 		}
+		file.setSourceElement(element);
 		return file;
 	}
 
-	private static MutableType fromType(TypeElement typeElement, String enclosing, List<String> namespaces) {
+	private static MutableType fromType(TypeElement typeElement, String enclosing) {
 		if (typeElement instanceof MessageElement) {
-			return fromMessage((MessageElement) typeElement, enclosing, namespaces);
+			return fromMessage((MessageElement) typeElement, enclosing);
 		} else if (typeElement instanceof EnumElement) {
 			return fromEnum((EnumElement) typeElement, enclosing);
 		}
@@ -89,7 +88,7 @@ public final class WireBuilders {
 		return enclosing == null || enclosing.isEmpty() ? name : enclosing + "." + name;
 	}
 
-	private static MutableMessageType fromMessage(MessageElement element, String enclosing, List<String> namespaces) {
+	private static MutableMessageType fromMessage(MessageElement element, String enclosing) {
 		String qualified = qualify(enclosing, element.getName());
 		MutableOptions options = new MutableOptions(MutableOptions.MESSAGE_OPTIONS, escapedOptions(element.getOptions()));
 		MutableMessageType message = new MutableMessageType(ProtoType.get(qualified), element.getLocation(), element.getDocumentation(), element.getName(),
@@ -101,17 +100,13 @@ public final class WireBuilders {
 		for (OneOfElement oneOfElement : element.getOneOfs()) {
 			message.oneOfs().add(fromOneOf(oneOfElement));
 		}
-		for (ReservedElement reservedElement : element.getReserveds()) {
-			message.getReserveds().add(fromReserved(reservedElement));
-		}
-		// Namespaces for all child elements include this message's name, mirroring com.squareup.wire.schema.MessageType.fromElement.
-		List<String> childNamespaces = new ArrayList<>(namespaces.isEmpty() ? List.of("") : namespaces);
-		childNamespaces.add(element.getName());
+		message.getReserveds().addAll(element.getReserveds());
 		for (TypeElement nested : element.getNestedTypes()) {
-			message.nestedTypes().add(fromType(nested, qualified, childNamespaces));
+			message.nestedTypes().add(fromType(nested, qualified));
 		}
-		message.getNestedExtendList().addAll(Extend.fromElements(childNamespaces, element.getExtendDeclarations()));
-		message.getExtensionsList().addAll(Extensions.fromElements(element.getExtensions()));
+		message.getNestedExtendList().addAll(element.getExtendDeclarations());
+		message.getExtensionsList().addAll(element.getExtensions());
+		message.setSourceElement(element);
 		return message;
 	}
 
@@ -120,15 +115,15 @@ public final class WireBuilders {
 		MutableOptions options = new MutableOptions(MutableOptions.ENUM_OPTIONS, escapedOptions(element.getOptions()));
 		List<MutableEnumConstant> constants = new ArrayList<>();
 		for (EnumConstantElement constantElement : element.getConstants()) {
-			constants.add(new MutableEnumConstant(constantElement.getLocation(), constantElement.getName(), constantElement.getTag(),
-					constantElement.getDocumentation(), new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, escapedOptions(constantElement.getOptions()))));
+			MutableEnumConstant constant = new MutableEnumConstant(constantElement.getLocation(), constantElement.getName(), constantElement.getTag(),
+					constantElement.getDocumentation(), new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, escapedOptions(constantElement.getOptions())));
+			constant.setSourceElement(constantElement);
+			constants.add(constant);
 		}
-		List<Reserved> reserveds = new ArrayList<>();
-		for (ReservedElement reservedElement : element.getReserveds()) {
-			reserveds.add(fromReserved(reservedElement));
-		}
-		return new MutableEnumType(ProtoType.get(qualified), element.getLocation(), element.getDocumentation(), element.getName(), constants, reserveds,
-				options);
+		MutableEnumType enumType = new MutableEnumType(ProtoType.get(qualified), element.getLocation(), element.getDocumentation(), element.getName(),
+				constants, new ArrayList<>(element.getReserveds()), options);
+		enumType.setSourceElement(element);
+		return enumType;
 	}
 
 	private static MutableField fromField(FieldElement element) {
@@ -136,6 +131,7 @@ public final class WireBuilders {
 		MutableField field = new MutableField(null, element.getLocation(), element.getLabel(), element.getName(), element.getDocumentation(), element.getTag(),
 				element.getDefaultValue(), element.getType(), options, false, false);
 		field.setJsonName(element.getJsonName());
+		field.setSourceElement(element);
 		return field;
 	}
 
@@ -145,7 +141,9 @@ public final class WireBuilders {
 		for (FieldElement fieldElement : element.getFields()) {
 			fields.add(fromField(fieldElement));
 		}
-		return new MutableOneOf(element.getName(), element.getDocumentation(), fields, options);
+		MutableOneOf oneOf = new MutableOneOf(element.getName(), element.getDocumentation(), fields, options);
+		oneOf.setSourceElement(element);
+		return oneOf;
 	}
 
 	/**
@@ -156,8 +154,9 @@ public final class WireBuilders {
 	 * which protoc rejects with "Invalid escape sequence in string literal".
 	 *
 	 * <p>
-	 * Only the values wire renders unescaped are touched. A top level {@code STRING}, and the nested elements of {@code OPTION} and {@code LIST} (each rendered
-	 * by its own {@code toSchema()}), are left as wire parsed them, so nothing ends up escaped twice.
+	 * Only the values wire renders unescaped are touched. A top level {@code STRING}, and a nested {@code OptionElement} (rendered by its own
+	 * {@code toSchema()}, which escapes), are left as wire parsed them, so nothing ends up escaped twice. Everything else — the raw strings, maps and lists
+	 * {@code OptionReader} produces inside a {@code MAP} or {@code LIST} value — goes through {@link #escapeAggregateValue}.
 	 */
 	private static List<OptionElement> escapedOptions(List<OptionElement> options) {
 		List<OptionElement> result = new ArrayList<>(options.size());
@@ -178,9 +177,10 @@ public final class WireBuilders {
 			return option;
 		case LIST:
 			if (option.getValue() instanceof List<?> items) {
+				// OptionReader.readList yields the raw parsed values, not OptionElements, so those items need escaping like any other aggregate value.
 				List<Object> escapedItems = new ArrayList<>(items.size());
 				for (Object item : items) {
-					escapedItems.add(item instanceof OptionElement element ? escapeAggregateStrings(element) : item);
+					escapedItems.add(item instanceof OptionElement element ? escapeAggregateStrings(element) : escapeAggregateValue(item));
 				}
 				return new OptionElement(option.getName(), option.getKind(), escapedItems, option.isParenthesized());
 			}
@@ -238,9 +238,5 @@ public final class WireBuilders {
 			}
 		}
 		return result.toString();
-	}
-
-	private static Reserved fromReserved(ReservedElement element) {
-		return new Reserved(element.getLocation(), element.getDocumentation(), element.getValues());
 	}
 }

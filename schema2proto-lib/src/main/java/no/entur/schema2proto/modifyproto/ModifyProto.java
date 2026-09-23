@@ -57,11 +57,11 @@ import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.PruningRules;
-import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.OptionReader;
+import com.squareup.wire.schema.internal.parser.ReservedElement;
 import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
@@ -80,6 +80,7 @@ import no.entur.schema2proto.wire.MutableMessageType;
 import no.entur.schema2proto.wire.MutableOptions;
 import no.entur.schema2proto.wire.MutableProtoFile;
 import no.entur.schema2proto.wire.MutableType;
+import no.entur.schema2proto.wire.Reservations;
 import no.entur.schema2proto.wire.WireBuilders;
 import no.entur.schema2proto.wire.WireSchemaLoader;
 
@@ -419,25 +420,22 @@ public class ModifyProto {
 		} else {
 
 			// Check if field name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
-			List<Reserved> reservedFields = type.getReserveds();
-			boolean nameReserved = reservedFields.stream().anyMatch(r -> r.matchesName(newField.name));
-			boolean tagReserved = newField.fieldNumber != -1 && reservedFields.stream().anyMatch(r -> r.matchesTag(newField.fieldNumber));
+			List<ReservedElement> reservedFields = type.getReserveds();
+			boolean nameReserved = type.isNameReserved(newField.name);
+			boolean tagReserved = newField.fieldNumber != -1 && type.isTagReserved(newField.fieldNumber);
 
 			if (nameReserved || tagReserved) {
 				if (!newField.allowIfReserved) {
 					throw new InvalidProtobufException("Field name '" + newField.name + "' and/or fieldNumber " + newField.fieldNumber + " is reserved in type "
 							+ newField.targetMessageType + ". Use allowIfReserved to override.");
 				}
-				// Remove only the matching name/tag values from each Reserved entry, keeping other values intact
-				List<Reserved> updatedReservedFields = new ArrayList<>();
-				for (Reserved reserved : reservedFields) {
-					List<Object> filteredValues = reserved.getValues()
-							.stream()
-							.filter(v -> !Objects.equals(v, newField.name) && !Objects.equals(v, newField.fieldNumber))
-							.collect(Collectors.toList());
-
-					if (!filteredValues.isEmpty()) {
-						updatedReservedFields.add(new Reserved(reserved.getLocation(), reserved.getDocumentation(), filteredValues));
+				// Release only the name and tag being taken back, keeping the rest of each reservation intact - including the untouched halves of a
+				// reserved range the tag sits inside.
+				List<ReservedElement> updatedReservedFields = new ArrayList<>();
+				for (ReservedElement reserved : reservedFields) {
+					ReservedElement released = Reservations.released(reserved, newField.name, newField.fieldNumber);
+					if (released != null) {
+						updatedReservedFields.add(released);
 					}
 				}
 				reservedFields.clear();

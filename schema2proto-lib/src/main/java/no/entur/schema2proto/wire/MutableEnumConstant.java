@@ -22,8 +22,8 @@
  */
 package no.entur.schema2proto.wire;
 
-import com.squareup.wire.schema.EnumConstant;
 import com.squareup.wire.schema.Location;
+import com.squareup.wire.schema.internal.parser.EnumConstantElement;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.EnumConstant}. */
 public class MutableEnumConstant {
@@ -33,6 +33,8 @@ public class MutableEnumConstant {
 	private int tag;
 	private final String documentation;
 	private final MutableOptions options;
+	/** The element this constant was built from, if any. See {@link MutableType#toElement()}. */
+	private EnumConstantElement sourceElement;
 
 	public MutableEnumConstant(Location location, String name, int tag, String documentation, MutableOptions options) {
 		this.location = location;
@@ -70,7 +72,15 @@ public class MutableEnumConstant {
 		return options;
 	}
 
-	public EnumConstant toWire() {
-		return new EnumConstant(location, name, tag, documentation == null ? "" : documentation, options.toWire());
+	void setSourceElement(EnumConstantElement sourceElement) {
+		this.sourceElement = sourceElement;
+	}
+
+	public EnumConstantElement toElement() {
+		String doc = documentation == null ? "" : documentation;
+		if (sourceElement != null) {
+			return sourceElement.copy(location, name, tag, doc, options.toElements());
+		}
+		return new EnumConstantElement(location, name, tag, doc, options.toElements());
 	}
 }

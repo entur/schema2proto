@@ -24,17 +24,18 @@ package no.entur.schema2proto.wire;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import com.squareup.wire.Syntax;
-import com.squareup.wire.schema.Extend;
-import com.squareup.wire.schema.Extensions;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.MessageType;
-import com.squareup.wire.schema.Options;
 import com.squareup.wire.schema.ProtoType;
-import com.squareup.wire.schema.Reserved;
-import com.squareup.wire.schema.Type;
+import com.squareup.wire.schema.internal.parser.ExtendElement;
+import com.squareup.wire.schema.internal.parser.ExtensionsElement;
+import com.squareup.wire.schema.internal.parser.FieldElement;
+import com.squareup.wire.schema.internal.parser.MessageElement;
+import com.squareup.wire.schema.internal.parser.OneOfElement;
+import com.squareup.wire.schema.internal.parser.ReservedElement;
+import com.squareup.wire.schema.internal.parser.TypeElement;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.MessageType}. */
 public class MutableMessageType extends MutableType {
@@ -54,10 +55,12 @@ public class MutableMessageType extends MutableType {
 	private final List<MutableType> nestedTypes;
 	// Nested extend declarations and extension ranges are not produced by the XSD-to-proto path; they are carried through unchanged when modifying
 	// existing proto2 messages.
-	private final List<Extend> nestedExtendList;
-	private final List<Extensions> extensionsList;
-	private final List<Reserved> reserveds;
+	private final List<ExtendElement> nestedExtendList;
+	private final List<ExtensionsElement> extensionsList;
+	private final List<ReservedElement> reserveds;
 	private final MutableOptions options;
+	/** The element this message was built from, if any. See {@link MutableType#toElement()}. */
+	private MessageElement sourceElement;
 
 	private int fieldNum = 0;
 	private boolean wrapperMessageType = false;
@@ -84,29 +87,35 @@ public class MutableMessageType extends MutableType {
 		this.wrapperMessageType = wrapperMessageType;
 	}
 
-	public List<Reserved> getReserveds() {
+	public List<ReservedElement> getReserveds() {
 		return reserveds;
 	}
 
-	public List<Extend> getNestedExtendList() {
+	public List<ExtendElement> getNestedExtendList() {
 		return nestedExtendList;
 	}
 
-	public List<Extensions> getExtensionsList() {
+	public List<ExtensionsElement> getExtensionsList() {
 		return extensionsList;
 	}
 
+	public boolean isTagReserved(int tag) {
+		return Reservations.matchesTag(reserveds, tag);
+	}
+
+	public boolean isNameReserved(String fieldName) {
+		return Reservations.matchesName(reserveds, fieldName);
+	}
+
 	public void addReserved(String documentation, Location location, int tag) {
-		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesTag(tag));
-		if (!alreadyReserved) {
-			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(tag)));
+		if (!isTagReserved(tag)) {
+			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, List.of(tag)));
 		}
 	}
 
 	public void addReserved(String documentation, Location location, String fieldName) {
-		boolean alreadyReserved = reserveds.stream().anyMatch(reservation -> reservation.matchesName(fieldName));
-		if (!alreadyReserved) {
-			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(fieldName)));
+		if (!isNameReserved(fieldName)) {
+			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, List.of(fieldName)));
 		}
 	}
 
@@ -216,20 +225,25 @@ public class MutableMessageType extends MutableType {
 		oneOfs.remove(oneOfToRemove);
 	}
 
+	void setSourceElement(MessageElement sourceElement) {
+		this.sourceElement = sourceElement;
+	}
+
 	@Override
-	public Type toWire(Syntax syntax) {
+	public MessageElement toElement() {
 		// Stock wire serializes message fields sorted by Location (line, column), not by list order. Encode each field's list position
 		// as its location so the vendored serializer's list-order output (declared fields first, then oneOfs) is reproduced exactly.
-		java.util.concurrent.atomic.AtomicInteger order = new java.util.concurrent.atomic.AtomicInteger(0);
-		List<com.squareup.wire.schema.Field> wireDeclaredFields = declaredFields.stream()
-				.map(f -> f.toWire(order.getAndIncrement()))
-				.collect(Collectors.toList());
-		List<com.squareup.wire.schema.OneOf> wireOneOfs = oneOfs.stream().map(o -> o.toWire(order)).collect(Collectors.toList());
-		List<Type> wireNestedTypes = nestedTypes.stream().map(t -> t.toWire(syntax)).collect(Collectors.toList());
-		Options wireOptions = options.toWire();
-		return new MessageType(protoType, location, documentation == null ? "" : documentation, name, wireDeclaredFields,
-				new ArrayList<>() /* extensionFields, populated during linking */, wireOneOfs, wireNestedTypes, new ArrayList<>(nestedExtendList),
-				new ArrayList<>(extensionsList), new ArrayList<>(reserveds), wireOptions, syntax);
+		AtomicInteger order = new AtomicInteger(0);
+		List<FieldElement> fieldElements = declaredFields.stream().map(f -> f.toElement(order.getAndIncrement())).collect(Collectors.toList());
+		List<OneOfElement> oneOfElements = oneOfs.stream().map(o -> o.toElement(order)).collect(Collectors.toList());
+		List<TypeElement> nestedTypeElements = nestedTypes.stream().map(MutableType::toElement).collect(Collectors.toList());
+		String doc = documentation == null ? "" : documentation;
+		if (sourceElement != null) {
+			return sourceElement.copy(location, name, doc, nestedTypeElements, options.toElements(), new ArrayList<>(reserveds), fieldElements, oneOfElements,
+					new ArrayList<>(extensionsList), sourceElement.getGroups(), new ArrayList<>(nestedExtendList));
+		}
+		return new MessageElement(location, name, doc, nestedTypeElements, options.toElements(), new ArrayList<>(reserveds), fieldElements, oneOfElements,
+				new ArrayList<>(extensionsList), List.of(), new ArrayList<>(nestedExtendList));
 	}
 
 	@Override
