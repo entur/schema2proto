@@ -437,6 +437,22 @@ public class ModifyProto {
 
 	}
 
+	/**
+	 * Release only the name and tag being taken back, keeping the rest of each reservation intact - including the untouched halves of a reserved range the tag
+	 * sits inside.
+	 */
+	private static void releaseReservation(List<Reserved> reserveds, String name, int tag) {
+		List<Reserved> updatedReserveds = new ArrayList<>();
+		for (Reserved reserved : reserveds) {
+			Reserved released = Reservations.released(reserved, name, tag);
+			if (released != null) {
+				updatedReserveds.add(released);
+			}
+		}
+		reserveds.clear();
+		reserveds.addAll(updatedReserveds);
+	}
+
 	private void addEnumConstant(NewEnumConstant newEnumConstant, Collection<MutableProtoFile> builderFiles) throws InvalidProtobufException {
 		MutableEnumType enumType = findEnumType(builderFiles, newEnumConstant.targetEnumType);
 		if (enumType != null) {
@@ -451,9 +467,21 @@ public class ModifyProto {
 					.findFirst();
 			if (existing.isPresent()) {
 				throw new InvalidProtobufException("Enum constant already present: " + newEnumConstant);
-			} else {
-				enumType.constants().add(enumConstant);
 			}
+
+			// Check if constant name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
+			boolean nameReserved = enumType.isNameReserved(newEnumConstant.name);
+			boolean tagReserved = newEnumConstant.fieldNumber != -1 && enumType.isTagReserved(newEnumConstant.fieldNumber);
+
+			if (nameReserved || tagReserved) {
+				if (!newEnumConstant.allowIfReserved) {
+					throw new InvalidProtobufException("Enum constant name '" + newEnumConstant.name + "' and/or fieldNumber " + newEnumConstant.fieldNumber
+							+ " is reserved in enum " + newEnumConstant.targetEnumType + ". Use allowIfReserved to override.");
+				}
+				releaseReservation(enumType.getReserveds(), newEnumConstant.name, newEnumConstant.fieldNumber);
+			}
+
+			enumType.constants().add(enumConstant);
 		} else {
 			throw new InvalidProtobufException("Did not find existing enum " + newEnumConstant.targetEnumType);
 		}
@@ -467,7 +495,6 @@ public class ModifyProto {
 		} else {
 
 			// Check if field name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
-			List<Reserved> reservedFields = type.getReserveds();
 			boolean nameReserved = type.isNameReserved(newField.name);
 			boolean tagReserved = newField.fieldNumber != -1 && type.isTagReserved(newField.fieldNumber);
 
@@ -476,17 +503,7 @@ public class ModifyProto {
 					throw new InvalidProtobufException("Field name '" + newField.name + "' and/or fieldNumber " + newField.fieldNumber + " is reserved in type "
 							+ newField.targetMessageType + ". Use allowIfReserved to override.");
 				}
-				// Release only the name and tag being taken back, keeping the rest of each reservation intact - including the untouched halves of a
-				// reserved range the tag sits inside.
-				List<Reserved> updatedReservedFields = new ArrayList<>();
-				for (Reserved reserved : reservedFields) {
-					Reserved released = Reservations.released(reserved, newField.name, newField.fieldNumber);
-					if (released != null) {
-						updatedReservedFields.add(released);
-					}
-				}
-				reservedFields.clear();
-				reservedFields.addAll(updatedReservedFields);
+				releaseReservation(type.getReserveds(), newField.name, newField.fieldNumber);
 			}
 
 			MutableOptions options = new MutableOptions(MutableOptions.FIELD_OPTIONS, new ArrayList<>());

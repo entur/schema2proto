@@ -42,6 +42,7 @@ import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.ModifyField;
 import no.entur.schema2proto.modifyproto.config.ModifyProtoConfiguration;
+import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
 import no.entur.schema2proto.modifyproto.config.NewField;
 
 public class ModifyProtoTest extends AbstractMappingTest {
@@ -517,6 +518,50 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		assertThrows(InvalidProtobufException.class, () -> modifyProto(configuration));
 
+	}
+
+	@Test
+	public void testAddEnumConstantAllowIfReserved_whenTagIsInsideReservedRange_thenSplitRangeAroundIt()
+			throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Add an enum constant whose name and number are both reserved, the number inside a reserved range. The name reservation is dropped and the range is
+		// split around the number. ProtoComparator does not compare reserved declarations, so the reservations are asserted on the emitted text directly.
+		File expected = new File("src/test/resources/modify/expected/reserved_enum").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved_enum").getCanonicalFile();
+
+		NewEnumConstant newEnumConstant = new NewEnumConstant();
+		newEnumConstant.targetEnumType = "A";
+		newEnumConstant.fieldNumber = 12;
+		newEnumConstant.name = "A_RESERVED";
+		newEnumConstant.allowIfReserved = true;
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newEnumConstants = Collections.singletonList(newEnumConstant);
+		modifyProto(configuration);
+
+		String generated = Files.readString(new File(generatedRootFolder, "addreservedenumconstant.proto").toPath());
+		assertTrue(generated.contains("reserved 2, 9 to 11, 13 to 16;"), generated);
+		assertFalse(generated.contains("\"A_RESERVED\""), generated);
+
+		compareExpectedAndGenerated(expected, "addreservedenumconstant.proto", generatedRootFolder, "addreservedenumconstant.proto");
+	}
+
+	@Test
+	public void testAddEnumConstantReservedThrowsException() throws IOException {
+		// Add an enum constant with a reserved name and number
+		File source = new File("src/test/resources/modify/input/reserved_enum").getCanonicalFile();
+
+		NewEnumConstant newEnumConstant = new NewEnumConstant();
+		newEnumConstant.targetEnumType = "A";
+		newEnumConstant.fieldNumber = 12;
+		newEnumConstant.name = "A_RESERVED";
+		// allowIfReserved defaults to false
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newEnumConstants = Collections.singletonList(newEnumConstant);
+
+		assertThrows(InvalidProtobufException.class, () -> modifyProto(configuration));
 	}
 
 	@Test
