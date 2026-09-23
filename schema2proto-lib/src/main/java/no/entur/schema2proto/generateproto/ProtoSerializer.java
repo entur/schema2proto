@@ -427,6 +427,8 @@ public class ProtoSerializer {
 	// Loads imported file and reads all qualified types
 	@NotNull
 	private List<String> getFullyQualifiedTypes(String pathName) {
+		// The loader indexes protos by their slash-separated path, and the path also ends up as an import statement, which is always slash-separated.
+		String protoPath = WireSchemaLoader.normalizePath(pathName);
 		List<String> typeNames = new ArrayList<>();
 		try {
 			for (String customImportLocation : configuration.customImportLocations) {
@@ -440,14 +442,14 @@ public class ProtoSerializer {
 						for (String importRootFolder : configuration.customImportLocations) {
 							sources.add(new File(importRootFolder).toPath());
 						}
-						Schema schema = WireSchemaLoader.load(sources, Collections.singletonList(pathName));
-						com.squareup.wire.schema.ProtoFile customImportFile = schema.protoFile(pathName);
+						Schema schema = WireSchemaLoader.load(sources, Collections.singletonList(protoPath));
+						com.squareup.wire.schema.ProtoFile customImportFile = schema.protoFile(protoPath);
 
 						for (com.squareup.wire.schema.Type type : customImportFile.getTypes()) {
 							String qualifiedName = customImportFile.getPackageName() + "." + type.getType().getSimpleName();
 							typeNames.add(qualifiedName);
 
-							customTypeImportToProtoFile.put(qualifiedName, pathName);
+							customTypeImportToProtoFile.put(qualifiedName, protoPath);
 						}
 						break;
 					}

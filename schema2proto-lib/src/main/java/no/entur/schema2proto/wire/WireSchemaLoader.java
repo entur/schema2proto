@@ -93,7 +93,9 @@ public final class WireSchemaLoader {
 				}
 			}
 		} else {
-			loadSet.addAll(protos);
+			for (String proto : protos) {
+				loadSet.add(normalizePath(proto));
+			}
 		}
 
 		List<Location> sourcePath = new ArrayList<>();
@@ -119,11 +121,20 @@ public final class WireSchemaLoader {
 	}
 
 	/**
+	 * Normalizes a proto path to the slash-separated form used by the index and by the wire {@link Location}s built from it. The vendored loader resolved named
+	 * protos with {@code Path.resolve}, so a Windows caller could name a proto {@code a\b.proto}; callers that look a loaded file up again (e.g.
+	 * {@code Schema.protoFile}) must use this same form.
+	 */
+	public static String normalizePath(String proto) {
+		return proto.replace('\\', '/');
+	}
+
+	/**
 	 * Records every regular file below {@code walkRoot} under its {@code walkRoot}-relative, slash-separated path, attributing it to {@code sourceRoot}.
 	 * Directories are skipped, so one named e.g. {@code messages.proto} is never offered to wire as a schema source.
 	 */
 	private static void indexFiles(Stream<Path> walk, Path walkRoot, Path sourceRoot, Map<String, Path> fileToRoot) {
-		walk.filter(Files::isRegularFile).forEach(p -> fileToRoot.putIfAbsent(walkRoot.relativize(p).toString().replace('\\', '/'), sourceRoot));
+		walk.filter(Files::isRegularFile).forEach(p -> fileToRoot.putIfAbsent(normalizePath(walkRoot.relativize(p).toString()), sourceRoot));
 	}
 
 }

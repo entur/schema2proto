@@ -376,9 +376,10 @@ public class ModifyProto {
 			sources.add(new File(configuration.basedir, configuration.inputDirectory.getPath()).toPath());
 		}
 
-		Schema schema = WireSchemaLoader.load(sources, Collections.singletonList(mergeFrom.protoFile));
+		String protoFile = WireSchemaLoader.normalizePath(mergeFrom.protoFile);
+		Schema schema = WireSchemaLoader.load(sources, Collections.singletonList(protoFile));
 
-		ProtoFile source = schema.protoFile(mergeFrom.protoFile);
+		ProtoFile source = schema.protoFile(protoFile);
 		MutableProtoFile sourceBuilder = WireBuilders.fromProtoFile(source);
 		MutableProtoFile destination = findProtoFileForPackage(builderFiles, sourceBuilder.packageName());
 

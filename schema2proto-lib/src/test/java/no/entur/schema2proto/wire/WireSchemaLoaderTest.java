@@ -121,6 +121,20 @@ public class WireSchemaLoaderTest {
 		assertEquals("a/b/message.proto", message.getLocation().getPath());
 	}
 
+	/**
+	 * The vendored loader resolved named protos with {@code Path.resolve}, so a Windows caller could name one {@code a\b.proto}. Such a path must still resolve
+	 * to the slash-separated entry the index holds, and be loaded under that path.
+	 */
+	@Test
+	public void testNamedProtoWithBackslashSeparators(@TempDir Path tempDir) throws IOException {
+		Files.createDirectories(tempDir.resolve("a/b"));
+		Files.writeString(tempDir.resolve("a/b/message.proto"), "message Message {}");
+
+		Schema schema = WireSchemaLoader.load(Collections.singletonList(tempDir), Collections.singletonList("a\\b\\message.proto"));
+
+		assertEquals("a/b/message.proto", schema.getType("Message").getLocation().getPath());
+	}
+
 	/** Deduplication and first-root-wins precedence must hold when a directory and an archive both provide the same proto. */
 	@Test
 	public void testDirectoryRootTakesPrecedenceOverLaterArchiveRoot(@TempDir Path tempDir) throws IOException {
