@@ -196,6 +196,21 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void testServiceOnlyFileIsPreserved() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// A file declaring only a service (its messages imported from elsewhere) is not empty and must still be written
+		File expected = new File("src/test/resources/modify/expected/serviceonly").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/serviceonly").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+
+		modifyProto(configuration);
+
+		assertTrue(new File(generatedRootFolder, "svc/service.proto").exists(), "Expected service-only proto to be generated");
+		compareExpectedAndGenerated(expected, "svc/service.proto", generatedRootFolder, "svc/service.proto");
+	}
+
+	@Test
 	public void testRemoveFieldAndType() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
@@ -322,6 +337,27 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		compareExpectedAndGenerated(expected, "addedFieldOption.proto", generatedRootFolder, "simple.proto");
 
+	}
+
+	@Test
+	public void testAddedAggregateFieldOptionKeepsEscaping() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Wire's parser unescapes strings but does not escape them again inside an aggregate option, so "\\d" would be emitted as "\d",
+		// which protoc rejects. The comparator reparses both sides and cannot see the difference, so check the written text.
+		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
+
+		FieldOption fieldOption = new FieldOption();
+		fieldOption.targetMessageType = "A";
+		fieldOption.field = "response_timestamp";
+		fieldOption.option = "[(buf.validate.field).string = { pattern: \"^\\\\d+$\" }]";
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.fieldOptions = Collections.singletonList(fieldOption);
+
+		modifyProto(configuration);
+
+		String generated = Files.readString(new File(generatedRootFolder, "simple.proto").toPath());
+		assertTrue(generated.contains("pattern: \"^\\\\d+$\""), "Expected escaping to survive in:\n" + generated);
 	}
 
 	@Test

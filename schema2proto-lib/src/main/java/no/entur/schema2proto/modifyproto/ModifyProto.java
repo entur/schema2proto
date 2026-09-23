@@ -298,7 +298,7 @@ public class ModifyProto {
 	}
 
 	private boolean isEmptyFile(MutableProtoFile p) {
-		return p.types().isEmpty() && p.getExtendList().isEmpty();
+		return p.types().isEmpty() && p.getServices().isEmpty() && p.getExtendList().isEmpty();
 	}
 
 	/**
@@ -558,7 +558,8 @@ public class ModifyProto {
 			throw new InvalidProtobufException("Missing option for field " + fieldOption.field);
 		}
 		OptionReader reader = new OptionReader(new SyntaxReader(fieldOption.option.toCharArray(), Location.get("", "")));
-		reader.readOptions().forEach(option -> field.options().add(option));
+		// Parsed like an option read from an existing proto, so restore it to the escaped form the model holds (see WireBuilders.escapedOptions)
+		WireBuilders.escapedOptions(reader.readOptions()).forEach(option -> field.options().add(option));
 
 		// A field that uses the buf.validate extension must import its definition for the result to be valid protobuf
 		if (fieldOption.option.contains("buf.validate")) {

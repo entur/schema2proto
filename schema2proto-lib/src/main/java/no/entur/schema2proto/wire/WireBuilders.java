@@ -160,7 +160,7 @@ public final class WireBuilders {
 	 * {@code toSchema()}, which escapes), are left as wire parsed them, so nothing ends up escaped twice. Everything else — the raw strings, maps and lists
 	 * {@code OptionReader} produces inside a {@code MAP} or {@code LIST} value — goes through {@link #escapeAggregateValue}.
 	 */
-	private static List<OptionElement> escapedOptions(List<OptionElement> options) {
+	public static List<OptionElement> escapedOptions(List<OptionElement> options) {
 		List<OptionElement> result = new ArrayList<>(options.size());
 		for (OptionElement option : options) {
 			result.add(escapeAggregateStrings(option));
