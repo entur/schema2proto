@@ -43,21 +43,29 @@ public final class Reservations {
 	 * split around it, so releasing 150 from {@code reserved 100 to 199} leaves {@code reserved 100 to 149, 151 to 199} rather than a range that still covers
 	 * the tag being handed back.
 	 *
-	 * @param tag the tag to release, or -1 to release the name only.
+	 * @param tag the tag to release, or {@code null} to release the name only. Any int is a valid tag here, since enum values may be negative.
 	 */
-	public static Reserved released(Reserved reserved, String name, int tag) {
+	public static Reserved released(Reserved reserved, String name, Integer tag) {
 		List<Object> remaining = new ArrayList<>(reserved.getValues().size());
 		for (Object value : reserved.getValues()) {
 			if (value instanceof String reservedName && reservedName.equals(name)) {
 				continue;
 			}
-			if (value instanceof Integer reservedTag && reservedTag == tag) {
-				continue;
-			}
-			if (value instanceof IntRange range && range.getFirst() <= tag && tag <= range.getLast()) {
-				addTags(remaining, range.getFirst(), tag - 1);
-				addTags(remaining, tag + 1, range.getLast());
-				continue;
+			if (tag != null) {
+				int released = tag;
+				if (value instanceof Integer reservedTag && reservedTag == released) {
+					continue;
+				}
+				if (value instanceof IntRange range && range.getFirst() <= released && released <= range.getLast()) {
+					// Guard the neighbours so a tag at Integer.MIN_VALUE or MAX_VALUE does not wrap around into a range spanning every int
+					if (released > range.getFirst()) {
+						addTags(remaining, range.getFirst(), released - 1);
+					}
+					if (released < range.getLast()) {
+						addTags(remaining, released + 1, range.getLast());
+					}
+					continue;
+				}
 			}
 			remaining.add(value);
 		}

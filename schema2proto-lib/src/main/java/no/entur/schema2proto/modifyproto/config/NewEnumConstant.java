@@ -27,10 +27,11 @@ public class NewEnumConstant {
 	public String documentation;
 	public String name;
 	public int fieldNumber = -1;
+	public boolean allowIfReserved;
 
 	@Override
 	public String toString() {
 		return "NewEnumValue{" + "targetEnumType='" + targetEnumType + '\'' + ", documentation='" + documentation + '\'' + ", name='" + name + '\''
-				+ ", fieldNumber=" + fieldNumber + '}';
+				+ ", fieldNumber=" + fieldNumber + ", allowIfReserved=" + allowIfReserved + '}';
 	}
 }

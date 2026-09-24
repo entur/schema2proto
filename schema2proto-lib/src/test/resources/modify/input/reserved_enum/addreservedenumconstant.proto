@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+enum A {
+  A_UNSPECIFIED = 0;
+  A_VALUE = 1;
+  reserved 2, 9 to 16;
+  reserved "A_RESERVED";
+}
