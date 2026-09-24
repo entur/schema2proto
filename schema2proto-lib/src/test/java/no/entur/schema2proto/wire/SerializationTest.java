@@ -211,6 +211,45 @@ public class SerializationTest {
 	}
 
 	/**
+	 * Services, RPCs and extend declarations are carried through as wire parsed them rather than converted into the mutable model, so their aggregate options
+	 * need the same escaping - including an extend nested in a message.
+	 */
+	@Test
+	public void testRoundTripKeepsEscapingInPreservedServiceAndExtendOptions() {
+		String source = """
+				syntax = "proto2";
+				package test;
+
+				message M {
+				  optional string id = 1;
+				  extensions 100 to 200;
+				  extend M {
+				    optional string nested = 101 [(opt) = {pattern: "nested\\\\-y"}];
+				  }
+				}
+
+				extend M {
+				  optional string top = 100 [(opt) = {pattern: "top\\\\-y"}];
+				}
+
+				service S {
+				  option (opt) = {pattern: "service\\\\-y"};
+				  rpc Get (M) returns (M) {
+				    option (opt) = {pattern: "rpc\\\\-y"};
+				  }
+				}
+				""";
+
+		ProtoFile protoFile = ProtoFile.Companion.get(ProtoParser.Companion.parse(Location.get("preserved.proto"), source));
+
+		String schema = WireBuilders.fromProtoFile(protoFile).toSchema();
+
+		for (String prefix : List.of("nested", "top", "service", "rpc")) {
+			assertTrue(schema.contains("pattern: \"" + prefix + "\\\\-y\""), schema);
+		}
+	}
+
+	/**
 	 * The XSD-to-proto path already stores option strings in proto source form (see {@code ValidationRuleFactory}), so options that never went through wire's
 	 * parser must be emitted verbatim rather than escaped a second time.
 	 */

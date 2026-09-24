@@ -33,11 +33,14 @@ import com.squareup.wire.schema.ProtoType;
 import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.internal.parser.EnumConstantElement;
 import com.squareup.wire.schema.internal.parser.EnumElement;
+import com.squareup.wire.schema.internal.parser.ExtendElement;
 import com.squareup.wire.schema.internal.parser.FieldElement;
 import com.squareup.wire.schema.internal.parser.MessageElement;
 import com.squareup.wire.schema.internal.parser.OneOfElement;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
+import com.squareup.wire.schema.internal.parser.RpcElement;
+import com.squareup.wire.schema.internal.parser.ServiceElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
 
 /**
@@ -67,9 +70,9 @@ public final class WireBuilders {
 		file.publicImports().addAll(element.getPublicImports());
 		file.weakImports().addAll(element.getWeakImports());
 		file.options().optionElements().addAll(escapedOptions(element.getOptions()));
-		// Carry extend declarations and services (gRPC RPCs) through unchanged; schema2proto does not modify them.
-		file.getExtendList().addAll(element.getExtendDeclarations());
-		file.getServices().addAll(element.getServices());
+		// Carry extend declarations and services (gRPC RPCs) through; schema2proto does not modify them, but their options need the same escaping as the rest.
+		element.getExtendDeclarations().forEach(extend -> file.getExtendList().add(escapedExtend(extend)));
+		element.getServices().forEach(service -> file.getServices().add(escapedService(service)));
 
 		for (TypeElement typeElement : element.getTypes()) {
 			file.types().add(fromType(typeElement, packageName));
@@ -107,7 +110,7 @@ public final class WireBuilders {
 		for (TypeElement nested : element.getNestedTypes()) {
 			message.nestedTypes().add(fromType(nested, qualified));
 		}
-		message.getNestedExtendList().addAll(element.getExtendDeclarations());
+		element.getExtendDeclarations().forEach(extend -> message.getNestedExtendList().add(escapedExtend(extend)));
 		message.getExtensionsList().addAll(element.getExtensions());
 		message.setSourceElement(element);
 		return message;
@@ -167,6 +170,26 @@ public final class WireBuilders {
 			result.add(escapeAggregateStrings(option));
 		}
 		return result;
+	}
+
+	/** A preserved extend declaration with {@link #escapedOptions} applied to the options of each of its fields. */
+	private static ExtendElement escapedExtend(ExtendElement extend) {
+		List<FieldElement> fields = new ArrayList<>(extend.getFields().size());
+		for (FieldElement field : extend.getFields()) {
+			fields.add(field.copy(field.getLocation(), field.getLabel(), field.getType(), field.getName(), field.getDefaultValue(), field.getJsonName(),
+					field.getTag(), field.getDocumentation(), escapedOptions(field.getOptions())));
+		}
+		return extend.copy(extend.getLocation(), extend.getName(), extend.getDocumentation(), fields);
+	}
+
+	/** A preserved service with {@link #escapedOptions} applied to its own options and those of each of its RPCs. */
+	private static ServiceElement escapedService(ServiceElement service) {
+		List<RpcElement> rpcs = new ArrayList<>(service.getRpcs().size());
+		for (RpcElement rpc : service.getRpcs()) {
+			rpcs.add(rpc.copy(rpc.getLocation(), rpc.getName(), rpc.getDocumentation(), rpc.getRequestType(), rpc.getResponseType(), rpc.getRequestStreaming(),
+					rpc.getResponseStreaming(), escapedOptions(rpc.getOptions())));
+		}
+		return service.copy(service.getLocation(), service.getName(), service.getDocumentation(), rpcs, escapedOptions(service.getOptions()));
 	}
 
 	private static OptionElement escapeAggregateStrings(OptionElement option) {
