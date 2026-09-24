@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
 
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoType;
+import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.internal.parser.EnumConstantElement;
 import com.squareup.wire.schema.internal.parser.EnumElement;
-import com.squareup.wire.schema.internal.parser.ReservedElement;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.EnumType}. */
 public class MutableEnumType extends MutableType {
@@ -41,13 +41,13 @@ public class MutableEnumType extends MutableType {
 	private String documentation;
 	private String name;
 	private final List<MutableEnumConstant> constants;
-	private final List<ReservedElement> reserveds;
+	private final List<Reserved> reserveds;
 	private final MutableOptions options;
 	/** The element this enum was built from, if any. See {@link MutableType#toElement()}. */
 	private EnumElement sourceElement;
 
 	public MutableEnumType(ProtoType protoType, Location location, String documentation, String name, List<MutableEnumConstant> constants,
-			List<ReservedElement> reserveds, MutableOptions options) {
+			List<Reserved> reserveds, MutableOptions options) {
 		this.protoType = protoType;
 		this.location = location;
 		this.documentation = documentation;
@@ -70,31 +70,31 @@ public class MutableEnumType extends MutableType {
 		return constants;
 	}
 
-	public List<ReservedElement> getReserveds() {
+	public List<Reserved> getReserveds() {
 		return reserveds;
 	}
 
-	public List<ReservedElement> reserveds() {
+	public List<Reserved> reserveds() {
 		return reserveds;
 	}
 
 	public boolean isTagReserved(int tag) {
-		return Reservations.matchesTag(reserveds, tag);
+		return reserveds.stream().anyMatch(reserved -> reserved.matchesTag(tag));
 	}
 
 	public boolean isNameReserved(String constantName) {
-		return Reservations.matchesName(reserveds, constantName);
+		return reserveds.stream().anyMatch(reserved -> reserved.matchesName(constantName));
 	}
 
 	public void addReserved(String documentation, Location location, int tag) {
 		if (!isTagReserved(tag)) {
-			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, List.of(tag)));
+			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(tag)));
 		}
 	}
 
 	public void addReserved(String documentation, Location location, String constantName) {
 		if (!isNameReserved(constantName)) {
-			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, Collections.singletonList(constantName)));
+			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, Collections.singletonList(constantName)));
 		}
 	}
 
@@ -137,9 +137,9 @@ public class MutableEnumType extends MutableType {
 		List<EnumConstantElement> constantElements = constants.stream().map(MutableEnumConstant::toElement).collect(Collectors.toList());
 		String doc = documentation == null ? "" : documentation;
 		if (sourceElement != null) {
-			return sourceElement.copy(location, name, doc, options.toElements(), constantElements, new ArrayList<>(reserveds));
+			return sourceElement.copy(location, name, doc, options.toElements(), constantElements, Reserved.toElements(reserveds));
 		}
-		return new EnumElement(location, name, doc, options.toElements(), constantElements, new ArrayList<>(reserveds));
+		return new EnumElement(location, name, doc, options.toElements(), constantElements, Reserved.toElements(reserveds));
 	}
 
 	@Override

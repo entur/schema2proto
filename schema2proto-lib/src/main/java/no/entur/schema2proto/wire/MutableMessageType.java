@@ -29,12 +29,12 @@ import java.util.stream.Collectors;
 
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoType;
+import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.internal.parser.ExtendElement;
 import com.squareup.wire.schema.internal.parser.ExtensionsElement;
 import com.squareup.wire.schema.internal.parser.FieldElement;
 import com.squareup.wire.schema.internal.parser.MessageElement;
 import com.squareup.wire.schema.internal.parser.OneOfElement;
-import com.squareup.wire.schema.internal.parser.ReservedElement;
 import com.squareup.wire.schema.internal.parser.TypeElement;
 
 /** Mutable builder analogue of {@link com.squareup.wire.schema.MessageType}. */
@@ -57,7 +57,7 @@ public class MutableMessageType extends MutableType {
 	// existing proto2 messages.
 	private final List<ExtendElement> nestedExtendList;
 	private final List<ExtensionsElement> extensionsList;
-	private final List<ReservedElement> reserveds;
+	private final List<Reserved> reserveds;
 	private final MutableOptions options;
 	/** The element this message was built from, if any. See {@link MutableType#toElement()}. */
 	private MessageElement sourceElement;
@@ -87,7 +87,7 @@ public class MutableMessageType extends MutableType {
 		this.wrapperMessageType = wrapperMessageType;
 	}
 
-	public List<ReservedElement> getReserveds() {
+	public List<Reserved> getReserveds() {
 		return reserveds;
 	}
 
@@ -100,22 +100,22 @@ public class MutableMessageType extends MutableType {
 	}
 
 	public boolean isTagReserved(int tag) {
-		return Reservations.matchesTag(reserveds, tag);
+		return reserveds.stream().anyMatch(reserved -> reserved.matchesTag(tag));
 	}
 
 	public boolean isNameReserved(String fieldName) {
-		return Reservations.matchesName(reserveds, fieldName);
+		return reserveds.stream().anyMatch(reserved -> reserved.matchesName(fieldName));
 	}
 
 	public void addReserved(String documentation, Location location, int tag) {
 		if (!isTagReserved(tag)) {
-			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, List.of(tag)));
+			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(tag)));
 		}
 	}
 
 	public void addReserved(String documentation, Location location, String fieldName) {
 		if (!isNameReserved(fieldName)) {
-			reserveds.add(new ReservedElement(location, documentation == null ? "" : documentation, List.of(fieldName)));
+			reserveds.add(new Reserved(location, documentation == null ? "" : documentation, List.of(fieldName)));
 		}
 	}
 
@@ -239,10 +239,10 @@ public class MutableMessageType extends MutableType {
 		List<TypeElement> nestedTypeElements = nestedTypes.stream().map(MutableType::toElement).collect(Collectors.toList());
 		String doc = documentation == null ? "" : documentation;
 		if (sourceElement != null) {
-			return sourceElement.copy(location, name, doc, nestedTypeElements, options.toElements(), new ArrayList<>(reserveds), fieldElements, oneOfElements,
-					new ArrayList<>(extensionsList), sourceElement.getGroups(), new ArrayList<>(nestedExtendList));
+			return sourceElement.copy(location, name, doc, nestedTypeElements, options.toElements(), Reserved.toElements(reserveds), fieldElements,
+					oneOfElements, new ArrayList<>(extensionsList), sourceElement.getGroups(), new ArrayList<>(nestedExtendList));
 		}
-		return new MessageElement(location, name, doc, nestedTypeElements, options.toElements(), new ArrayList<>(reserveds), fieldElements, oneOfElements,
+		return new MessageElement(location, name, doc, nestedTypeElements, options.toElements(), Reserved.toElements(reserveds), fieldElements, oneOfElements,
 				new ArrayList<>(extensionsList), List.of(), new ArrayList<>(nestedExtendList));
 	}
 

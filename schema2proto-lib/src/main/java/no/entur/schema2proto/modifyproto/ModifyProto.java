@@ -57,11 +57,11 @@ import com.squareup.wire.schema.Field;
 import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.PruningRules;
+import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.Schema;
 import com.squareup.wire.schema.Type;
 import com.squareup.wire.schema.internal.parser.OptionElement;
 import com.squareup.wire.schema.internal.parser.OptionReader;
-import com.squareup.wire.schema.internal.parser.ReservedElement;
 import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
@@ -467,7 +467,7 @@ public class ModifyProto {
 		} else {
 
 			// Check if field name or tag is reserved, if so remove reservation if allowIfReserved is set, otherwise throw exception
-			List<ReservedElement> reservedFields = type.getReserveds();
+			List<Reserved> reservedFields = type.getReserveds();
 			boolean nameReserved = type.isNameReserved(newField.name);
 			boolean tagReserved = newField.fieldNumber != -1 && type.isTagReserved(newField.fieldNumber);
 
@@ -478,9 +478,9 @@ public class ModifyProto {
 				}
 				// Release only the name and tag being taken back, keeping the rest of each reservation intact - including the untouched halves of a
 				// reserved range the tag sits inside.
-				List<ReservedElement> updatedReservedFields = new ArrayList<>();
-				for (ReservedElement reserved : reservedFields) {
-					ReservedElement released = Reservations.released(reserved, newField.name, newField.fieldNumber);
+				List<Reserved> updatedReservedFields = new ArrayList<>();
+				for (Reserved reserved : reservedFields) {
+					Reserved released = Reservations.released(reserved, newField.name, newField.fieldNumber);
 					if (released != null) {
 						updatedReservedFields.add(released);
 					}

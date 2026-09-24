@@ -30,6 +30,7 @@ import java.util.Map;
 import com.squareup.wire.Syntax;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.ProtoType;
+import com.squareup.wire.schema.Reserved;
 import com.squareup.wire.schema.internal.parser.EnumConstantElement;
 import com.squareup.wire.schema.internal.parser.EnumElement;
 import com.squareup.wire.schema.internal.parser.FieldElement;
@@ -102,7 +103,7 @@ public final class WireBuilders {
 		for (OneOfElement oneOfElement : element.getOneOfs()) {
 			message.oneOfs().add(fromOneOf(oneOfElement));
 		}
-		message.getReserveds().addAll(element.getReserveds());
+		message.getReserveds().addAll(Reserved.fromElements(element.getReserveds()));
 		for (TypeElement nested : element.getNestedTypes()) {
 			message.nestedTypes().add(fromType(nested, qualified));
 		}
@@ -123,7 +124,7 @@ public final class WireBuilders {
 			constants.add(constant);
 		}
 		MutableEnumType enumType = new MutableEnumType(ProtoType.get(qualified), element.getLocation(), element.getDocumentation(), element.getName(),
-				constants, new ArrayList<>(element.getReserveds()), options);
+				constants, new ArrayList<>(Reserved.fromElements(element.getReserveds())), options);
 		enumType.setSourceElement(element);
 		return enumType;
 	}
