@@ -9,12 +9,12 @@ package no.entur.schema2proto.compatibility;
  * Licensed under the EUPL, Version 1.1 or – as soon they will be
  * approved by the European Commission - subsequent versions of the
  * EUPL (the "Licence");
- * 
+ *
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
- * 
+ *
  * http://ec.europa.eu/idabc/eupl5
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,16 +31,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Iterator;
-import java.util.Locale;
+import java.util.Collections;
 
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.io.FileUtils;
 
-import com.squareup.wire.schema.Linker;
-import com.squareup.wire.schema.Location;
 import com.squareup.wire.schema.ProtoFile;
 import com.squareup.wire.schema.Schema;
-import com.squareup.wire.schema.SchemaLoader;
+
+import no.entur.schema2proto.wire.MutableProtoFile;
+import no.entur.schema2proto.wire.WireBuilders;
+import no.entur.schema2proto.wire.WireSchemaLoader;
 
 public abstract class AbstractBackwardsCompatTest {
 
@@ -51,30 +51,26 @@ public abstract class AbstractBackwardsCompatTest {
 
 	protected void verify(String testname, boolean failOnRemovedFields, String protoFile) throws IOException {
 		ProtolockBackwardsCompatibilityChecker checker = new ProtolockBackwardsCompatibilityChecker();
-		checker.init(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder + "/" + lockFile));
+		File sourceDir = new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder);
+		checker.init(new File(sourceDir, lockFile));
 
-		Schema sourceSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder));
-		link(sourceSchema, false, testname);
+		Schema sourceSchema = loadSchema(sourceDir);
 		ProtoFile sourceProtofile = sourceSchema.protoFile(protoFile);
 
-		boolean backwardsIncompatibiltyDetected = checker.resolveBackwardIncompatibilities(sourceProtofile);
+		// schema2proto resolves backwards incompatibilities on its mutable builder model
+		MutableProtoFile sourceBuilder = WireBuilders.fromProtoFile(sourceProtofile);
+		boolean backwardsIncompatibiltyDetected = checker.resolveBackwardIncompatibilities(sourceBuilder);
 
-		// Verify that schema still links
-		boolean linkedOk = link(sourceSchema, true, testname);
-		assertTrue(linkedOk);
+		String generated = sourceBuilder.toSchema();
+
+		// Verify the mutated schema still links (is valid proto)
+		assertTrue(linksOk(sourceDir, protoFile, generated, testname), "Resolved schema does not link");
 
 		Schema expectedSchema = loadSchema(new File(testdataBaseDirectory + "/" + testname + "/" + expectedFolder));
-		link(expectedSchema, false, testname);
 		ProtoFile expectedProtofile = expectedSchema.protoFile(protoFile);
 
-		// Remove file location comment as it should be the only difference between the two files
-		sourceProtofile.setLocation(new Location("", "", -1, -1));
-		expectedProtofile.setLocation(new Location("", "", -1, -1));
-
-		// System.out.println("Expected\n" + expectedProtofile.toSchema());
-		// System.out.println("Actual\n" + sourceProtofile.toSchema());
-
-		assertEquals(expectedProtofile.toSchema(), sourceProtofile.toSchema());
+		// Ignore the leading "// <path>" location comment, which is the only expected difference
+		assertEquals(stripLocationComment(expectedProtofile.toSchema()), stripLocationComment(generated));
 
 		if (failOnRemovedFields) {
 			assertFalse(backwardsIncompatibiltyDetected);
@@ -82,59 +78,40 @@ public abstract class AbstractBackwardsCompatTest {
 	}
 
 	private Schema loadSchema(File path) throws IOException {
-		SchemaLoader schemaLoader = new SchemaLoader();
-		schemaLoader.addSource(path);
-		return schemaLoader.load();
+		return WireSchemaLoader.load(Collections.singletonList(path.toPath()), Collections.emptyList());
 	}
 
-	private boolean link(Schema schema, boolean dumpIfNotLinkable, String testname) throws IOException {
-		Linker linker = new Linker(schema.protoFiles());
+	private boolean linksOk(File sourceDir, String protoFile, String generated, String testname) throws IOException {
+		File tmp = new File("target/compatibilitytest_dump/" + testname);
+		FileUtils.deleteDirectory(tmp);
+		FileUtils.copyDirectory(sourceDir, tmp);
+		File target = new File(tmp, protoFile);
+		target.getParentFile().mkdirs();
+		try (Writer writer = new FileWriter(target)) {
+			writer.write(generated);
+		}
 		try {
-			linker.link();
+			WireSchemaLoader.load(Collections.singletonList(tmp.toPath()), Collections.emptyList());
+			return true;
 		} catch (Exception e) {
-			System.out.println("Linking failed, the proto file is not valid" + e);
-			if (dumpIfNotLinkable) {
-				File dumpFolder = new File("target/compatibilitytest_dump");
-				dumpFolder.mkdirs();
-				System.out.println("Dumpfolder: " + dumpFolder.getAbsolutePath());
-				for (ProtoFile protoFile : schema.protoFiles()) {
-					File destFolder = createPackageFolderStructure(new File(dumpFolder, testname), protoFile.packageName());
-					File outputFile = new File(destFolder, protoFile.name().toLowerCase(Locale.ROOT));
-					try (Writer writer = new FileWriter(outputFile)) {
-						writer.write(protoFile.toSchema());
-					}
-				}
-
-			}
+			System.out.println("Linking failed, the proto file is not valid: " + e);
 			return false;
 		}
-
-		return true;
 	}
 
-	private File createPackageFolderStructure(File outputDirectory, String packageName) {
-
-		String folderSubstructure = getPathFromPackageName(packageName);
-		File dstFolder = new File(outputDirectory, folderSubstructure);
-		dstFolder.mkdirs();
-
-		return dstFolder;
-
-	}
-
-	@NotNull
-	private String getPathFromPackageName(String packageName) {
-		return packageName.replace('.', '/');
-	}
-
-	public static <T> Iterable<T> getIterableFromIterator(Iterator<T> iterator) {
-		return new Iterable<T>() {
-
-			@Override
-			public Iterator<T> iterator() {
-				return iterator;
-			}
-		};
+	private static String stripLocationComment(String schema) {
+		int newline = schema.indexOf('\n');
+		if (newline == -1)
+			return schema;
+		String firstLine = schema.substring(0, newline);
+		if (firstLine.startsWith("// Proto schema formatted by Wire") || firstLine.startsWith("// Source:")) {
+			return schema;
+		}
+		// Strip only legacy location comments like "// default.proto at 0:0" or "// /abs/path/file.proto".
+		if (firstLine.startsWith("//") && firstLine.contains(".proto")) {
+			return schema.substring(newline + 1);
+		}
+		return schema;
 	}
 
 }

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package svc;
+
+message Req {
+  string a = 1;
+}
+message Resp {
+  string b = 1;
+}
+service S {
+  rpc DoIt(Req) returns (Resp);
+}

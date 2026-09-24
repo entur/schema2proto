@@ -22,10 +22,13 @@
  */
 package no.entur.schema2proto.modifyproto;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -104,6 +107,107 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		compareExpectedAndGenerated(expected, "disabled.proto", generatedRootFolder, "simple.proto");
 
+	}
+
+	@Test
+	public void testIncludeAndExcludeOverlapWithBaseTypes() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Regression: when followOneMoreLevel adds a base type ("A", referenced by B's xsd.base_type) that is also excluded,
+		// the identifier ends up in both roots and prunes. The vendored IdentifierSet tolerated this (excludes win); stock
+		// wire's PruningRules rejects the overlap. ModifyProto must drop the overlap from the roots rather than fail.
+		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("B");
+		configuration.excludes = Collections.singletonList("A");
+		configuration.includeBaseTypes = true;
+
+		modifyProto(configuration);
+
+		assertTrue(new File(generatedRootFolder, "simple.proto").exists(), "Expected proto to be generated without a roots/prunes overlap failure");
+	}
+
+	@Test
+	public void testExcludedTypeBeatsMoreSpecificIncludedMember() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// The vendored IdentifierSet let an exclude win over an include at any level, while stock wire's PruningRules lets the more precise of the two win.
+		// An excluded type must therefore still prune a member of it that was included by name.
+		File source = new File("src/test/resources/modify/input/withpackagename").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Arrays.asList("package.A", "package.B#lang");
+		configuration.excludes = Collections.singletonList("package.B");
+
+		modifyProto(configuration);
+
+		String generated = Files.readString(new File(generatedRootFolder, "package/simple.proto").toPath());
+		assertTrue(generated.contains("message A"), generated);
+		assertFalse(generated.contains("message B"), generated);
+	}
+
+	@Test
+	public void testExcludedPackageBeatsIncludedTypeInIt() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Same precedence rule one level up: a wildcard exclude covers an included type inside it. With every include excluded nothing is rooted, which is not
+		// the same as the empty include list that means "root everything".
+		File source = new File("src/test/resources/modify/input/withpackagename").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.includes = Collections.singletonList("package.LangType");
+		configuration.excludes = Collections.singletonList("package.*");
+
+		modifyProto(configuration);
+
+		assertFalse(new File(generatedRootFolder, "package/simple.proto").exists(), "Expected nothing to be included, not the whole schema");
+	}
+
+	@Test
+	public void testDuplicateOptionDefinitionAcrossSourceRootsIsDeduplicated() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Regression: the xsd.base_type extension definition (xsd/xsd.proto) is commonly present in more than one source root
+		// (e.g. unpacked proto deps and the input dir). Loading it from each root would define the extension twice, which stock
+		// wire rejects ("multiple fields share tag/name"). The loader must deduplicate protos by path (first root wins).
+		File source = new File("src/test/resources/modify/input/xsdbasetype").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		// A second source root that also contains xsd/xsd.proto (mirrors unpacked proto deps alongside the input dir).
+		configuration.customImportLocations = Collections.singletonList("src/test/resources/modify/dupimport");
+		configuration.includes = Collections.singletonList("B");
+		configuration.includeBaseTypes = true;
+
+		modifyProto(configuration);
+
+		assertTrue(new File(generatedRootFolder, "simple.proto").exists(), "Expected proto to be generated despite duplicate xsd.proto across source roots");
+	}
+
+	@Test
+	public void testServicesAndRpcsArePreserved() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Regression: gRPC service/RPC declarations on existing protos must survive the modify round-trip (the builder model
+		// previously dropped services, producing "missing RPC" protolock conflicts downstream).
+		File expected = new File("src/test/resources/modify/expected/withservice").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/withservice").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "svc.proto", generatedRootFolder, "svc.proto");
+	}
+
+	@Test
+	public void testServiceOnlyFileIsPreserved() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// A file declaring only a service (its messages imported from elsewhere) is not empty and must still be written
+		File expected = new File("src/test/resources/modify/expected/serviceonly").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/serviceonly").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+
+		modifyProto(configuration);
+
+		assertTrue(new File(generatedRootFolder, "svc/service.proto").exists(), "Expected service-only proto to be generated");
+		compareExpectedAndGenerated(expected, "svc/service.proto", generatedRootFolder, "svc/service.proto");
 	}
 
 	@Test
@@ -236,6 +340,27 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void testAddedAggregateFieldOptionKeepsEscaping() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Wire's parser unescapes strings but does not escape them again inside an aggregate option, so "\\d" would be emitted as "\d",
+		// which protoc rejects. The comparator reparses both sides and cannot see the difference, so check the written text.
+		File source = new File("src/test/resources/modify/input/nopackagename").getCanonicalFile();
+
+		FieldOption fieldOption = new FieldOption();
+		fieldOption.targetMessageType = "A";
+		fieldOption.field = "response_timestamp";
+		fieldOption.option = "[(buf.validate.field).string = { pattern: \"^\\\\d+$\" }]";
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.fieldOptions = Collections.singletonList(fieldOption);
+
+		modifyProto(configuration);
+
+		String generated = Files.readString(new File(generatedRootFolder, "simple.proto").toPath());
+		assertTrue(generated.contains("pattern: \"^\\\\d+$\""), "Expected escaping to survive in:\n" + generated);
+	}
+
+	@Test
 	public void testAddEnumValue() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 
 		File expected = new File("src/test/resources/modify/expected/nopackagename").getCanonicalFile();
@@ -303,6 +428,33 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		modifyProto(configuration);
 
 		compareExpectedAndGenerated(expected, "addreservedfield_multiple.proto", generatedRootFolder, "addreservedfield_multiple.proto");
+	}
+
+	@Test
+	public void testAddFieldAllowIfReserved_whenTagIsInsideReservedRange_thenSplitRangeAroundIt()
+			throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		// Taking a tag back from inside a reserved range has to split the range around it; dropping only values equal to the tag leaves the range
+		// covering it, and wire's linker then reports "tag 150 is reserved" when the generated proto is loaded back. ProtoComparator does not compare
+		// reserved declarations, so the surviving halves of the range are asserted on the emitted text directly.
+		File expected = new File("src/test/resources/modify/expected/reserved_range").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/reserved_range").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		newField.fieldNumber = 150;
+		newField.name = "reserved_field";
+		newField.type = "string";
+		newField.allowIfReserved = true;
+
+		configuration.newFields = Collections.singletonList(newField);
+		modifyProto(configuration);
+
+		String generated = java.nio.file.Files.readString(new File(generatedRootFolder, "addreservedfield_range.proto").toPath());
+		assertTrue(generated.contains("reserved 2, 100 to 149, 151 to 199;"), generated);
+
+		compareExpectedAndGenerated(expected, "addreservedfield_range.proto", generatedRootFolder, "addreservedfield_range.proto");
 	}
 
 	@Test

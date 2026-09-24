@@ -38,8 +38,9 @@ See code style [CODESTYLE.md](CODESTYLE.md)
 
 EUPL, see [LICENSE](LICENSE.txt) and https://en.wikipedia.org/wiki/European_Union_Public_Licence
 
-The schema2proto-wire module is a modified copy from https://github.com/square/wire/tree/master/wire-schema that seems
-to have become https://github.com/square/wire/tree/master/wire-library/wire-schema now.
+Proto parsing and schema handling use [Square Wire](https://github.com/square/wire) (`com.squareup.wire:wire-schema-jvm`,
+Apache License 2.0) as a regular dependency. Earlier versions shipped a modified copy of it as the schema2proto-wire
+module, which has been removed.
 
 The schema2proto-xsom module is a modified copy from https://github.com/eclipse-ee4j/jaxb-ri/tree/master/jaxb-ri/xsom,
 see [original LICENSE](schema2proto-xsom/LICENSE.md)
