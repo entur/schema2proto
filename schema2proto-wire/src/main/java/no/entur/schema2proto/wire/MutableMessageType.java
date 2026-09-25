@@ -51,13 +51,13 @@ public class MutableMessageType extends MutableType {
 	private String documentation;
 	private String name;
 	private List<MutableField> declaredFields;
-	private List<MutableOneOf> oneOfs;
-	private List<MutableType> nestedTypes;
+	private final List<MutableOneOf> oneOfs;
+	private final List<MutableType> nestedTypes;
 	// Nested extend declarations and extension ranges are not produced by the XSD-to-proto path; they are carried through unchanged when modifying
 	// existing proto2 messages.
 	private final List<ExtendElement> nestedExtendList;
-	private List<ExtensionsElement> extensionsList;
-	private List<Reserved> reserveds;
+	private final List<ExtensionsElement> extensionsList;
+	private final List<Reserved> reserveds;
 	private final MutableOptions options;
 	/** The element this message was built from, if any. See {@link MutableType#toElement()}. */
 	private MessageElement sourceElement;
@@ -79,20 +79,6 @@ public class MutableMessageType extends MutableType {
 		this.reserveds = new ArrayList<>();
 	}
 
-	/**
-	 * Creates a message with the given members, with the parameters of the vendored wire model's constructor except its extension fields, which this model does
-	 * not represent. As there, the lists are used as is rather than copied, so a caller may populate them after construction.
-	 */
-	public MutableMessageType(ProtoType protoType, Location location, String documentation, String name, List<MutableField> fields, List<MutableOneOf> oneOfs,
-			List<MutableType> nestedTypes, List<ExtensionsElement> extensionsList, List<Reserved> reserveds, MutableOptions options) {
-		this(protoType, location, documentation, name, options);
-		this.declaredFields = fields;
-		this.oneOfs = oneOfs;
-		this.nestedTypes = nestedTypes;
-		this.extensionsList = extensionsList;
-		this.reserveds = reserveds;
-	}
-
 	public boolean isWrapperMessageType() {
 		return wrapperMessageType;
 	}
@@ -110,11 +96,6 @@ public class MutableMessageType extends MutableType {
 	}
 
 	public List<ExtensionsElement> getExtensionsList() {
-		return extensionsList;
-	}
-
-	/** Alias of {@link #getExtensionsList()}, named as in the vendored wire model. */
-	public List<ExtensionsElement> extensions() {
 		return extensionsList;
 	}
 

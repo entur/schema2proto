@@ -57,11 +57,6 @@ public record MutableOptions(ProtoType optionType, List<OptionElement> optionEle
 		optionElements.add(element);
 	}
 
-	/** The live, modifiable list of option elements. Alias of {@link #optionElements()}, named as in the vendored wire model. */
-	public List<OptionElement> getOptionElements() {
-		return optionElements;
-	}
-
 	/** A detached copy of the accumulated options, safe to hand to an immutable element. */
 	public List<OptionElement> toElements() {
 		return new ArrayList<>(optionElements);

@@ -121,13 +121,6 @@ public final class WireSchemaLoader {
 	}
 
 	/**
-	 * Loads as {@link #load(List, List)}, into the mutable model with resolved field types.
-	 */
-	public static MutableSchema loadMutable(List<Path> sources, List<String> protos) throws IOException {
-		return MutableSchema.from(load(sources, protos));
-	}
-
-	/**
 	 * Normalizes a proto path to the slash-separated form used by the index and by the wire {@link Location}s built from it. The vendored loader resolved named
 	 * protos with {@code Path.resolve}, so a Windows caller could name a proto {@code a\b.proto}; callers that look a loaded file up again (e.g.
 	 * {@code Schema.protoFile}) must use this same form.

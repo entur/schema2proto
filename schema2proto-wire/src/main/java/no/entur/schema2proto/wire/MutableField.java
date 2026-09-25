@@ -24,7 +24,6 @@ package no.entur.schema2proto.wire;
 
 import com.squareup.wire.schema.Field.Label;
 import com.squareup.wire.schema.Location;
-import com.squareup.wire.schema.ProtoType;
 import com.squareup.wire.schema.internal.parser.FieldElement;
 
 /**
@@ -32,9 +31,7 @@ import com.squareup.wire.schema.internal.parser.FieldElement;
  *
  * <p>
  * {@code packageName} is schema2proto's transient notion of the proto package of the field's referenced type (used to compute imports); it is folded into
- * {@code elementType} before serialization. Wire's own {@code FieldElement} carries no such concept, so it is not emitted. For a field loaded through
- * {@link MutableSchema} it is instead the package of the file declaring the field, as in wire's {@link com.squareup.wire.schema.Field#getPackageName()} and the
- * vendored wire model.
+ * {@code elementType} before serialization. Wire's own {@code FieldElement} carries no such concept, so it is not emitted.
  */
 public class MutableField {
 
@@ -56,9 +53,6 @@ public class MutableField {
 
 	/** The element this field was built from, if any. See {@link MutableType#toElement()}. */
 	private FieldElement sourceElement;
-
-	/** The field's type as resolved by the linker, when built from a linked schema. See {@link #type()}. */
-	private ProtoType type;
 
 	public MutableField(String packageName, Location location, Label label, String name, String documentation, int tag, String elementType,
 			MutableOptions options, boolean fromElement) {
@@ -94,34 +88,6 @@ public class MutableField {
 
 	public void updateElementType(String newFieldType) {
 		this.elementType = newFieldType;
-		// The resolved type described the previous element type
-		this.type = null;
-	}
-
-	/**
-	 * The fully qualified type of this field as resolved by wire's linker, e.g. {@code foo.bar.Baz} for a field declared as {@code Baz}, or a scalar type such
-	 * as {@code string}.
-	 *
-	 * @return the resolved type, or null when this field was not loaded through {@link MutableSchema}, or its element type has been changed since
-	 */
-	public ProtoType type() {
-		return type;
-	}
-
-	void setType(ProtoType type) {
-		this.type = type;
-	}
-
-	public String getDefault() {
-		return defaultValue;
-	}
-
-	public boolean isRepeated() {
-		return label == Label.REPEATED;
-	}
-
-	public boolean isRequired() {
-		return label == Label.REQUIRED;
 	}
 
 	public int tag() {
