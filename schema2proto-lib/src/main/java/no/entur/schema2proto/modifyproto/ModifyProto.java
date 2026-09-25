@@ -242,7 +242,6 @@ public class ModifyProto {
 		}
 
 		Set<Boolean> possibleIncompatibilitiesDetected = new HashSet<>();
-		List<FieldConflictChecker.FieldRenumbering> fieldRenumberings = new ArrayList<>();
 
 		if (configuration.protoLockFile != null) {
 			try {
@@ -251,7 +250,11 @@ public class ModifyProto {
 				for (MutableProtoFile file : builderFiles) {
 					possibleIncompatibilitiesDetected.add(backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file));
 				}
-				fieldRenumberings.addAll(backwardsCompatibilityChecker.getFieldRenumberings());
+				// Fail before writing anything, so a rejected renumbering never reaches the output directory
+				if (configuration.failIfFieldsRenumbered && !backwardsCompatibilityChecker.getFieldRenumberings().isEmpty()) {
+					throw new BackwardsCompatibilityCheckException(
+							FieldConflictChecker.describeFieldRenumberings(backwardsCompatibilityChecker.getFieldRenumberings()));
+				}
 			} catch (FileNotFoundException e) {
 				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
 			}
@@ -281,10 +284,6 @@ public class ModifyProto {
 			LOGGER.info("Wrote file {}", outputFile.getPath());
 
 		});
-
-		if (configuration.failIfFieldsRenumbered && !fieldRenumberings.isEmpty()) {
-			throw new BackwardsCompatibilityCheckException(FieldConflictChecker.describeFieldRenumberings(fieldRenumberings));
-		}
 
 		if (configuration.failIfRemovedFields && possibleIncompatibilitiesDetected.contains(Boolean.TRUE)) {
 			throw new BackwardsCompatibilityCheckException(

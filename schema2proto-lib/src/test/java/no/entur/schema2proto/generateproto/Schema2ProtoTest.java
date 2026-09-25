@@ -22,6 +22,7 @@
  */
 package no.entur.schema2proto.generateproto;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -83,6 +84,7 @@ public class Schema2ProtoTest extends AbstractMappingTest {
 		BackwardsCompatibilityCheckException e = assertThrows(BackwardsCompatibilityCheckException.class,
 				() -> generateProtobuf("backwards-compatibility.xsd", configuration));
 		assertTrue(e.getMessage().contains("ElementList#second declared as 2"), e.getMessage());
+		assertFalse(new File(generatedRootFolder, "default/default.proto").exists(), "no output should be written when the build fails");
 	}
 
 	@Test
@@ -90,6 +92,7 @@ public class Schema2ProtoTest extends AbstractMappingTest {
 		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
 		configuration.protoLockFile = new File("src/test/resources/protolock/renumbered/proto.lock");
 		generateProtobuf("backwards-compatibility.xsd", configuration);
+		assertTrue(new File(generatedRootFolder, "default/default.proto").exists());
 	}
 
 	@Test

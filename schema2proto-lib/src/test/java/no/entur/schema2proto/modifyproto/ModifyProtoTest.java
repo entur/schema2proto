@@ -60,6 +60,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 
 		BackwardsCompatibilityCheckException e = assertThrows(BackwardsCompatibilityCheckException.class, () -> modifyProto(configuration));
 		assertTrue(e.getMessage().contains("ElementList#injected_field1 declared as 2"), e.getMessage());
+		assertFalse(new File(generatedRootFolder, "default/default.proto").exists(), "no output should be written when the build fails");
 	}
 
 	@Test
@@ -68,6 +69,7 @@ public class ModifyProtoTest extends AbstractMappingTest {
 		configuration.inputDirectory = new File("src/test/resources/protolock/injectedfield/source").getCanonicalFile();
 		configuration.protoLockFile = new File("src/test/resources/protolock/injectedfield/source/proto.lock");
 		modifyProto(configuration);
+		assertTrue(new File(generatedRootFolder, "default/default.proto").exists());
 	}
 
 	@Test

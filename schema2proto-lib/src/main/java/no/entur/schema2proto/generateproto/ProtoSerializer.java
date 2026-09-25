@@ -197,6 +197,12 @@ public class ProtoSerializer {
 		boolean possibleIncompatibilitiesDetected = false;
 		if (configuration.protoLockFile != null) {
 			possibleIncompatibilitiesDetected = resolveBackwardIncompatibilities(packageToProtoFileMap);
+
+			// Fail before writing anything, so a rejected renumbering never reaches the output directory
+			if (configuration.failIfFieldsRenumbered && !backwardsCompatibilityChecker.getFieldRenumberings().isEmpty()) {
+				throw new BackwardsCompatibilityCheckException(
+						FieldConflictChecker.describeFieldRenumberings(backwardsCompatibilityChecker.getFieldRenumberings()));
+			}
 		}
 
 		// Sort fields by tag/id
@@ -241,11 +247,6 @@ public class ProtoSerializer {
 
 		// Parse and verify written proto files
 		parseWrittenFiles();
-
-		if (configuration.failIfFieldsRenumbered && !backwardsCompatibilityChecker.getFieldRenumberings().isEmpty()) {
-			throw new BackwardsCompatibilityCheckException(
-					FieldConflictChecker.describeFieldRenumberings(backwardsCompatibilityChecker.getFieldRenumberings()));
-		}
 
 		if (possibleIncompatibilitiesDetected && configuration.failIfRemovedFields) {
 			throw new BackwardsCompatibilityCheckException(
