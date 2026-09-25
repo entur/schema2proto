@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import no.entur.schema2proto.AbstractMappingTest;
 import no.entur.schema2proto.InvalidConfigurationException;
+import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
 import no.entur.schema2proto.modifyproto.config.ModifyField;
@@ -46,6 +47,28 @@ import no.entur.schema2proto.modifyproto.config.NewEnumConstant;
 import no.entur.schema2proto.modifyproto.config.NewField;
 
 public class ModifyProtoTest extends AbstractMappingTest {
+
+	/**
+	 * proto.lock gives number 2 to "second", so "injected_field1" (declared as 2 and unknown to proto.lock) has to be given a new number.
+	 */
+	@Test
+	public void testFailIfFieldsRenumberedFailsTheBuild() throws IOException {
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = new File("src/test/resources/protolock/injectedfield/source").getCanonicalFile();
+		configuration.protoLockFile = new File("src/test/resources/protolock/injectedfield/source/proto.lock");
+		configuration.failIfFieldsRenumbered = true;
+
+		BackwardsCompatibilityCheckException e = assertThrows(BackwardsCompatibilityCheckException.class, () -> modifyProto(configuration));
+		assertTrue(e.getMessage().contains("ElementList#injected_field1 declared as 2"), e.getMessage());
+	}
+
+	@Test
+	public void testFieldsAreRenumberedByDefault() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = new File("src/test/resources/protolock/injectedfield/source").getCanonicalFile();
+		configuration.protoLockFile = new File("src/test/resources/protolock/injectedfield/source/proto.lock");
+		modifyProto(configuration);
+	}
 
 	@Test
 	public void testRemoveIndependentMessageType() throws IOException, InvalidProtobufException, InvalidConfigurationException {

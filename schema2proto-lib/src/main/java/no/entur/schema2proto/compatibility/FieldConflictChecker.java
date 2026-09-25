@@ -100,7 +100,7 @@ public class FieldConflictChecker {
 		}
 		sb.append("Each of these is wire-incompatible with the input: the same field name now has a different number.\n")
 				.append("If a field was added on purpose, give it a free number instead of one already in use.\n")
-				.append("To accept the renumbering, rerun with -DfailIfFieldsRenumbered=false or set failIfFieldsRenumbered: false in the config file.");
+				.append("To accept the renumbering, set failIfFieldsRenumbered: false in the config file, or rerun with -DfailIfFieldsRenumbered=false (Maven plugin) or --failIfFieldsRenumbered false (standalone).");
 		return sb.toString();
 	}
 
