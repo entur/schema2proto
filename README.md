@@ -40,7 +40,8 @@ EUPL, see [LICENSE](LICENSE.txt) and https://en.wikipedia.org/wiki/European_Unio
 
 Proto parsing and schema handling use [Square Wire](https://github.com/square/wire) (`com.squareup.wire:wire-schema-jvm`,
 Apache License 2.0) as a regular dependency. Earlier versions shipped a modified copy of it as the schema2proto-wire
-module, which has been removed.
+module. That module now instead holds a mutable, linked proto model on top of stock wire (`no.entur.schema2proto.wire`),
+with `MutableSchemaLoader` / `MutableSchema` for loading, navigating by resolved type, modifying and serializing proto files.
 
 The schema2proto-xsom module is a modified copy from https://github.com/eclipse-ee4j/jaxb-ri/tree/master/jaxb-ri/xsom,
 see [original LICENSE](schema2proto-xsom/LICENSE.md)

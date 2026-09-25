@@ -41,7 +41,7 @@ public class MutableProtoFile {
 	private final List<String> publicImports = new ArrayList<>();
 	private final List<String> weakImports = new ArrayList<>();
 	private final String packageName;
-	private final List<MutableType> types = new ArrayList<>();
+	private final List<MutableType> types;
 	// Weak imports, extends and services are not produced by the XSD-to-proto path; they are carried through unchanged when modifying existing protos.
 	private final List<ExtendElement> extendList = new ArrayList<>();
 	private final List<ServiceElement> services = new ArrayList<>();
@@ -52,10 +52,30 @@ public class MutableProtoFile {
 	private ProtoFileElement sourceElement;
 
 	public MutableProtoFile(Syntax syntax, String packageName) {
-		this.syntax = syntax;
+		this(Location.get("", ""), new ArrayList<>(), new ArrayList<>(), packageName, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(),
+				new MutableOptions(MutableOptions.FILE_OPTIONS, new ArrayList<>()), syntax);
+	}
+
+	/**
+	 * Creates a file with the given contents, with the parameters of the vendored wire model's constructor. As there, the types list is used as is rather than
+	 * copied, so a caller may populate it after construction.
+	 */
+	public MutableProtoFile(Location location, List<String> imports, List<String> publicImports, String packageName, List<MutableType> types,
+			List<ServiceElement> services, List<ExtendElement> extendList, MutableOptions options, Syntax syntax) {
+		this.location = location;
+		this.imports.addAll(imports);
+		this.publicImports.addAll(publicImports);
 		this.packageName = packageName;
-		this.location = Location.get("", "");
-		this.options = new MutableOptions(MutableOptions.FILE_OPTIONS, new ArrayList<>());
+		this.types = types;
+		this.services.addAll(services);
+		this.extendList.addAll(extendList);
+		this.options = options;
+		this.syntax = syntax;
+	}
+
+	/** Null when the file declares no syntax. */
+	public Syntax getSyntax() {
+		return syntax;
 	}
 
 	public List<MutableType> types() {
