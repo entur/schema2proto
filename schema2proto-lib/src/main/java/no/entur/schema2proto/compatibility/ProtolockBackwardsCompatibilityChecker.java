@@ -66,6 +66,14 @@ public class ProtolockBackwardsCompatibilityChecker {
 		return definitions;
 	}
 
+	/**
+	 * Fields that were given a new number because the number they were declared with was already taken or reserved in proto.lock. Each of these silently breaks
+	 * wire compatibility with the input, see {@link FieldConflictChecker.FieldRenumbering}.
+	 */
+	public java.util.List<FieldConflictChecker.FieldRenumbering> getFieldRenumberings() {
+		return fieldConflictChecker.getFieldRenumberings();
+	}
+
 	private void copyReservations(ProtolockMessage protolockMessage, MutableMessageType protoMessage) {
 		if (protolockMessage.getReservedIds() != null && protolockMessage.getReservedIds().length > 0) {
 			Arrays.stream(protolockMessage.getReservedIds()).forEach(reservedId -> protoMessage.addReserved(reservationDoc, reservationLocation, reservedId));

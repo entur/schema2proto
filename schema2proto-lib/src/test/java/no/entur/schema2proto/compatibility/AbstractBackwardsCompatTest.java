@@ -49,7 +49,7 @@ public abstract class AbstractBackwardsCompatTest {
 	private static final String sourceFolder = "source";
 	private static final String expectedFolder = "expected";
 
-	protected void verify(String testname, boolean failOnRemovedFields, String protoFile) throws IOException {
+	protected ProtolockBackwardsCompatibilityChecker verify(String testname, boolean failOnRemovedFields, String protoFile) throws IOException {
 		ProtolockBackwardsCompatibilityChecker checker = new ProtolockBackwardsCompatibilityChecker();
 		File sourceDir = new File(testdataBaseDirectory + "/" + testname + "/" + sourceFolder);
 		checker.init(new File(sourceDir, lockFile));
@@ -75,6 +75,8 @@ public abstract class AbstractBackwardsCompatTest {
 		if (failOnRemovedFields) {
 			assertFalse(backwardsIncompatibiltyDetected);
 		}
+
+		return checker;
 	}
 
 	private Schema loadSchema(File path) throws IOException {

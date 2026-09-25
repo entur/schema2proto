@@ -25,9 +25,11 @@ package no.entur.schema2proto.compatibility;
 
 import static no.entur.schema2proto.compatibility.ConflictResolverHelper.createBiMap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -53,6 +55,54 @@ public class FieldConflictChecker {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(FieldConflictChecker.class);
 	private boolean failIfRemovedFieldsTriggered;
+	private final List<FieldRenumbering> fieldRenumberings = new ArrayList<>();
+
+	/**
+	 * A field that could not keep the number it was declared with, because that number was already taken (or reserved) in proto.lock by something else, and the
+	 * field itself is not known to proto.lock under its own name. The field is therefore given a brand new number, which makes it wire-incompatible with
+	 * whatever the input declared.
+	 */
+	public static class FieldRenumbering {
+		public final String file;
+		public final String message;
+		public final String field;
+		public final int declaredTag;
+		public final int assignedTag;
+		public final String reason;
+
+		FieldRenumbering(String file, String message, String field, int declaredTag, int assignedTag, String reason) {
+			this.file = file;
+			this.message = message;
+			this.field = field;
+			this.declaredTag = declaredTag;
+			this.assignedTag = assignedTag;
+			this.reason = reason;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%s: %s#%s declared as %d but assigned %d (%s)", file, message, field, declaredTag, assignedTag, reason);
+		}
+	}
+
+	/** Renumberings performed so far, in the order they happened. */
+	public List<FieldRenumbering> getFieldRenumberings() {
+		return Collections.unmodifiableList(fieldRenumberings);
+	}
+
+	/** Build the message shown when failIfFieldsRenumbered is enabled and renumberings were performed. */
+	public static String describeFieldRenumberings(List<FieldRenumbering> renumberings) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(renumberings.size())
+				.append(" field(s) could not keep the number they were declared with, because proto.lock already uses that number for something else:\n");
+		for (FieldRenumbering renumbering : renumberings) {
+			sb.append("  ").append(renumbering).append('\n');
+		}
+		sb.append("Each of these is wire-incompatible with the input: the same field name now has a different number.\n")
+				.append("If a field was added on purpose, give it a free number instead of one already in use.\n")
+				.append("To accept the renumbering, set failIfFieldsRenumbered: false in the config file, or rerun with -DfailIfFieldsRenumbered=false (Maven plugin) or --failIfFieldsRenumbered false (standalone).");
+		return sb.toString();
+	}
 
 	public boolean tryResolveFieldConflicts(MutableProtoFile file, MutableMessageType protoMessage, ProtolockMessage protolockMessage) {
 
@@ -82,7 +132,12 @@ public class FieldConflictChecker {
 
 						Integer originalIdForField = lockFieldsInLockMapNameToId.get(protoMessageFieldAsLockField.getName());
 						if (originalIdForField == null) {
+							// proto.lock has no number for this field name, so it cannot keep the number it was
+							// declared with either -- something else owns it. Allocating a new number here silently
+							// makes the field wire-incompatible with the input, so record it for reporting.
 							originalIdForField = findNextAvailableFieldNum(protoMessage, protoMessageFieldAsLockFields, lockFileFields).get();
+							recordRenumbering(file, protoMessage, protolockMessage, protoMessageFieldAsLockField, originalIdForField,
+									lockFieldsInLockMapIdToName);
 						}
 						Optional<MutableField> intrudingField = getField(protoMessage, protoMessageFieldAsLockField.getName());
 						intrudingField.get().updateTag(originalIdForField);
@@ -187,6 +242,25 @@ public class FieldConflictChecker {
 			nextAvailableFieldNum.incrementAndGet();
 		}
 		return nextAvailableFieldNum;
+	}
+
+	private void recordRenumbering(MutableProtoFile file, MutableMessageType protoMessage, ProtolockMessage protolockMessage, ProtolockField declaredField,
+			int assignedTag, Map<Integer, String> lockFieldsInLockMapIdToName) {
+
+		String owner = lockFieldsInLockMapIdToName.get(declaredField.getId());
+		String reason;
+		if (owner != null) {
+			reason = String.format("%d is used by '%s' in proto.lock", declaredField.getId(), owner);
+		} else if (protolockMessage.getReservedIds() != null && Arrays.stream(protolockMessage.getReservedIds()).anyMatch(e -> e == declaredField.getId())) {
+			reason = String.format("%d is reserved in proto.lock", declaredField.getId());
+		} else {
+			reason = String.format("%d is not available", declaredField.getId());
+		}
+
+		FieldRenumbering renumbering = new FieldRenumbering(file.location().getPath(), protoMessage.getName(), declaredField.getName(), declaredField.getId(),
+				assignedTag, reason);
+		fieldRenumberings.add(renumbering);
+		LOGGER.warn("Field renumbered, this breaks wire compatibility with the input: {}", renumbering);
 	}
 
 	private boolean isReserved(ProtolockMessage protolockMessage, ProtolockField field) {

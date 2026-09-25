@@ -22,6 +22,10 @@
  */
 package no.entur.schema2proto.generateproto;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -35,6 +39,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import no.entur.schema2proto.AbstractMappingTest;
+import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
 
 public class Schema2ProtoTest extends AbstractMappingTest {
 
@@ -65,6 +70,29 @@ public class Schema2ProtoTest extends AbstractMappingTest {
 		configuration.protoLockFile = new File("src/test/resources/protolock/proto.lock");
 		generateProtobuf("backwards-compatibility.xsd", configuration);
 		compareExpectedAndGenerated(expectedRootFolder, "default/backwards-compatibility.proto", generatedRootFolder, "default/default.proto");
+	}
+
+	/**
+	 * proto.lock gives number 2 to "third", so "second" (declared as 2 and unknown to proto.lock) has to be given a new number.
+	 */
+	@Test
+	public void failIfFieldsRenumberedFailsTheBuild() {
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.protoLockFile = new File("src/test/resources/protolock/renumbered/proto.lock");
+		configuration.failIfFieldsRenumbered = true;
+
+		BackwardsCompatibilityCheckException e = assertThrows(BackwardsCompatibilityCheckException.class,
+				() -> generateProtobuf("backwards-compatibility.xsd", configuration));
+		assertTrue(e.getMessage().contains("ElementList#second declared as 2"), e.getMessage());
+		assertFalse(new File(generatedRootFolder, "default/default.proto").exists(), "no output should be written when the build fails");
+	}
+
+	@Test
+	public void fieldsAreRenumberedByDefault() throws IOException {
+		Schema2ProtoConfiguration configuration = new Schema2ProtoConfiguration();
+		configuration.protoLockFile = new File("src/test/resources/protolock/renumbered/proto.lock");
+		generateProtobuf("backwards-compatibility.xsd", configuration);
+		assertTrue(new File(generatedRootFolder, "default/default.proto").exists());
 	}
 
 	@Test

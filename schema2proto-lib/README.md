@@ -18,6 +18,9 @@ Generate proto files from xsd file. Either --configFile or --outputDirectory mus
                                                                                     ance.html
     --failIfRemovedFields <true|false>                                              when using backwards compatibility check via proto.lock
                                                                                     file, fail if proto fields are removed
+    --failIfFieldsRenumbered <true|false>                                           when using backwards compatibility check via proto.lock
+                                                                                    file, fail if fields had to be given a new number due to a
+                                                                                    conflict
     --forceProtoPackage <NAME>                                                      force all types in this package
     --ignoreOutputFields <packageName1/messageName1/fieldName1, packageName2/...>   output field names to ignore
     --includeFieldDocs <true|false>                                                 include documentation for fields in output, defaults to

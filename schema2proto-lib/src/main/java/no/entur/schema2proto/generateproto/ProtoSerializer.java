@@ -70,6 +70,7 @@ import com.sun.xml.xsom.XSComponent;
 
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
+import no.entur.schema2proto.compatibility.FieldConflictChecker;
 import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
 import no.entur.schema2proto.wire.MutableEnumConstant;
 import no.entur.schema2proto.wire.MutableEnumType;
@@ -196,6 +197,12 @@ public class ProtoSerializer {
 		boolean possibleIncompatibilitiesDetected = false;
 		if (configuration.protoLockFile != null) {
 			possibleIncompatibilitiesDetected = resolveBackwardIncompatibilities(packageToProtoFileMap);
+
+			// Fail before writing anything, so a rejected renumbering never reaches the output directory
+			if (configuration.failIfFieldsRenumbered && !backwardsCompatibilityChecker.getFieldRenumberings().isEmpty()) {
+				throw new BackwardsCompatibilityCheckException(
+						FieldConflictChecker.describeFieldRenumberings(backwardsCompatibilityChecker.getFieldRenumberings()));
+			}
 		}
 
 		// Sort fields by tag/id

@@ -55,6 +55,12 @@ public class ModifyProtoMojo extends AbstractMojo {
 	@Parameter(property = "failIfRemovedFields")
 	private Boolean failIfRemovedFields;
 
+	/**
+	 * Fail if a field had to be given a new number because the number it was declared with was already taken in proto.lock
+	 */
+	@Parameter(property = "failIfFieldsRenumbered")
+	private Boolean failIfFieldsRenumbered;
+
 	public void execute() throws MojoExecutionException {
 
 		if (configFile == null || !configFile.exists()) {
@@ -69,6 +75,11 @@ public class ModifyProtoMojo extends AbstractMojo {
 			// Override based on maven parameter -DfailIfRemovedFields
 			if (failIfRemovedFields != null) {
 				configuration.failIfRemovedFields = failIfRemovedFields;
+			}
+
+			// Override based on maven parameter -DfailIfFieldsRenumbered
+			if (failIfFieldsRenumbered != null) {
+				configuration.failIfFieldsRenumbered = failIfFieldsRenumbered;
 			}
 
 			new ModifyProto().modifyProto(configuration);

@@ -66,6 +66,7 @@ import com.squareup.wire.schema.internal.parser.SyntaxReader;
 
 import no.entur.schema2proto.InvalidConfigurationException;
 import no.entur.schema2proto.compatibility.BackwardsCompatibilityCheckException;
+import no.entur.schema2proto.compatibility.FieldConflictChecker;
 import no.entur.schema2proto.compatibility.ProtolockBackwardsCompatibilityChecker;
 import no.entur.schema2proto.modifyproto.config.FieldOption;
 import no.entur.schema2proto.modifyproto.config.MergeFrom;
@@ -157,6 +158,7 @@ public class ModifyProto {
 			}
 
 			configuration.failIfRemovedFields = config.failIfRemovedFields;
+			configuration.failIfFieldsRenumbered = config.failIfFieldsRenumbered;
 
 			if (config.customImportLocations != null) {
 				configuration.customImportLocations = new ArrayList<>(
@@ -247,6 +249,11 @@ public class ModifyProto {
 				backwardsCompatibilityChecker.init(configuration.protoLockFile);
 				for (MutableProtoFile file : builderFiles) {
 					possibleIncompatibilitiesDetected.add(backwardsCompatibilityChecker.resolveBackwardIncompatibilities(file));
+				}
+				// Fail before writing anything, so a rejected renumbering never reaches the output directory
+				if (configuration.failIfFieldsRenumbered && !backwardsCompatibilityChecker.getFieldRenumberings().isEmpty()) {
+					throw new BackwardsCompatibilityCheckException(
+							FieldConflictChecker.describeFieldRenumberings(backwardsCompatibilityChecker.getFieldRenumberings()));
 				}
 			} catch (FileNotFoundException e) {
 				throw new InvalidConfigurationException("Could not find proto.lock file, check configuration");
