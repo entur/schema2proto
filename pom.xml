@@ -12,6 +12,7 @@
         <module>schema2proto-maven-plugin</module>
         <module>schema2proto-xsdproto</module>
         <module>schema2proto-xsom</module>
+        <module>schema2proto-wire</module>
     </modules>
     <properties>
         <assertj.version>3.27.7</assertj.version>
@@ -62,6 +63,11 @@
                 <groupId>${project.groupId}</groupId>
                 <artifactId>schema2proto-xsom</artifactId>
                 <version>${project.parent.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>schema2proto-wire</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.api.grpc</groupId>
