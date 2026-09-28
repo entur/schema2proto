@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:simpleType name="UnionEnumeration">
+        <xsd:union memberTypes="Enum1 Enum2"/>
+    </xsd:simpleType>
+
+    <!-- Nested union, member inheriting its values from another enum, and values present in more than one member -->
+    <xsd:simpleType name="NestedUnionEnumeration">
+        <xsd:union memberTypes="UnionEnumeration Enum3 Enum4"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Enum1">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="e1val1"/>
+            <xsd:enumeration value="e1val2"/>
+            <xsd:enumeration value="shared"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Enum2">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="e2val1"/>
+            <xsd:enumeration value="e2val2"/>
+            <xsd:enumeration value="shared"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Enum3">
+        <xsd:restriction base="Enum5"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Enum5">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="e5val1"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Enum4">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="e4val1"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="UnionEnumerationList">
+        <xsd:list itemType="UnionEnumeration"/>
+    </xsd:simpleType>
+
+    <xsd:complexType name="UnionValue">
+        <xsd:simpleContent>
+            <xsd:extension base="UnionEnumeration">
+                <xsd:attribute name="nested" type="NestedUnionEnumeration"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="UnionHolder">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Single" type="UnionEnumeration" minOccurs="0"/>
+                <xsd:element name="Several" type="UnionEnumerationList" minOccurs="0"/>
+                <xsd:element name="WithAttribute" type="UnionValue" minOccurs="0"/>
+            </xsd:sequence>
+            <xsd:attribute name="attributeUnion" type="UnionEnumeration"/>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>

@@ -1,0 +1,74 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+enum Enum1 {
+  // Default
+  ENUM1_UNSPECIFIED = 0;
+  ENUM1_E_1_VAL_1 = 1;
+  ENUM1_E_1_VAL_2 = 2;
+  ENUM1_SHARED = 3;
+}
+
+enum Enum2 {
+  // Default
+  ENUM2_UNSPECIFIED = 0;
+  ENUM2_E_2_VAL_1 = 1;
+  ENUM2_E_2_VAL_2 = 2;
+  ENUM2_SHARED = 3;
+}
+
+enum Enum3 {
+  // Default
+  ENUM3_UNSPECIFIED = 0;
+}
+
+enum Enum4 {
+  // Default
+  ENUM4_UNSPECIFIED = 0;
+  ENUM4_E_4_VAL_1 = 1;
+}
+
+enum Enum5 {
+  // Default
+  ENUM5_UNSPECIFIED = 0;
+  ENUM5_E_5_VAL_1 = 1;
+}
+
+enum NestedUnionEnumeration {
+  // Default
+  NESTED_UNION_ENUMERATION_UNSPECIFIED = 0;
+  NESTED_UNION_ENUMERATION_E_1_VAL_1 = 1;
+  NESTED_UNION_ENUMERATION_E_1_VAL_2 = 2;
+  NESTED_UNION_ENUMERATION_SHARED = 3;
+  NESTED_UNION_ENUMERATION_E_2_VAL_1 = 4;
+  NESTED_UNION_ENUMERATION_E_2_VAL_2 = 5;
+  NESTED_UNION_ENUMERATION_E_5_VAL_1 = 6;
+  NESTED_UNION_ENUMERATION_E_4_VAL_1 = 7;
+}
+
+enum UnionEnumeration {
+  // Default
+  UNION_ENUMERATION_UNSPECIFIED = 0;
+  UNION_ENUMERATION_E_1_VAL_1 = 1;
+  UNION_ENUMERATION_E_1_VAL_2 = 2;
+  UNION_ENUMERATION_SHARED = 3;
+  UNION_ENUMERATION_E_2_VAL_1 = 4;
+  UNION_ENUMERATION_E_2_VAL_2 = 5;
+}
+
+message UnionHolderType {
+  UnionEnumeration attribute_union = 1;
+
+  UnionEnumeration single = 2;
+
+  repeated UnionEnumeration several = 3 [packed = true];
+
+  UnionValue with_attribute = 4;
+}
+
+message UnionValue {
+  NestedUnionEnumeration nested = 1;
+
+  UnionEnumeration value = 2;
+}

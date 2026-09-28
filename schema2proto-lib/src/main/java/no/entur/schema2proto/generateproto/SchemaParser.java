@@ -76,6 +76,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.XSUnionSimpleType;
 import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
@@ -247,10 +248,69 @@ public class SchemaParser implements ErrorHandler {
 		} else if (xs.isList()) {
 			nestingLevel--;
 			return processSimpleType(xs.asList().getItemType(), null);
+		} else if (isEnumUnion(xs)) {
+			createEnumFromUnion(typeName, xs.asUnion());
 		}
 
 		nestingLevel--;
 		return typeName;
+	}
+
+	/**
+	 * A union is treated as an enum if all its members are enums (restrictions with enumeration facets, or unions of such).
+	 */
+	private boolean isEnumUnion(XSSimpleType xs) {
+		if (!xs.isUnion()) {
+			return false;
+		}
+		XSUnionSimpleType unionType = xs.asUnion();
+		for (int i = 0; i < unionType.getMemberSize(); i++) {
+			XSSimpleType member = unionType.getMember(i);
+			boolean memberIsEnum = (member.isRestriction() && member.getFacet(XSFacet.FACET_ENUMERATION) != null) || isEnumUnion(member);
+			if (!memberIsEnum) {
+				return false;
+			}
+		}
+		return unionType.getMemberSize() > 0;
+	}
+
+	/**
+	 * Create an enum with the enumeration values of all members of the union, in member order and without duplicates.
+	 */
+	private String createEnumFromUnion(String typeName, XSUnionSimpleType unionType) {
+		MutableType protoType = getType(unionType.getTargetNamespace(), typeName);
+		if (protoType == null) {
+			Location location = getLocation(unionType);
+			List<MutableEnumConstant> constants = new ArrayList<>();
+			Set<String> addedValues = new HashSet<>();
+			addUnionEnumConstants(unionType, location, constants, addedValues);
+
+			MutableOptions enumOptions = new MutableOptions(MutableOptions.ENUM_OPTIONS, new ArrayList<>());
+			String doc = resolveDocumentationAnnotation(unionType, false);
+
+			MutableEnumType enumType = new MutableEnumType(ProtoType.get(typeName), location, doc, typeName, constants, new ArrayList<>(), enumOptions);
+			addType(unionType.getTargetNamespace(), enumType);
+		}
+		return typeName;
+	}
+
+	private void addUnionEnumConstants(XSUnionSimpleType unionType, Location location, List<MutableEnumConstant> constants, Set<String> addedValues) {
+		for (int i = 0; i < unionType.getMemberSize(); i++) {
+			XSSimpleType member = unionType.getMember(i);
+			if (member.isUnion()) {
+				addUnionEnumConstants(member.asUnion(), location, constants, addedValues);
+			} else {
+				// getFacets includes facets inherited from the base type if the member declares none itself
+				for (XSFacet facet : member.getFacets(XSFacet.FACET_ENUMERATION)) {
+					String enumValue = facet.getValue().value;
+					if (addedValues.add(enumValue)) {
+						String doc = resolveDocumentationAnnotation(facet, false);
+						constants.add(new MutableEnumConstant(location, enumValue, constants.size() + 1, doc,
+								new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, new ArrayList<>())));
+					}
+				}
+			}
+		}
 	}
 
 	private void addField(MutableMessageType message, MutableField newField) {
@@ -505,7 +565,7 @@ public class SchemaParser implements ErrorHandler {
 				XSSimpleType itemType = asList.getItemType();
 				typeName = itemType.getName();
 			} else if (type.asSimpleType().isUnion()) {
-				typeName = DEFAULT_PROTO_PRIMITIVE; // Union always resolves to string
+				typeName = DEFAULT_PROTO_PRIMITIVE; // Anonymous union always resolves to string
 			} else {
 				typeName = type.asSimpleType().getBaseType().getName();
 			}
@@ -513,6 +573,8 @@ public class SchemaParser implements ErrorHandler {
 		} else {
 			if (type.isSimpleType() && type.asSimpleType().isList()) {
 				typeName = processSimpleType(type.asSimpleType().getBaseListType(), null);
+			} else if (type.isSimpleType() && isEnumUnion(type.asSimpleType())) {
+				typeName = createEnumFromUnion(typeName, type.asSimpleType().asUnion());
 			} else if (!basicTypes.contains(typeName)) {
 				typeName = type.asSimpleType().getBaseType().getName();
 			}
@@ -714,7 +776,8 @@ public class SchemaParser implements ErrorHandler {
 
 				String name;
 				if (xsSimpleType.isUnion()) {
-					name = DEFAULT_PROTO_PRIMITIVE;
+					// Named unions of enums get their enum type from findFieldType below, other unions are strings
+					name = xsSimpleType.getName() != null && isEnumUnion(xsSimpleType) ? null : DEFAULT_PROTO_PRIMITIVE;
 				} else {
 					name = xsSimpleType.getName();
 				}
