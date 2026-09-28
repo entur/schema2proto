@@ -647,7 +647,7 @@ public class ProtoSerializer {
 
 	}
 
-	private String escapeEnumValue(String name) {
+	static String escapeEnumValue(String name) {
 		if (name.equals("")) {
 			return name;
 		}

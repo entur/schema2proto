@@ -248,7 +248,8 @@ public class SchemaParser implements ErrorHandler {
 		} else if (xs.isList()) {
 			nestingLevel--;
 			return processSimpleType(xs.asList().getItemType(), null);
-		} else if (isEnumUnion(xs)) {
+		} else if (xs.getName() != null && isEnumUnion(xs)) {
+			// Only named unions, anonymous unions resolve to string (see findFieldType)
 			createEnumFromUnion(typeName, xs.asUnion());
 		}
 
@@ -275,15 +276,16 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	/**
-	 * Create an enum with the enumeration values of all members of the union, in member order and without duplicates.
+	 * Create an enum with the enumeration values of all members of the union, in member order and without duplicates. Values that give the same enum constant
+	 * name (e.g. 'foo-bar' and 'foo_bar', or 'planning' and 'Planning') are only added once.
 	 */
 	private String createEnumFromUnion(String typeName, XSUnionSimpleType unionType) {
 		MutableType protoType = getType(unionType.getTargetNamespace(), typeName);
 		if (protoType == null) {
 			Location location = getLocation(unionType);
 			List<MutableEnumConstant> constants = new ArrayList<>();
-			Set<String> addedValues = new HashSet<>();
-			addUnionEnumConstants(unionType, location, constants, addedValues);
+			Map<String, String> addedValues = new HashMap<>(); // escaped constant name -> first value giving it
+			addUnionEnumConstants(typeName, unionType, location, constants, addedValues);
 
 			MutableOptions enumOptions = new MutableOptions(MutableOptions.ENUM_OPTIONS, new ArrayList<>());
 			String doc = resolveDocumentationAnnotation(unionType, false);
@@ -294,19 +296,24 @@ public class SchemaParser implements ErrorHandler {
 		return typeName;
 	}
 
-	private void addUnionEnumConstants(XSUnionSimpleType unionType, Location location, List<MutableEnumConstant> constants, Set<String> addedValues) {
+	private void addUnionEnumConstants(String typeName, XSUnionSimpleType unionType, Location location, List<MutableEnumConstant> constants,
+			Map<String, String> addedValues) {
 		for (int i = 0; i < unionType.getMemberSize(); i++) {
 			XSSimpleType member = unionType.getMember(i);
 			if (member.isUnion()) {
-				addUnionEnumConstants(member.asUnion(), location, constants, addedValues);
+				addUnionEnumConstants(typeName, member.asUnion(), location, constants, addedValues);
 			} else {
 				// getFacets includes facets inherited from the base type if the member declares none itself
 				for (XSFacet facet : member.getFacets(XSFacet.FACET_ENUMERATION)) {
 					String enumValue = facet.getValue().value;
-					if (addedValues.add(enumValue)) {
+					String existingValue = addedValues.putIfAbsent(ProtoSerializer.escapeEnumValue(enumValue), enumValue);
+					if (existingValue == null) {
 						String doc = resolveDocumentationAnnotation(facet, false);
 						constants.add(new MutableEnumConstant(location, enumValue, constants.size() + 1, doc,
 								new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, new ArrayList<>())));
+					} else if (!existingValue.equals(enumValue)) {
+						LOGGER.warn("Union {}: value '{}' gives the same enum constant as '{}', only '{}' is kept", typeName, enumValue, existingValue,
+								existingValue);
 					}
 				}
 			}

@@ -37,9 +37,12 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- 'Shared' and 'e1-val1' give the same enum constants as 'shared' and 'e1val1' -->
     <xsd:simpleType name="Enum4">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="e4val1"/>
+            <xsd:enumeration value="Shared"/>
+            <xsd:enumeration value="e1-val1"/>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -61,6 +64,12 @@
                 <xsd:element name="Single" type="UnionEnumeration" minOccurs="0"/>
                 <xsd:element name="Several" type="UnionEnumerationList" minOccurs="0"/>
                 <xsd:element name="WithAttribute" type="UnionValue" minOccurs="0"/>
+                <!-- Anonymous unions are not converted -->
+                <xsd:element name="Anonymous" minOccurs="0">
+                    <xsd:simpleType>
+                        <xsd:union memberTypes="Enum1 Enum4"/>
+                    </xsd:simpleType>
+                </xsd:element>
             </xsd:sequence>
             <xsd:attribute name="attributeUnion" type="UnionEnumeration"/>
         </xsd:complexType>
