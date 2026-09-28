@@ -413,6 +413,53 @@ public class ModifyProtoTest extends AbstractMappingTest {
 	}
 
 	@Test
+	public void testAddFieldToExistingOneOf() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		File expected = new File("src/test/resources/modify/expected/oneof").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/oneof").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(oneOfField("choice"));
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addtoexistingoneof.proto", generatedRootFolder, "oneof.proto");
+	}
+
+	@Test
+	public void testAddFieldToNewOneOf() throws IOException, InvalidProtobufException, InvalidConfigurationException {
+		File expected = new File("src/test/resources/modify/expected/oneof").getCanonicalFile();
+		File source = new File("src/test/resources/modify/input/oneof").getCanonicalFile();
+
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = source;
+		configuration.newFields = Collections.singletonList(oneOfField("other_choice"));
+		modifyProto(configuration);
+
+		compareExpectedAndGenerated(expected, "addtonewoneof.proto", generatedRootFolder, "oneof.proto");
+	}
+
+	@Test
+	public void testAddRepeatedFieldToOneOfFails() throws IOException {
+		ModifyProtoConfiguration configuration = new ModifyProtoConfiguration();
+		configuration.inputDirectory = new File("src/test/resources/modify/input/oneof").getCanonicalFile();
+		NewField newField = oneOfField("choice");
+		newField.label = "repeated";
+		configuration.newFields = Collections.singletonList(newField);
+
+		assertThrows(InvalidProtobufException.class, () -> modifyProto(configuration));
+	}
+
+	private static NewField oneOfField(String oneOf) {
+		NewField newField = new NewField();
+		newField.targetMessageType = "A";
+		newField.fieldNumber = 100;
+		newField.name = "third";
+		newField.type = "B";
+		newField.oneOf = oneOf;
+		return newField;
+	}
+
+	@Test
 	public void testAddFieldAllowIfReserved() throws IOException, InvalidProtobufException, InvalidConfigurationException {
 		// Add a field with same name/number as a reserved field. Should allow and remove reserved declarations.
 		File expected = new File("src/test/resources/modify/expected/reserved").getCanonicalFile();
