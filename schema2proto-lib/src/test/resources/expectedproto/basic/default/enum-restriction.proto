@@ -1,0 +1,43 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+enum BaseEnumeration {
+  // Default
+  BASE_ENUMERATION_UNSPECIFIED = 0;
+  BASE_ENUMERATION_AA = 1;
+  BASE_ENUMERATION_BB = 2;
+  BASE_ENUMERATION_CC = 3;
+}
+
+enum DerivedEnumeration {
+  // Default
+  DERIVED_ENUMERATION_UNSPECIFIED = 0;
+  DERIVED_ENUMERATION_AA = 1;
+  DERIVED_ENUMERATION_BB = 2;
+  DERIVED_ENUMERATION_CC = 3;
+}
+
+message EnumHolderType {
+  BaseEnumeration base = 1;
+
+  DerivedEnumeration derived = 2;
+
+  LengthRestrictedEnumeration length_restricted = 3;
+
+  NarrowedEnumeration narrowed = 4;
+}
+
+enum LengthRestrictedEnumeration {
+  // Default
+  LENGTH_RESTRICTED_ENUMERATION_UNSPECIFIED = 0;
+  LENGTH_RESTRICTED_ENUMERATION_AA = 1;
+  LENGTH_RESTRICTED_ENUMERATION_BB = 2;
+  LENGTH_RESTRICTED_ENUMERATION_CC = 3;
+}
+
+enum NarrowedEnumeration {
+  // Default
+  NARROWED_ENUMERATION_UNSPECIFIED = 0;
+  NARROWED_ENUMERATION_AA = 1;
+}

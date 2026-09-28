@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:simpleType name="BaseEnumeration">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="aa"/>
+            <xsd:enumeration value="bb"/>
+            <xsd:enumeration value="cc"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Same values as the base -->
+    <xsd:simpleType name="DerivedEnumeration">
+        <xsd:restriction base="BaseEnumeration"/>
+    </xsd:simpleType>
+
+    <!-- Only non-enumeration facets: same values as the base, the facets are not values -->
+    <xsd:simpleType name="LengthRestrictedEnumeration">
+        <xsd:restriction base="BaseEnumeration">
+            <xsd:maxLength value="2"/>
+            <xsd:minLength value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Own enumeration facets: only these values -->
+    <xsd:simpleType name="NarrowedEnumeration">
+        <xsd:restriction base="BaseEnumeration">
+            <xsd:enumeration value="aa"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:element name="EnumHolder">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Base" type="BaseEnumeration" minOccurs="0"/>
+                <xsd:element name="Derived" type="DerivedEnumeration" minOccurs="0"/>
+                <xsd:element name="LengthRestricted" type="LengthRestrictedEnumeration" minOccurs="0"/>
+                <xsd:element name="Narrowed" type="NarrowedEnumeration" minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>

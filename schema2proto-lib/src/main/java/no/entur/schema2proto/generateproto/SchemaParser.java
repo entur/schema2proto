@@ -1074,7 +1074,9 @@ public class SchemaParser implements ErrorHandler {
 			Location location = getLocation(type);
 
 			List<MutableEnumConstant> constants = new ArrayList<>();
-			it = type.getDeclaredFacets().iterator();
+			// Only enumeration facets, inherited from the base type if the type declares none itself (a restriction without enumeration facets has the
+			// same values as its base)
+			it = type.getFacets(XSFacet.FACET_ENUMERATION).iterator();
 
 			int counter = 1;
 			Set<String> addedValues = new HashSet<>();
