@@ -79,6 +79,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.XSVariety;
 import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
@@ -1133,10 +1134,11 @@ public class SchemaParser implements ErrorHandler {
 	 * Check a (possibly inherited) enumeration value against the length and pattern facets declared along the restriction chain. Facets of a derived
 	 * restriction still constrain the enumeration values of its base, so a restriction with maxLength 2 of an enumeration with "aa" and "bbb" only allows "aa".
 	 * Patterns within one restriction step are alternatives, patterns in different steps must all match. Patterns that are not valid Java regular expressions
-	 * are ignored.
+	 * are ignored. The value is whitespace normalized first, as a validator would do.
 	 */
 	private boolean isAllowedByFacets(String value, XSSimpleType type) {
-		int length = value.codePointCount(0, value.length());
+		String normalizedValue = normalizeWhiteSpace(value, type);
+		Integer length = facetLength(normalizedValue, type);
 		XSSimpleType t = type;
 		while (t != null && t.isRestriction() && !XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(t.getTargetNamespace())) {
 			boolean hasPattern = false;
@@ -1145,24 +1147,24 @@ public class SchemaParser implements ErrorHandler {
 				String facetValue = facet.getValue().value;
 				switch (facet.getName()) {
 				case XSFacet.FACET_LENGTH:
-					if (length != Integer.parseInt(facetValue)) {
+					if (length != null && length != Integer.parseInt(facetValue)) {
 						return false;
 					}
 					break;
 				case XSFacet.FACET_MINLENGTH:
-					if (length < Integer.parseInt(facetValue)) {
+					if (length != null && length < Integer.parseInt(facetValue)) {
 						return false;
 					}
 					break;
 				case XSFacet.FACET_MAXLENGTH:
-					if (length > Integer.parseInt(facetValue)) {
+					if (length != null && length > Integer.parseInt(facetValue)) {
 						return false;
 					}
 					break;
 				case XSFacet.FACET_PATTERN:
 					hasPattern = true;
 					try {
-						patternMatched |= Pattern.matches(facetValue, value);
+						patternMatched |= Pattern.matches(facetValue, normalizedValue);
 					} catch (PatternSyntaxException e) {
 						LOGGER.debug("Ignoring pattern {} not supported as Java regular expression when checking enumeration value {}", facetValue, value);
 						patternMatched = true;
@@ -1178,6 +1180,46 @@ public class SchemaParser implements ErrorHandler {
 			t = t.getSimpleBaseType();
 		}
 		return true;
+	}
+
+	/**
+	 * Normalize according to the effective whiteSpace facet of the type (inherited from the built-in types, list types always collapse).
+	 */
+	private String normalizeWhiteSpace(String value, XSSimpleType type) {
+		XSFacet whiteSpace = type.getFacet(XSFacet.FACET_WHITESPACE);
+		String mode = type.getVariety() == XSVariety.LIST ? "collapse" : whiteSpace == null ? "preserve" : whiteSpace.getValue().value;
+		switch (mode) {
+		case "replace":
+			return value.replaceAll("[\t\n\r]", " ");
+		case "collapse":
+			return value.replaceAll("[ \t\n\r]+", " ").trim();
+		default:
+			return value;
+		}
+	}
+
+	/**
+	 * The length of a normalized value as defined for the length facets: number of items for lists, octets for hexBinary and characters for string and anyURI
+	 * based types. Null if the length is not computed for the type (base64Binary, unions and types where length facets do not apply), so the length facets are
+	 * not checked.
+	 */
+	private Integer facetLength(String normalizedValue, XSSimpleType type) {
+		if (type.getVariety() == XSVariety.LIST) {
+			return normalizedValue.isEmpty() ? 0 : normalizedValue.split(" ").length;
+		}
+		XSSimpleType primitiveType = type.getPrimitiveType();
+		if (primitiveType == null) {
+			return null;
+		}
+		switch (primitiveType.getName()) {
+		case "string":
+		case "anyURI":
+			return normalizedValue.codePointCount(0, normalizedValue.length());
+		case "hexBinary":
+			return normalizedValue.length() / 2;
+		default:
+			return null;
+		}
 	}
 
 	@Override

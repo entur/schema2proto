@@ -40,6 +40,14 @@ message EnumHolderType {
   PatternEnumeration pattern = 7;
 
   ChainedFacetEnumeration chained_facet = 8;
+
+  ListEnumeration list = 9;
+
+  ListLengthEnumeration list_length = 10;
+
+  TokenEnumeration token = 11;
+
+  TokenLengthEnumeration token_length = 12;
 }
 
 enum LengthRestrictedEnumeration {
@@ -48,6 +56,19 @@ enum LengthRestrictedEnumeration {
   LENGTH_RESTRICTED_ENUMERATION_AA = 1;
   LENGTH_RESTRICTED_ENUMERATION_BB = 2;
   LENGTH_RESTRICTED_ENUMERATION_CC = 3;
+}
+
+enum ListEnumeration {
+  // Default
+  LIST_ENUMERATION_UNSPECIFIED = 0;
+  LIST_ENUMERATION_AA_BB = 1;
+  LIST_ENUMERATION_CCC = 2;
+}
+
+enum ListLengthEnumeration {
+  // Default
+  LIST_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  LIST_LENGTH_ENUMERATION_AA_BB = 1;
 }
 
 enum MaxLengthEnumeration {
@@ -76,4 +97,17 @@ enum PatternEnumeration {
   PATTERN_ENUMERATION_UNSPECIFIED = 0;
   PATTERN_ENUMERATION_AA = 1;
   PATTERN_ENUMERATION_C = 2;
+}
+
+enum TokenEnumeration {
+  // Default
+  TOKEN_ENUMERATION_UNSPECIFIED = 0;
+  TOKEN_ENUMERATION_A_B = 1;
+  TOKEN_ENUMERATION_CCCC = 2;
+}
+
+enum TokenLengthEnumeration {
+  // Default
+  TOKEN_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  TOKEN_LENGTH_ENUMERATION_A_B = 1;
 }

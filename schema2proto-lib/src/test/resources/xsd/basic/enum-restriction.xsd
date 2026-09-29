@@ -60,6 +60,38 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="StringList">
+        <xsd:list itemType="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ListEnumeration">
+        <xsd:restriction base="StringList">
+            <xsd:enumeration value="aa bb"/>
+            <xsd:enumeration value="ccc"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- The length of a list is the number of items: only "aa bb" -->
+    <xsd:simpleType name="ListLengthEnumeration">
+        <xsd:restriction base="ListEnumeration">
+            <xsd:length value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TokenEnumeration">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value=" a  b "/>
+            <xsd:enumeration value="cccc"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- The length of a token is counted after whitespace collapse: only " a  b " (collapsed "a b") -->
+    <xsd:simpleType name="TokenLengthEnumeration">
+        <xsd:restriction base="TokenEnumeration">
+            <xsd:length value="3"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:element name="EnumHolder">
         <xsd:complexType>
             <xsd:sequence>
@@ -71,6 +103,10 @@
                 <xsd:element name="MaxLength" type="MaxLengthEnumeration" minOccurs="0"/>
                 <xsd:element name="Pattern" type="PatternEnumeration" minOccurs="0"/>
                 <xsd:element name="ChainedFacet" type="ChainedFacetEnumeration" minOccurs="0"/>
+                <xsd:element name="List" type="ListEnumeration" minOccurs="0"/>
+                <xsd:element name="ListLength" type="ListLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="Token" type="TokenEnumeration" minOccurs="0"/>
+                <xsd:element name="TokenLength" type="TokenLengthEnumeration" minOccurs="0"/>
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
