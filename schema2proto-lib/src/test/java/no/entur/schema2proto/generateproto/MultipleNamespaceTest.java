@@ -26,6 +26,7 @@ package no.entur.schema2proto.generateproto;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 
 import no.entur.schema2proto.AbstractMappingTest;
@@ -45,6 +46,20 @@ public class MultipleNamespaceTest extends AbstractMappingTest {
 				"com/schemas/domain/common/com_schemas_domain_common.proto");
 		compareExpectedAndGenerated(expectedRootFolder, "com/schemas/domain/address/com_schemas_domain_address.proto", generatedRootFolder,
 				"com/schemas/domain/address/com_schemas_domain_address.proto");
+	}
+
+	@Test
+	public void shouldReferenceListItemTypeInItsOwnNamespace() throws IOException {
+		// Generation fails if the files do not link, remove output from earlier runs so it is not compared instead
+		FileUtils.deleteDirectory(new File(generatedRootFolder, "com/schemas/domain/listmain"));
+		FileUtils.deleteDirectory(new File(generatedRootFolder, "com/schemas/domain/listenums"));
+		Schema2Proto
+				.main(new String[] { "--outputDirectory=target/generated-proto/multinamespace/", "src/test/resources/xsd/multinamespace/ns-list-main.xsd" });
+
+		compareExpectedAndGenerated(expectedRootFolder, "com/schemas/domain/listmain/com_schemas_domain_listmain.proto", generatedRootFolder,
+				"com/schemas/domain/listmain/com_schemas_domain_listmain.proto");
+		compareExpectedAndGenerated(expectedRootFolder, "com/schemas/domain/listenums/com_schemas_domain_listenums.proto", generatedRootFolder,
+				"com/schemas/domain/listenums/com_schemas_domain_listenums.proto");
 	}
 
 }

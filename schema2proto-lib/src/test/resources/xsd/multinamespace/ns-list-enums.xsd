@@ -1,0 +1,11 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.com/domain/listenums" targetNamespace="http://schemas.com/domain/listenums" elementFormDefault="qualified">
+    <xs:simpleType name="PlainEnum">
+        <xs:restriction base="xs:string"><xs:enumeration value="p1"/><xs:enumeration value="p2"/></xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="OtherEnum">
+        <xs:restriction base="xs:string"><xs:enumeration value="o1"/></xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="UnionEnumeration">
+        <xs:union memberTypes="PlainEnum OtherEnum"/>
+    </xs:simpleType>
+</xs:schema>
