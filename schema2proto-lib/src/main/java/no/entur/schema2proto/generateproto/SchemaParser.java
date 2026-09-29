@@ -38,7 +38,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -1075,7 +1078,7 @@ public class SchemaParser implements ErrorHandler {
 
 			List<MutableEnumConstant> constants = new ArrayList<>();
 			// Only enumeration facets, inherited from the base type if the type declares none itself (a restriction without enumeration facets has the
-			// same values as its base)
+			// same values as its base), filtered by the length and pattern facets of the restriction chain
 			it = type.getFacets(XSFacet.FACET_ENUMERATION).iterator();
 
 			int counter = 1;
@@ -1086,7 +1089,7 @@ public class SchemaParser implements ErrorHandler {
 				String doc = resolveDocumentationAnnotation(next, false);
 				String enumValue = next.getValue().value;
 
-				if (!addedValues.contains(enumValue)) {
+				if (!addedValues.contains(enumValue) && isAllowedByFacets(enumValue, type)) {
 					addedValues.add(enumValue);
 					constants.add(new MutableEnumConstant(location, enumValue, counter++, doc,
 							new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, optionElements)));
@@ -1124,6 +1127,57 @@ public class SchemaParser implements ErrorHandler {
 			}
 		}
 		return typeNameToUse;
+	}
+
+	/**
+	 * Check a (possibly inherited) enumeration value against the length and pattern facets declared along the restriction chain. Facets of a derived
+	 * restriction still constrain the enumeration values of its base, so a restriction with maxLength 2 of an enumeration with "aa" and "bbb" only allows "aa".
+	 * Patterns within one restriction step are alternatives, patterns in different steps must all match. Patterns that are not valid Java regular expressions
+	 * are ignored.
+	 */
+	private boolean isAllowedByFacets(String value, XSSimpleType type) {
+		int length = value.codePointCount(0, value.length());
+		XSSimpleType t = type;
+		while (t != null && t.isRestriction() && !XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(t.getTargetNamespace())) {
+			boolean hasPattern = false;
+			boolean patternMatched = false;
+			for (XSFacet facet : t.asRestriction().getDeclaredFacets()) {
+				String facetValue = facet.getValue().value;
+				switch (facet.getName()) {
+				case XSFacet.FACET_LENGTH:
+					if (length != Integer.parseInt(facetValue)) {
+						return false;
+					}
+					break;
+				case XSFacet.FACET_MINLENGTH:
+					if (length < Integer.parseInt(facetValue)) {
+						return false;
+					}
+					break;
+				case XSFacet.FACET_MAXLENGTH:
+					if (length > Integer.parseInt(facetValue)) {
+						return false;
+					}
+					break;
+				case XSFacet.FACET_PATTERN:
+					hasPattern = true;
+					try {
+						patternMatched |= Pattern.matches(facetValue, value);
+					} catch (PatternSyntaxException e) {
+						LOGGER.debug("Ignoring pattern {} not supported as Java regular expression when checking enumeration value {}", facetValue, value);
+						patternMatched = true;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			if (hasPattern && !patternMatched) {
+				return false;
+			}
+			t = t.getSimpleBaseType();
+		}
+		return true;
 	}
 
 	@Override

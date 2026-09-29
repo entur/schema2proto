@@ -30,6 +30,36 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="MixedLengthEnumeration">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="aa"/>
+            <xsd:enumeration value="bbb"/>
+            <xsd:enumeration value="c"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Length facets constrain the inherited values: only aa and c -->
+    <xsd:simpleType name="MaxLengthEnumeration">
+        <xsd:restriction base="MixedLengthEnumeration">
+            <xsd:maxLength value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Pattern facets constrain the inherited values, any pattern in the same restriction may match: only aa and c -->
+    <xsd:simpleType name="PatternEnumeration">
+        <xsd:restriction base="MixedLengthEnumeration">
+            <xsd:pattern value="a+"/>
+            <xsd:pattern value="c+"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Facets of all restriction steps apply: maxLength 2 from the base and the pattern from this step leaves only aa -->
+    <xsd:simpleType name="ChainedFacetEnumeration">
+        <xsd:restriction base="MaxLengthEnumeration">
+            <xsd:pattern value="[a-z]{2,3}"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:element name="EnumHolder">
         <xsd:complexType>
             <xsd:sequence>
@@ -37,6 +67,10 @@
                 <xsd:element name="Derived" type="DerivedEnumeration" minOccurs="0"/>
                 <xsd:element name="LengthRestricted" type="LengthRestrictedEnumeration" minOccurs="0"/>
                 <xsd:element name="Narrowed" type="NarrowedEnumeration" minOccurs="0"/>
+                <xsd:element name="MixedLength" type="MixedLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="MaxLength" type="MaxLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="Pattern" type="PatternEnumeration" minOccurs="0"/>
+                <xsd:element name="ChainedFacet" type="ChainedFacetEnumeration" minOccurs="0"/>
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>

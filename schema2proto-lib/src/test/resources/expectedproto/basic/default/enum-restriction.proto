@@ -10,6 +10,12 @@ enum BaseEnumeration {
   BASE_ENUMERATION_CC = 3;
 }
 
+enum ChainedFacetEnumeration {
+  // Default
+  CHAINED_FACET_ENUMERATION_UNSPECIFIED = 0;
+  CHAINED_FACET_ENUMERATION_AA = 1;
+}
+
 enum DerivedEnumeration {
   // Default
   DERIVED_ENUMERATION_UNSPECIFIED = 0;
@@ -26,6 +32,14 @@ message EnumHolderType {
   LengthRestrictedEnumeration length_restricted = 3;
 
   NarrowedEnumeration narrowed = 4;
+
+  MixedLengthEnumeration mixed_length = 5;
+
+  MaxLengthEnumeration max_length = 6;
+
+  PatternEnumeration pattern = 7;
+
+  ChainedFacetEnumeration chained_facet = 8;
 }
 
 enum LengthRestrictedEnumeration {
@@ -36,8 +50,30 @@ enum LengthRestrictedEnumeration {
   LENGTH_RESTRICTED_ENUMERATION_CC = 3;
 }
 
+enum MaxLengthEnumeration {
+  // Default
+  MAX_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  MAX_LENGTH_ENUMERATION_AA = 1;
+  MAX_LENGTH_ENUMERATION_C = 2;
+}
+
+enum MixedLengthEnumeration {
+  // Default
+  MIXED_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  MIXED_LENGTH_ENUMERATION_AA = 1;
+  MIXED_LENGTH_ENUMERATION_BBB = 2;
+  MIXED_LENGTH_ENUMERATION_C = 3;
+}
+
 enum NarrowedEnumeration {
   // Default
   NARROWED_ENUMERATION_UNSPECIFIED = 0;
   NARROWED_ENUMERATION_AA = 1;
+}
+
+enum PatternEnumeration {
+  // Default
+  PATTERN_ENUMERATION_UNSPECIFIED = 0;
+  PATTERN_ENUMERATION_AA = 1;
+  PATTERN_ENUMERATION_C = 2;
 }
