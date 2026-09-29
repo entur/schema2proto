@@ -407,7 +407,7 @@ public class SchemaParser implements ErrorHandler {
 				String fieldDoc = resolveDocumentationAnnotation(currElementDecl, false);
 				Location fieldLocation = getLocation(currElementDecl);
 
-				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
+				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(fieldTypeNamespace(type), configuration.forceProtoPackage);
 
 				if (type.isSimpleType()) {
 
@@ -527,9 +527,19 @@ public class SchemaParser implements ErrorHandler {
 		}
 
 		MutableField field = new MutableField(
-				NamespaceHelper.xmlNamespaceToProtoFieldPackagename(element.getType().getTargetNamespace(), configuration.forceProtoPackage), fieldLocation,
+				NamespaceHelper.xmlNamespaceToProtoFieldPackagename(fieldTypeNamespace(element.getType()), configuration.forceProtoPackage), fieldLocation,
 				null, element.getName(), doc, messageType.getNextFieldNum(), typeName, fieldOptions, true);
 		addField(messageType, oneOf, field); // Repeated oneOf not allowed
+	}
+
+	/**
+	 * The namespace of the type a field of the given type refers to. For lists this is the namespace of the item type, which may differ from that of the list.
+	 */
+	private String fieldTypeNamespace(XSType type) {
+		if (type.isSimpleType() && type.asSimpleType().isList()) {
+			return type.asSimpleType().asList().getItemType().getTargetNamespace();
+		}
+		return type.getTargetNamespace();
 	}
 
 	@NotNull
@@ -927,7 +937,7 @@ public class SchemaParser implements ErrorHandler {
 				int tag = messageType.getNextFieldNum();
 				Location fieldLocation = getLocation(decl);
 				MutableOptions fieldOptions = getFieldOptions(decl);
-				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(type.getTargetNamespace(), configuration.forceProtoPackage);
+				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(fieldTypeNamespace(type), configuration.forceProtoPackage);
 				Label label = type.isList() ? Label.REPEATED : null;
 
 				if (type.isRestriction() && type.getFacet(XSFacet.FACET_ENUMERATION) != null) {

@@ -1,0 +1,17 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.com/domain/listmain" xmlns:e="http://schemas.com/domain/listenums" targetNamespace="http://schemas.com/domain/listmain" elementFormDefault="qualified">
+    <!-- Lists whose item type is from another namespace -->
+    <xs:import namespace="http://schemas.com/domain/listenums" schemaLocation="ns-list-enums.xsd"/>
+    <xs:simpleType name="UnionList"><xs:list itemType="e:UnionEnumeration"/></xs:simpleType>
+    <xs:simpleType name="PlainList"><xs:list itemType="e:PlainEnum"/></xs:simpleType>
+    <xs:element name="Holder">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="UnionListElem" type="UnionList"/>
+                <xs:element name="PlainListElem" type="PlainList"/>
+                <xs:element name="UnionElem" type="e:UnionEnumeration"/>
+            </xs:sequence>
+            <xs:attribute name="unionListAttr" type="UnionList"/>
+            <xs:attribute name="plainListAttr" type="PlainList"/>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

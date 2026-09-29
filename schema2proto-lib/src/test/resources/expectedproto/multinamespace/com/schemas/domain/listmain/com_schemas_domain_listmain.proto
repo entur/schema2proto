@@ -1,0 +1,20 @@
+// Proto schema formatted by Wire, do not edit.
+// Source: com_schemas_domain_listmain.proto
+
+syntax = "proto3";
+
+package com.schemas.domain.listmain;
+
+import "com/schemas/domain/listenums/com_schemas_domain_listenums.proto";
+
+message HolderType {
+  repeated com.schemas.domain.listenums.UnionEnumeration union_list_attr = 1;
+
+  repeated com.schemas.domain.listenums.PlainEnum plain_list_attr = 2;
+
+  repeated com.schemas.domain.listenums.UnionEnumeration union_list_elem = 3;
+
+  repeated com.schemas.domain.listenums.PlainEnum plain_list_elem = 4;
+
+  com.schemas.domain.listenums.UnionEnumeration union_elem = 5;
+}

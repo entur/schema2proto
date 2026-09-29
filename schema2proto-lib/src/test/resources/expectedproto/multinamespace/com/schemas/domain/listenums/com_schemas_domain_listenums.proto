@@ -1,0 +1,27 @@
+// Proto schema formatted by Wire, do not edit.
+// Source: com_schemas_domain_listenums.proto
+
+syntax = "proto3";
+
+package com.schemas.domain.listenums;
+
+enum OtherEnum {
+  // Default
+  OTHER_ENUM_UNSPECIFIED = 0;
+  OTHER_ENUM_O_1 = 1;
+}
+
+enum PlainEnum {
+  // Default
+  PLAIN_ENUM_UNSPECIFIED = 0;
+  PLAIN_ENUM_P_1 = 1;
+  PLAIN_ENUM_P_2 = 2;
+}
+
+enum UnionEnumeration {
+  // Default
+  UNION_ENUMERATION_UNSPECIFIED = 0;
+  UNION_ENUMERATION_P_1 = 1;
+  UNION_ENUMERATION_P_2 = 2;
+  UNION_ENUMERATION_O_1 = 3;
+}
