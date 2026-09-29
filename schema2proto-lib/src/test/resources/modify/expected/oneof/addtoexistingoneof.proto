@@ -1,0 +1,15 @@
+// default.proto at 0:0
+syntax = "proto3";
+
+message A {
+    uint64 response_timestamp = 1;
+    oneof choice {
+        string first = 2;
+        B second = 3;
+        B third = 100;
+    }
+}
+
+message B {
+    string value = 1;
+}
