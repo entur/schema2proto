@@ -179,6 +179,12 @@ public class SchemaParserTest extends AbstractMappingTest {
 		compareExpectedAndGenerated(expectedRootFolder, "default/union.proto", generatedRootFolder, "default/default.proto");
 	}
 
+	@Test
+	public void testEnumRestriction() throws IOException {
+		generateProtobufNoOptions("basic/enum-restriction.xsd");
+		compareExpectedAndGenerated(expectedRootFolder, "default/enum-restriction.proto", generatedRootFolder, "default/default.proto");
+	}
+
 	// @Test
 	public void testValidationRules() throws IOException {
 		generateProtobufNoOptions("basic/validationrules.xsd");

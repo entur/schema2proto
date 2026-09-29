@@ -25,6 +25,7 @@ package no.entur.schema2proto.generateproto;
 import static no.entur.schema2proto.wire.MutableMessageType.XSD_MESSAGE_OPTIONS_PACKAGE;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -38,7 +39,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -76,6 +80,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.XSVariety;
 import com.sun.xml.xsom.impl.ElementDecl;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
@@ -1074,7 +1079,9 @@ public class SchemaParser implements ErrorHandler {
 			Location location = getLocation(type);
 
 			List<MutableEnumConstant> constants = new ArrayList<>();
-			it = type.getDeclaredFacets().iterator();
+			// Only enumeration facets, inherited from the base type if the type declares none itself (a restriction without enumeration facets has the
+			// same values as its base), filtered by the length and pattern facets of the restriction chain
+			it = type.getFacets(XSFacet.FACET_ENUMERATION).iterator();
 
 			int counter = 1;
 			Set<String> addedValues = new HashSet<>();
@@ -1084,7 +1091,7 @@ public class SchemaParser implements ErrorHandler {
 				String doc = resolveDocumentationAnnotation(next, false);
 				String enumValue = next.getValue().value;
 
-				if (!addedValues.contains(enumValue)) {
+				if (!addedValues.contains(enumValue) && isAllowedByFacets(enumValue, type)) {
 					addedValues.add(enumValue);
 					constants.add(new MutableEnumConstant(location, enumValue, counter++, doc,
 							new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, optionElements)));
@@ -1122,6 +1129,105 @@ public class SchemaParser implements ErrorHandler {
 			}
 		}
 		return typeNameToUse;
+	}
+
+	/**
+	 * Check a (possibly inherited) enumeration value against the length and pattern facets declared along the restriction chain. Facets of a derived
+	 * restriction still constrain the enumeration values of its base, so a restriction with maxLength 2 of an enumeration with "aa" and "bbb" only allows "aa".
+	 * Patterns within one restriction step are alternatives, patterns in different steps must all match. Patterns that are not valid Java regular expressions
+	 * are ignored. The value is whitespace normalized first, as a validator would do.
+	 */
+	private boolean isAllowedByFacets(String value, XSSimpleType type) {
+		String normalizedValue = normalizeWhiteSpace(value, type);
+		Integer length = facetLength(normalizedValue, type);
+		XSSimpleType t = type;
+		while (t != null && t.isRestriction() && !XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(t.getTargetNamespace())) {
+			boolean hasPattern = false;
+			boolean patternMatched = false;
+			for (XSFacet facet : t.asRestriction().getDeclaredFacets()) {
+				String facetValue = facet.getValue().value;
+				switch (facet.getName()) {
+				case XSFacet.FACET_LENGTH:
+					if (length != null && compareLength(length, facetValue) != 0) {
+						return false;
+					}
+					break;
+				case XSFacet.FACET_MINLENGTH:
+					if (length != null && compareLength(length, facetValue) < 0) {
+						return false;
+					}
+					break;
+				case XSFacet.FACET_MAXLENGTH:
+					if (length != null && compareLength(length, facetValue) > 0) {
+						return false;
+					}
+					break;
+				case XSFacet.FACET_PATTERN:
+					hasPattern = true;
+					try {
+						patternMatched |= Pattern.matches(facetValue, normalizedValue);
+					} catch (PatternSyntaxException e) {
+						LOGGER.debug("Ignoring pattern {} not supported as Java regular expression when checking enumeration value {}", facetValue, value);
+						patternMatched = true;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			if (hasPattern && !patternMatched) {
+				return false;
+			}
+			t = t.getSimpleBaseType();
+		}
+		return true;
+	}
+
+	/**
+	 * Compare a length with a length facet value, which is a nonNegativeInteger and not limited to the int range.
+	 */
+	private int compareLength(int length, String facetValue) {
+		return BigInteger.valueOf(length).compareTo(new BigInteger(facetValue.trim()));
+	}
+
+	/**
+	 * Normalize according to the effective whiteSpace facet of the type (inherited from the built-in types, list types always collapse).
+	 */
+	private String normalizeWhiteSpace(String value, XSSimpleType type) {
+		XSFacet whiteSpace = type.getFacet(XSFacet.FACET_WHITESPACE);
+		String mode = type.getVariety() == XSVariety.LIST ? "collapse" : whiteSpace == null ? "preserve" : whiteSpace.getValue().value;
+		switch (mode) {
+		case "replace":
+			return value.replaceAll("[\t\n\r]", " ");
+		case "collapse":
+			return value.replaceAll("[ \t\n\r]+", " ").trim();
+		default:
+			return value;
+		}
+	}
+
+	/**
+	 * The length of a normalized value as defined for the length facets: number of items for lists, octets for hexBinary and characters for string and anyURI
+	 * based types. Null if the length is not computed for the type (base64Binary, unions and types where length facets do not apply), so the length facets are
+	 * not checked.
+	 */
+	private Integer facetLength(String normalizedValue, XSSimpleType type) {
+		if (type.getVariety() == XSVariety.LIST) {
+			return normalizedValue.isEmpty() ? 0 : normalizedValue.split(" ").length;
+		}
+		XSSimpleType primitiveType = type.getPrimitiveType();
+		if (primitiveType == null) {
+			return null;
+		}
+		switch (primitiveType.getName()) {
+		case "string":
+		case "anyURI":
+			return normalizedValue.codePointCount(0, normalizedValue.length());
+		case "hexBinary":
+			return normalizedValue.length() / 2;
+		default:
+			return null;
+		}
 	}
 
 	@Override

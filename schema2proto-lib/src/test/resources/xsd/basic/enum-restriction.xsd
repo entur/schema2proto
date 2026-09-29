@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+
+    <xsd:simpleType name="BaseEnumeration">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="aa"/>
+            <xsd:enumeration value="bb"/>
+            <xsd:enumeration value="cc"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Same values as the base -->
+    <xsd:simpleType name="DerivedEnumeration">
+        <xsd:restriction base="BaseEnumeration"/>
+    </xsd:simpleType>
+
+    <!-- Only non-enumeration facets: same values as the base, the facets are not values -->
+    <xsd:simpleType name="LengthRestrictedEnumeration">
+        <xsd:restriction base="BaseEnumeration">
+            <xsd:maxLength value="2"/>
+            <xsd:minLength value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Own enumeration facets: only these values -->
+    <xsd:simpleType name="NarrowedEnumeration">
+        <xsd:restriction base="BaseEnumeration">
+            <xsd:enumeration value="aa"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="MixedLengthEnumeration">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="aa"/>
+            <xsd:enumeration value="bbb"/>
+            <xsd:enumeration value="c"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Length facets constrain the inherited values: only aa and c -->
+    <xsd:simpleType name="MaxLengthEnumeration">
+        <xsd:restriction base="MixedLengthEnumeration">
+            <xsd:maxLength value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Pattern facets constrain the inherited values, any pattern in the same restriction may match: only aa and c -->
+    <xsd:simpleType name="PatternEnumeration">
+        <xsd:restriction base="MixedLengthEnumeration">
+            <xsd:pattern value="a+"/>
+            <xsd:pattern value="c+"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Facets of all restriction steps apply: maxLength 2 from the base and the pattern from this step leaves only aa -->
+    <xsd:simpleType name="ChainedFacetEnumeration">
+        <xsd:restriction base="MaxLengthEnumeration">
+            <xsd:pattern value="[a-z]{2,3}"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- Length facet values are not limited to the int range: all values -->
+    <xsd:simpleType name="HugeMaxLengthEnumeration">
+        <xsd:restriction base="MixedLengthEnumeration">
+            <xsd:maxLength value="99999999999"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="StringList">
+        <xsd:list itemType="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ListEnumeration">
+        <xsd:restriction base="StringList">
+            <xsd:enumeration value="aa bb"/>
+            <xsd:enumeration value="ccc"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- The length of a list is the number of items: only "aa bb" -->
+    <xsd:simpleType name="ListLengthEnumeration">
+        <xsd:restriction base="ListEnumeration">
+            <xsd:length value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TokenEnumeration">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value=" a  b "/>
+            <xsd:enumeration value="cccc"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <!-- The length of a token is counted after whitespace collapse: only " a  b " (collapsed "a b") -->
+    <xsd:simpleType name="TokenLengthEnumeration">
+        <xsd:restriction base="TokenEnumeration">
+            <xsd:length value="3"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:element name="EnumHolder">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Base" type="BaseEnumeration" minOccurs="0"/>
+                <xsd:element name="Derived" type="DerivedEnumeration" minOccurs="0"/>
+                <xsd:element name="LengthRestricted" type="LengthRestrictedEnumeration" minOccurs="0"/>
+                <xsd:element name="Narrowed" type="NarrowedEnumeration" minOccurs="0"/>
+                <xsd:element name="MixedLength" type="MixedLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="MaxLength" type="MaxLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="Pattern" type="PatternEnumeration" minOccurs="0"/>
+                <xsd:element name="ChainedFacet" type="ChainedFacetEnumeration" minOccurs="0"/>
+                <xsd:element name="List" type="ListEnumeration" minOccurs="0"/>
+                <xsd:element name="ListLength" type="ListLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="Token" type="TokenEnumeration" minOccurs="0"/>
+                <xsd:element name="TokenLength" type="TokenLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="HugeMaxLength" type="HugeMaxLengthEnumeration" minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>
