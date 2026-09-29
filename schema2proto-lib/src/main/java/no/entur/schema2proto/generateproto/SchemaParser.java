@@ -282,14 +282,14 @@ public class SchemaParser implements ErrorHandler {
 
 	/**
 	 * Create an enum with the enumeration values of all members of the union, in member order and without duplicates. Values that give the same enum constant
-	 * name (e.g. 'foo-bar' and 'foo_bar', or 'planning' and 'Planning') are only added once.
+	 * name (e.g. 'foo-bar' and 'foo_bar', 'planning' and 'Planning', or 'unspecified' and 'unspecified-enum-value') are only added once.
 	 */
 	private String createEnumFromUnion(String typeName, XSUnionSimpleType unionType) {
 		MutableType protoType = getType(unionType.getTargetNamespace(), typeName);
 		if (protoType == null) {
 			Location location = getLocation(unionType);
 			List<MutableEnumConstant> constants = new ArrayList<>();
-			Map<String, String> addedValues = new HashMap<>(); // escaped constant name -> first value giving it
+			Map<String, String> addedValues = new HashMap<>(); // constant name -> first value giving it
 			addUnionEnumConstants(typeName, unionType, location, constants, addedValues);
 
 			MutableOptions enumOptions = new MutableOptions(MutableOptions.ENUM_OPTIONS, new ArrayList<>());
@@ -315,7 +315,7 @@ public class SchemaParser implements ErrorHandler {
 					if (!isAllowedByFacets(enumValue, member)) {
 						continue;
 					}
-					String existingValue = addedValues.putIfAbsent(ProtoSerializer.escapeEnumValue(enumValue), enumValue);
+					String existingValue = addedValues.putIfAbsent(ProtoSerializer.enumConstantName(enumValue), enumValue);
 					if (existingValue == null) {
 						String doc = resolveDocumentationAnnotation(facet, false);
 						constants.add(new MutableEnumConstant(location, enumValue, constants.size() + 1, doc,

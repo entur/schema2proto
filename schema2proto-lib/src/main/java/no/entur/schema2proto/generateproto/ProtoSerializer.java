@@ -635,16 +635,23 @@ public class ProtoSerializer {
 		// Prefix with enum type name
 		String enumValuePrefix = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, e.name()) + UNDERSCORE;
 		for (MutableEnumConstant ec : e.constants()) {
-			String enumValue = escapeEnumValue(ec.getName());
-			if (enumValue.equalsIgnoreCase("UNSPECIFIED")) {
-				enumValue = "UNSPECIFIED_ENUM_VALUE"; // Handle collision with UNSPECIFIED special value according to Google style guide
-			}
-			ec.updateName(enumValuePrefix + enumValue);
+			ec.updateName(enumValuePrefix + enumConstantName(ec.getName()));
 		}
 		MutableEnumConstant unspecified = new MutableEnumConstant(new Location("", "", 0, 0), enumValuePrefix + "UNSPECIFIED", 0, "Default",
 				new MutableOptions(MutableOptions.ENUM_VALUE_OPTIONS, optionElementsUnspecified));
 		e.constants().add(0, unspecified);
 
+	}
+
+	/**
+	 * The enum constant name for an enumeration value, without the enum type name prefix.
+	 */
+	static String enumConstantName(String value) {
+		String enumValue = escapeEnumValue(value);
+		if (enumValue.equalsIgnoreCase("UNSPECIFIED")) {
+			enumValue = "UNSPECIFIED_ENUM_VALUE"; // Handle collision with UNSPECIFIED special value according to Google style guide
+		}
+		return enumValue;
 	}
 
 	static String escapeEnumValue(String name) {

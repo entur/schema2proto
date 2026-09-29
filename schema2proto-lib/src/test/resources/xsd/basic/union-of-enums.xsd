@@ -34,15 +34,17 @@
     <xsd:simpleType name="Enum5">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="e5val1"/>
+            <xsd:enumeration value="unspecified"/>
         </xsd:restriction>
     </xsd:simpleType>
 
-    <!-- 'Shared' and 'e1-val1' give the same enum constants as 'shared' and 'e1val1' -->
+    <!-- 'Shared', 'e1-val1' and 'unspecified-enum-value' give the same enum constants as 'shared', 'e1val1' and 'unspecified' -->
     <xsd:simpleType name="Enum4">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="e4val1"/>
             <xsd:enumeration value="Shared"/>
             <xsd:enumeration value="e1-val1"/>
+            <xsd:enumeration value="unspecified-enum-value"/>
         </xsd:restriction>
     </xsd:simpleType>
 
