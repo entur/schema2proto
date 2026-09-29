@@ -32,4 +32,6 @@ public class NewField {
 	public String documentation;
 	// Allow even if field number and/or name is reserved
 	public boolean allowIfReserved;
+	// Add the field to the oneof with this name in the target message, creating the oneof if it does not exist
+	public String oneOf;
 }

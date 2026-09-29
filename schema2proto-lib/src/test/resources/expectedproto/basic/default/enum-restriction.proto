@@ -1,0 +1,123 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+enum BaseEnumeration {
+  // Default
+  BASE_ENUMERATION_UNSPECIFIED = 0;
+  BASE_ENUMERATION_AA = 1;
+  BASE_ENUMERATION_BB = 2;
+  BASE_ENUMERATION_CC = 3;
+}
+
+enum ChainedFacetEnumeration {
+  // Default
+  CHAINED_FACET_ENUMERATION_UNSPECIFIED = 0;
+  CHAINED_FACET_ENUMERATION_AA = 1;
+}
+
+enum DerivedEnumeration {
+  // Default
+  DERIVED_ENUMERATION_UNSPECIFIED = 0;
+  DERIVED_ENUMERATION_AA = 1;
+  DERIVED_ENUMERATION_BB = 2;
+  DERIVED_ENUMERATION_CC = 3;
+}
+
+message EnumHolderType {
+  BaseEnumeration base = 1;
+
+  DerivedEnumeration derived = 2;
+
+  LengthRestrictedEnumeration length_restricted = 3;
+
+  NarrowedEnumeration narrowed = 4;
+
+  MixedLengthEnumeration mixed_length = 5;
+
+  MaxLengthEnumeration max_length = 6;
+
+  PatternEnumeration pattern = 7;
+
+  ChainedFacetEnumeration chained_facet = 8;
+
+  ListEnumeration list = 9;
+
+  ListLengthEnumeration list_length = 10;
+
+  TokenEnumeration token = 11;
+
+  TokenLengthEnumeration token_length = 12;
+
+  HugeMaxLengthEnumeration huge_max_length = 13;
+}
+
+enum HugeMaxLengthEnumeration {
+  // Default
+  HUGE_MAX_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  HUGE_MAX_LENGTH_ENUMERATION_AA = 1;
+  HUGE_MAX_LENGTH_ENUMERATION_BBB = 2;
+  HUGE_MAX_LENGTH_ENUMERATION_C = 3;
+}
+
+enum LengthRestrictedEnumeration {
+  // Default
+  LENGTH_RESTRICTED_ENUMERATION_UNSPECIFIED = 0;
+  LENGTH_RESTRICTED_ENUMERATION_AA = 1;
+  LENGTH_RESTRICTED_ENUMERATION_BB = 2;
+  LENGTH_RESTRICTED_ENUMERATION_CC = 3;
+}
+
+enum ListEnumeration {
+  // Default
+  LIST_ENUMERATION_UNSPECIFIED = 0;
+  LIST_ENUMERATION_AA_BB = 1;
+  LIST_ENUMERATION_CCC = 2;
+}
+
+enum ListLengthEnumeration {
+  // Default
+  LIST_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  LIST_LENGTH_ENUMERATION_AA_BB = 1;
+}
+
+enum MaxLengthEnumeration {
+  // Default
+  MAX_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  MAX_LENGTH_ENUMERATION_AA = 1;
+  MAX_LENGTH_ENUMERATION_C = 2;
+}
+
+enum MixedLengthEnumeration {
+  // Default
+  MIXED_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  MIXED_LENGTH_ENUMERATION_AA = 1;
+  MIXED_LENGTH_ENUMERATION_BBB = 2;
+  MIXED_LENGTH_ENUMERATION_C = 3;
+}
+
+enum NarrowedEnumeration {
+  // Default
+  NARROWED_ENUMERATION_UNSPECIFIED = 0;
+  NARROWED_ENUMERATION_AA = 1;
+}
+
+enum PatternEnumeration {
+  // Default
+  PATTERN_ENUMERATION_UNSPECIFIED = 0;
+  PATTERN_ENUMERATION_AA = 1;
+  PATTERN_ENUMERATION_C = 2;
+}
+
+enum TokenEnumeration {
+  // Default
+  TOKEN_ENUMERATION_UNSPECIFIED = 0;
+  TOKEN_ENUMERATION_A_B = 1;
+  TOKEN_ENUMERATION_CCCC = 2;
+}
+
+enum TokenLengthEnumeration {
+  // Default
+  TOKEN_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  TOKEN_LENGTH_ENUMERATION_A_B = 1;
+}

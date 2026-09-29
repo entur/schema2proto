@@ -78,6 +78,7 @@ import no.entur.schema2proto.wire.MutableEnumConstant;
 import no.entur.schema2proto.wire.MutableEnumType;
 import no.entur.schema2proto.wire.MutableField;
 import no.entur.schema2proto.wire.MutableMessageType;
+import no.entur.schema2proto.wire.MutableOneOf;
 import no.entur.schema2proto.wire.MutableOptions;
 import no.entur.schema2proto.wire.MutableProtoFile;
 import no.entur.schema2proto.wire.MutableType;
@@ -526,17 +527,32 @@ public class ModifyProto {
 				fieldPackage = null;
 			}
 
+			String oneOfName = StringUtils.trimToNull(newField.oneOf);
+
 			Field.Label label = null;
 			if (StringUtils.trimToNull(newField.label) != null) {
+				if (oneOfName != null) {
+					throw new InvalidProtobufException(
+							"Field '" + newField.name + "' in type " + newField.targetMessageType + " cannot have a label when added to oneof " + oneOfName);
+				}
 				label = Field.Label.valueOf(newField.label.toUpperCase());
 			}
 			Location location = new Location("", "", -1, -1);
 
 			MutableField field = new MutableField(fieldPackage, location, label, newField.name, StringUtils.trimToEmpty(newField.documentation), tag, null,
 					newField.type, options, false, false);
-			List<MutableField> updatedFields = new ArrayList<>(type.fields());
-			updatedFields.add(field);
-			type.setDeclaredFields(updatedFields);
+			if (oneOfName != null) {
+				MutableOneOf oneOf = type.oneOfs().stream().filter(o -> o.name().equals(oneOfName)).findFirst().orElse(null);
+				if (oneOf == null) {
+					oneOf = new MutableOneOf(oneOfName, "", new ArrayList<>(), null);
+					type.oneOfs().add(oneOf);
+				}
+				oneOf.addField(field);
+			} else {
+				List<MutableField> updatedFields = new ArrayList<>(type.fields());
+				updatedFields.add(field);
+				type.setDeclaredFields(updatedFields);
+			}
 
 			String importStatement = StringUtils.trimToNull(newField.importProto);
 

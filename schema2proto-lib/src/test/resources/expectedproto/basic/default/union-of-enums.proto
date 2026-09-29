@@ -21,6 +21,7 @@ enum Enum2 {
 enum Enum3 {
   // Default
   ENUM3_UNSPECIFIED = 0;
+  ENUM3_E_5_VAL_1 = 1;
 }
 
 enum Enum4 {
