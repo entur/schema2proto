@@ -48,6 +48,16 @@ message EnumHolderType {
   TokenEnumeration token = 11;
 
   TokenLengthEnumeration token_length = 12;
+
+  HugeMaxLengthEnumeration huge_max_length = 13;
+}
+
+enum HugeMaxLengthEnumeration {
+  // Default
+  HUGE_MAX_LENGTH_ENUMERATION_UNSPECIFIED = 0;
+  HUGE_MAX_LENGTH_ENUMERATION_AA = 1;
+  HUGE_MAX_LENGTH_ENUMERATION_BBB = 2;
+  HUGE_MAX_LENGTH_ENUMERATION_C = 3;
 }
 
 enum LengthRestrictedEnumeration {

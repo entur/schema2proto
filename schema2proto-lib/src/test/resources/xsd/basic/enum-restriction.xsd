@@ -60,6 +60,13 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- Length facet values are not limited to the int range: all values -->
+    <xsd:simpleType name="HugeMaxLengthEnumeration">
+        <xsd:restriction base="MixedLengthEnumeration">
+            <xsd:maxLength value="99999999999"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="StringList">
         <xsd:list itemType="xsd:string"/>
     </xsd:simpleType>
@@ -107,6 +114,7 @@
                 <xsd:element name="ListLength" type="ListLengthEnumeration" minOccurs="0"/>
                 <xsd:element name="Token" type="TokenEnumeration" minOccurs="0"/>
                 <xsd:element name="TokenLength" type="TokenLengthEnumeration" minOccurs="0"/>
+                <xsd:element name="HugeMaxLength" type="HugeMaxLengthEnumeration" minOccurs="0"/>
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
