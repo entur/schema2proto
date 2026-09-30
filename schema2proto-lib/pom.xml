@@ -49,10 +49,6 @@
             <artifactId>protobuf-java</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java-util</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <scope>compile</scope>
@@ -64,10 +60,6 @@
         <dependency>
             <groupId>build.buf</groupId>
             <artifactId>protovalidate</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
         </dependency>
         <dependency>
             <groupId>no.entur</groupId>
