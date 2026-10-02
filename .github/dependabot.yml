@@ -6,9 +6,9 @@ updates:
     cooldown:
       default-days: 7
       exclude:
-        - "no.entur.*"
-        - "org.entur.*"
-        - "io.entur.*"
+        - "no.entur*"
+        - "org.entur*"
+        - "io.entur*"
     ignore:
       # Stay on Kotlin 2.3.x — allow patch updates only, block minor/major bumps beyond 2.3. Required to run CodeQL
       - dependency-name: "org.jetbrains.kotlin:*"
