@@ -236,6 +236,11 @@ public class ValidationRuleFactory {
 
 	}
 
+	public OptionElement createIgnoreIfZeroValueRule() {
+		OptionElement option = new OptionElement("ignore", OptionElement.Kind.ENUM, "IGNORE_IF_ZERO_VALUE", false);
+		return new OptionElement(PROTOVALIDATE_FIELD_NAME, OptionElement.Kind.OPTION, option, true);
+	}
+
 	private List<OptionElement> createOptionElements(String name, OptionElement.Kind kind, Object value) {
 		List<OptionElement> elements = new ArrayList<>();
 		OptionElement option = new OptionElement(name, kind, value, false);

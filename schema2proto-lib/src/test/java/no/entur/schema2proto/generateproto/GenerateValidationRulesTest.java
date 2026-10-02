@@ -78,8 +78,21 @@ public class GenerateValidationRulesTest extends AbstractMappingTest {
 		Assertions.assertEquals("// Proto schema formatted by Wire, do not edit.\n" + "// Source: default.proto\n" + "\n" + "syntax = \"proto3\";\n" + "\n"
 				+ "package default;\n" + "\n" + "import \"buf/validate/validate.proto\";\n" + "\n" + "enum EnumType {\n" + "  // Default\n"
 				+ "  ENUM_TYPE_UNSPECIFIED = 0;\n" + "  ENUM_TYPE_VALUE_1 = 1;\n" + "  ENUM_TYPE_VALUE_2 = 2;\n" + "}\n" + "\n" + "message TypeWithEnum {\n"
-				+ "  EnumType enum_attribute = 1;\n" + "\n" + "  string min_length_attribute = 2 [(buf.validate.field).string = {\n" + "    min_len: 2\n"
-				+ "  }];\n" + "}\n", generated);
+				+ "  EnumType enum_attribute = 1;\n" + "\n" + "  string min_length_attribute = 2 [\n" + "    (buf.validate.field).string = {\n"
+				+ "      min_len: 2\n" + "    },\n" + "    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE\n" + "  ];\n" + "}\n", generated);
+	}
+
+	@Test
+	public void generateProtobuf_whenOptionalAttributeWithRule_thenIgnoreIfZeroValue() throws IOException {
+		generateProtobuf("test-attribute-optional-required.xsd", validationOptions());
+		String generated = IOUtils.toString(Files.newInputStream(Paths.get("target/generated-proto/default/default.proto")), Charset.defaultCharset());
+		Assertions.assertEquals("// Proto schema formatted by Wire, do not edit.\n" + "// Source: default.proto\n" + "\n" + "syntax = \"proto3\";\n" + "\n"
+				+ "package default;\n" + "\n" + "import \"buf/validate/validate.proto\";\n" + "\n" + "message TypeWithOptionalAndRequiredAttributes {\n"
+				+ "  uint32 optional_positive_integer = 1 [\n" + "    (buf.validate.field).uint32.gt = 0,\n"
+				+ "    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE\n" + "  ];\n" + "\n"
+				+ "  uint32 required_positive_integer = 2 [(buf.validate.field).uint32.gt = 0];\n" + "\n" + "  string optional_language = 3 [\n"
+				+ "    (buf.validate.field).string.pattern = \"[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*\",\n"
+				+ "    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE\n" + "  ];\n" + "\n" + "  string optional_string = 4;\n" + "}\n", generated);
 	}
 
 	private Schema2ProtoConfiguration validationOptions() {

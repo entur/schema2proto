@@ -549,7 +549,7 @@ public class SchemaParser implements ErrorHandler {
 	}
 
 	@NotNull
-	private MutableOptions getFieldOptions(XSAttributeDecl attributeDecl) {
+	private MutableOptions getFieldOptions(XSAttributeDecl attributeDecl, boolean required) {
 		List<OptionElement> optionElements = new ArrayList<>();
 
 		// First see if there are rules associated with attribute declaration
@@ -560,6 +560,10 @@ public class SchemaParser implements ErrorHandler {
 			// Check attribute TYPE rules
 			List<OptionElement> typeRule = ruleFactory.getValidationRule(attributeDecl.getType());
 			optionElements.addAll(typeRule);
+		}
+		// Optional attributes may be omitted, which proto3 cannot distinguish from the zero value. Only validate when set.
+		if (!required && !optionElements.isEmpty()) {
+			optionElements.add(ruleFactory.createIgnoreIfZeroValueRule());
 		}
 		return new MutableOptions(MutableOptions.FIELD_OPTIONS, optionElements);
 	}
@@ -936,7 +940,7 @@ public class SchemaParser implements ErrorHandler {
 				String doc = resolveDocumentationAnnotation(decl, false);
 				int tag = messageType.getNextFieldNum();
 				Location fieldLocation = getLocation(decl);
-				MutableOptions fieldOptions = getFieldOptions(decl);
+				MutableOptions fieldOptions = getFieldOptions(decl, attr.isRequired());
 				String packageName = NamespaceHelper.xmlNamespaceToProtoFieldPackagename(fieldTypeNamespace(type), configuration.forceProtoPackage);
 				Label label = type.isList() ? Label.REPEATED : null;
 

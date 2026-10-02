@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" version="1.0">
+    <xsd:complexType name="TypeWithOptionalAndRequiredAttributes">
+        <xsd:attribute name="optionalPositiveInteger" type="xsd:positiveInteger" use="optional"/>
+        <xsd:attribute name="requiredPositiveInteger" type="xsd:positiveInteger" use="required"/>
+        <xsd:attribute name="optionalLanguage" type="xsd:language"/>
+        <xsd:attribute name="optionalString" type="xsd:string"/>
+    </xsd:complexType>
+</xsd:schema>
