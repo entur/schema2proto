@@ -31,7 +31,9 @@ message DirectionsType {
 }
 message ParaType {
   repeated string strong = 1;
+  string value = 11;
 }
 message BulletType {
   repeated string strong = 1;
+  string value = 11;
 }

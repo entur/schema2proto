@@ -845,6 +845,13 @@ public class SchemaParser implements ErrorHandler {
 			}
 		}
 
+		if (isBaseLevel && complexType.isMixed()) {
+			// Mixed content allows character data, with or without child elements. Keep it as a string value field.
+			MutableField field = new MutableField(null, getLocation(complexType), null, SIMPLECONTENT_VALUE_FIELD_NAME, null, messageType.getNextFieldNum(),
+					DEFAULT_PROTO_PRIMITIVE, new MutableOptions(MutableOptions.FIELD_OPTIONS, new ArrayList<>()), true);
+			addField(messageType, field);
+		}
+
 		nestingLevel--;
 		return messageType;
 
