@@ -1,0 +1,14 @@
+// default.proto at 0:0
+syntax = "proto3";
+package default;
+
+message MultilingualString {
+  string lang = 1;
+  repeated TextType text = 2;
+  string value = 11;
+}
+
+message TextType {
+  string lang = 1;
+  string value = 2;
+}

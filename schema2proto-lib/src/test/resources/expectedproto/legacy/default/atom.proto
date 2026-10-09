@@ -43,6 +43,7 @@ message TextType {
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 3;
   string any = 4;
+  string value = 11;
 
   enum TypeType {
     // Default
@@ -192,4 +193,5 @@ message ContentType {
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 4;
   repeated string any = 5;
+  string value = 11;
 }
