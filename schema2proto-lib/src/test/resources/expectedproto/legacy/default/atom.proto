@@ -159,6 +159,7 @@ message LinkType {
   string base = 7;
   // In due course, we should install the relevant ISO 2- and 3-letter codes as the enumerated possible values . . .
   string lang = 8;
+  string value = 9;
 }
 // The Atom person construct is defined in section 3.2 of the format spec.
 message PersonType {

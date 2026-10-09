@@ -9,6 +9,10 @@
         <xsd:attribute name="lang" type="xsd:string"/>
     </xsd:complexType>
 
+    <xsd:complexType name="Link" mixed="true">
+        <xsd:attribute name="href" type="xsd:string"/>
+    </xsd:complexType>
+
     <xsd:complexType name="TextType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
