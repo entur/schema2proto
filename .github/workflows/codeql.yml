@@ -27,7 +27,8 @@ jobs:
       pull-requests: write
     with:
       use_setup_java: true
-      java_version: "25"
+      # CVE-2026-91403: '25' resolves to an unfixed Liberica build; '25.0.5+0.3.5' is the patched one
+      java_version: "25.0.5+0.3.5"
       java_distribution: "liberica"
       java_server_id_artifactory: entur-partner
       use_maven_cache: true
